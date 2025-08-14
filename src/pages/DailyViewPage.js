@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import HabitChecklist from "../components/HabitChecklist";
 import HabitChart from "../components/HabitChart";
-import { getHabits, markHabitComplete } from "../services/habitService";
+import { getHabits, markHabitComplete, deleteHabit } from "../services/habitService";
 import { calculateRollingAverage } from "../utils/rollingAverage";
 
 function getLastNDates(n) {
@@ -30,6 +30,11 @@ export default function DailyViewPage() {
     const updatedHabits = getHabits();
     console.log("Habits after markComplete:", updatedHabits);
     setHabits(updatedHabits);
+  }
+
+  function handleDelete(id) {
+    deleteHabit(id);
+    setHabits(getHabits());
   }
 
   function handleSelectHabit(id) {
@@ -64,7 +69,7 @@ export default function DailyViewPage() {
   return (
     <div style={{ padding: 16, maxWidth: 700, margin: "0 auto" }}>
       <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Today's Habits</h2>
-      <HabitChecklist habits={habits} onComplete={handleComplete} />
+  <HabitChecklist habits={habits} onComplete={handleComplete} onDelete={handleDelete} />
       <div style={{ marginTop: 32 }}>
         <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Progress Chart</h2>
         <div
