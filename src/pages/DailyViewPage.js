@@ -1,9 +1,10 @@
 // DailyViewPage.js
-import React, { useState, useEffect } from 'react';
-import HabitChecklist from '../components/HabitChecklist';
-import HabitChart from '../components/HabitChart';
-import { getHabits, markHabitComplete } from '../services/habitService';
-import { calculateRollingAverage } from '../utils/rollingAverage';
+
+import React, { useState, useEffect } from "react";
+import HabitChecklist from "../components/HabitChecklist";
+import HabitChart from "../components/HabitChart";
+import { getHabits, markHabitComplete } from "../services/habitService";
+import { calculateRollingAverage } from "../utils/rollingAverage";
 
 function getLastNDates(n) {
   const dates = [];
@@ -17,51 +18,107 @@ function getLastNDates(n) {
 
 export default function DailyViewPage() {
   const [habits, setHabits] = useState([]);
-  const [selectedHabitId, setSelectedHabitId] = useState(null);
+  const [selectedHabitIds, setSelectedHabitIds] = useState([]);
 
   useEffect(() => {
     setHabits(getHabits());
   }, []);
 
-  function handleComplete(id, date) {
-    markHabitComplete(id, date);
-    setHabits(getHabits());
+  function handleComplete(id, date, isChecked) {
+    console.log("handleComplete called:", { id, date, isChecked });
+    markHabitComplete(id, date, isChecked);
+    const updatedHabits = getHabits();
+    console.log("Habits after markComplete:", updatedHabits);
+    setHabits(updatedHabits);
+  }
+
+  function handleSelectHabit(id) {
+    setSelectedHabitIds((prev) =>
+      prev.includes(id) ? prev.filter((hid) => hid !== id) : [...prev, id]
+    );
+  }
+
+  function handleSelectAll() {
+    setSelectedHabitIds([]);
   }
 
   const last7Days = getLastNDates(7);
-  const chartData = selectedHabitId
-    ? calculateRollingAverage(
-        habits.find(h => h.id === selectedHabitId)?.completedDates || [],
-        last7Days
-      )
-    : habits.map(habit => ({
-        name: habit.name,
-        ...calculateRollingAverage(habit.completedDates, last7Days).slice(-1)[0],
-      }));
+  // If none selected, show all habits. If some selected, show only those.
+  const filteredHabits =
+    selectedHabitIds.length === 0
+      ? habits
+      : habits.filter((h) => selectedHabitIds.includes(h.id));
+
+  // Calculate average for each day for selected habits
+  const chartData = last7Days.map((date) => {
+    const total = filteredHabits.length;
+    const completed = filteredHabits.filter((h) =>
+      h.completedDates.includes(date)
+    ).length;
+    return {
+      date,
+      percent: total === 0 ? 0 : (completed / total) * 100,
+    };
+  });
 
   return (
-    <div style={{ padding: 16, maxWidth: 700, margin: '0 auto' }}>
+    <div style={{ padding: 16, maxWidth: 700, margin: "0 auto" }}>
       <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Today's Habits</h2>
       <HabitChecklist habits={habits} onComplete={handleComplete} />
       <div style={{ marginTop: 32 }}>
         <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Progress Chart</h2>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
-          {habits.map(habit => (
-            <button
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            flexWrap: "wrap",
+            marginBottom: 16,
+          }}
+        >
+          {habits.map((habit) => (
+            <div
               key={habit.id}
-              style={{ padding: 8, border: selectedHabitId === habit.id ? '2px solid #fc5200' : '1px solid #ccc', borderRadius: 4, background: selectedHabitId === habit.id ? '#fff7f2' : '#fff', fontWeight: 500 }}
-              onClick={() => setSelectedHabitId(habit.id)}
+              style={{ display: "flex", alignItems: "center", gap: 6 }}
             >
-              {habit.name}
-            </button>
+              <input
+                type="checkbox"
+                checked={selectedHabitIds.includes(habit.id)}
+                onChange={() => {
+                  console.log("Checkbox changed for habit:", habit.id);
+                  handleSelectHabit(habit.id);
+                }}
+                style={{ accentColor: "#fc5200", width: 18, height: 18 }}
+              />
+              <span style={{ fontWeight: 500 }}>{habit.name}</span>
+            </div>
           ))}
-          <button onClick={() => setSelectedHabitId(null)} style={{ padding: 8, border: '1px solid #ccc', borderRadius: 4, background: '#fff', fontWeight: 500 }}>
+          <button
+            onClick={handleSelectAll}
+            style={{
+              padding: 8,
+              border:
+                selectedHabitIds.length === 0
+                  ? "2px solid #fc5200"
+                  : "1px solid #ccc",
+              borderRadius: 4,
+              background: selectedHabitIds.length === 0 ? "#fff7f2" : "#fff",
+              fontWeight: 500,
+              opacity: selectedHabitIds.length === 0 ? 1 : 0.85,
+              boxShadow:
+                selectedHabitIds.length === 0 ? "0 2px 8px #fc520033" : "none",
+              transition: "all 0.2s",
+            }}
+          >
             All Habits
           </button>
         </div>
         <HabitChart
-          data={Array.isArray(chartData) ? chartData : [chartData]}
-          title={selectedHabitId ? habits.find(h => h.id === selectedHabitId)?.name : 'All Habits'}
+          data={chartData}
+          title={
+            selectedHabitIds.length === 0
+              ? "All Habits"
+              : `Selected Habits (${selectedHabitIds.length})`
+          }
         />
       </div>
     </div>
