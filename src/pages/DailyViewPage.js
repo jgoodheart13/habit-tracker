@@ -47,83 +47,68 @@ export default function DailyViewPage() {
     setSelectedHabitIds([]);
   }
 
-  const last7Days = getLastNDates(7);
-  // If none selected, show all habits. If some selected, show only those.
-  const filteredHabits =
-    selectedHabitIds.length === 0
-      ? habits
-      : habits.filter((h) => selectedHabitIds.includes(h.id));
+  const last14Days = getLastNDates(14);
+  // Organize habits by type
+  const baselineHabits = habits.filter((h) => h.type === "P1");
+  const reachHabits = habits.filter((h) => h.type === "P2");
 
-  // Calculate average for each day for selected habits
-  const chartData = last7Days.map((date) => {
-    const total = filteredHabits.length;
-    const completed = filteredHabits.filter((h) =>
+  // Checklist grouping
+  function renderGroupedChecklist() {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div>
+          <h3 style={{ margin: "8px 0", color: "#228B22" }}>Baseline (P1)</h3>
+          <HabitChecklist
+            habits={baselineHabits}
+            onComplete={handleComplete}
+            onDelete={handleDelete}
+          />
+        </div>
+        <div>
+          <h3 style={{ margin: "8px 0", color: "#fc5200" }}>Reach (P2)</h3>
+          <HabitChecklist
+            habits={reachHabits}
+            onComplete={handleComplete}
+            onDelete={handleDelete}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Chart data for stacked lines
+  const chartData = last14Days.map((date) => {
+    // Baseline (P1)
+    const p1Total = baselineHabits.length;
+    const p1Completed = baselineHabits.filter((h) =>
       h.completedDates.includes(date)
     ).length;
+    const p1Percent = p1Total === 0 ? 0 : (p1Completed / p1Total) * 100;
+    // Reach (P2)
+    const p2Total = reachHabits.length;
+    const p2Completed = reachHabits.filter((h) =>
+      h.completedDates.includes(date)
+    ).length;
+    const p2Percent = p2Total === 0 ? 0 : (p2Completed / p2Total) * 100;
+    // Combined: true sum
+    const combined = p1Percent + p2Percent;
     return {
       date,
-      percent: total === 0 ? 0 : (completed / total) * 100,
+      baseline: p1Percent,
+      reach: p2Percent,
+      combined,
     };
   });
 
   return (
     <div style={{ padding: 16, maxWidth: 700, margin: "0 auto" }}>
       <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Today's Habits</h2>
-  <HabitChecklist habits={habits} onComplete={handleComplete} onDelete={handleDelete} />
+      {renderGroupedChecklist()}
       <div style={{ marginTop: 32 }}>
         <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Progress Chart</h2>
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            marginBottom: 16,
-          }}
-        >
-          {habits.map((habit) => (
-            <div
-              key={habit.id}
-              style={{ display: "flex", alignItems: "center", gap: 6 }}
-            >
-              <input
-                type="checkbox"
-                checked={selectedHabitIds.includes(habit.id)}
-                onChange={() => {
-                  console.log("Checkbox changed for habit:", habit.id);
-                  handleSelectHabit(habit.id);
-                }}
-                style={{ accentColor: "#fc5200", width: 18, height: 18 }}
-              />
-              <span style={{ fontWeight: 500 }}>{habit.name}</span>
-            </div>
-          ))}
-          <button
-            onClick={handleSelectAll}
-            style={{
-              padding: 8,
-              border:
-                selectedHabitIds.length === 0
-                  ? "2px solid #fc5200"
-                  : "1px solid #ccc",
-              borderRadius: 4,
-              background: selectedHabitIds.length === 0 ? "#fff7f2" : "#fff",
-              fontWeight: 500,
-              opacity: selectedHabitIds.length === 0 ? 1 : 0.85,
-              boxShadow:
-                selectedHabitIds.length === 0 ? "0 2px 8px #fc520033" : "none",
-              transition: "all 0.2s",
-            }}
-          >
-            All Habits
-          </button>
-        </div>
         <HabitChart
           data={chartData}
-          title={
-            selectedHabitIds.length === 0
-              ? "All Habits"
-              : `Selected Habits (${selectedHabitIds.length})`
-          }
+          title="Baseline vs Reach Habit Completion"
         />
       </div>
     </div>
