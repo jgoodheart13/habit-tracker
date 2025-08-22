@@ -12,8 +12,9 @@ import {
 } from "recharts";
 
 export default function HabitChart({ data, title }) {
+  // Always use p1Percent for baselineBar
   const chartData = data.map((d) => {
-    const baselineBar = d.baseline ?? 0;
+    const baselineBar = d.p1Percent ?? 0;
     const reachScaled = d.reachScaled ?? 0;
     const reachGreenBar = Math.max(0, Math.min(reachScaled, 100 - baselineBar));
     const reachYellowBar = Math.max(0, reachScaled - reachGreenBar);
@@ -87,5 +88,4 @@ export default function HabitChart({ data, title }) {
       </ResponsiveContainer>
     </div>
   );
-  // ...existing code...
 }

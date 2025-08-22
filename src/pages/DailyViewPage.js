@@ -24,17 +24,25 @@ function getLastNDates(n) {
 export default function DailyViewPage() {
   const [habits, setHabits] = useState([]);
   const [selectedHabitIds, setSelectedHabitIds] = useState([]);
+  // Track the active date (default to today)
+  const [activeDate, setActiveDate] = useState(() =>
+    new Date().toISOString().slice(0, 10)
+  );
 
   useEffect(() => {
     setHabits(getHabits());
   }, []);
 
+  // Arrow navigation handlers
+  function changeDate(offset) {
+    const d = new Date(activeDate);
+    d.setDate(d.getDate() + offset);
+    setActiveDate(d.toISOString().slice(0, 10));
+  }
+
   function handleComplete(id, date, isChecked) {
-    console.log("handleComplete called:", { id, date, isChecked });
     markHabitComplete(id, date, isChecked);
-    const updatedHabits = getHabits();
-    console.log("Habits after markComplete:", updatedHabits);
-    setHabits(updatedHabits);
+    setHabits(getHabits());
   }
 
   function handleDelete(id) {
@@ -52,7 +60,17 @@ export default function DailyViewPage() {
     setSelectedHabitIds([]);
   }
 
-  const last14Days = getLastNDates(14);
+  // Chart and checklist should use the active date as the reference
+  const last14Days = (() => {
+    const dates = [];
+    const d = new Date(activeDate);
+    for (let i = 13; i >= 0; i--) {
+      const dd = new Date(d);
+      dd.setDate(d.getDate() - i);
+      dates.push(dd.toISOString().slice(0, 10));
+    }
+    return dates;
+  })();
   // Organize habits by type
   const baselineHabits = habits.filter((h) => h.type === "P1");
   const reachHabits = habits.filter((h) => h.type === "P2");
@@ -67,6 +85,7 @@ export default function DailyViewPage() {
             habits={baselineHabits}
             onComplete={handleComplete}
             onDelete={handleDelete}
+            date={activeDate}
           />
         </div>
         <div>
@@ -75,6 +94,7 @@ export default function DailyViewPage() {
             habits={reachHabits}
             onComplete={handleComplete}
             onDelete={handleDelete}
+            date={activeDate}
           />
         </div>
       </div>
@@ -100,8 +120,8 @@ export default function DailyViewPage() {
     const combined = p1Percent + reachScaled;
     return {
       date,
-      baseline: p1Percent,
-      reach: p2Percent,
+      p1Percent,
+      p2Percent,
       reachScaled,
       combined,
     };
@@ -109,7 +129,56 @@ export default function DailyViewPage() {
 
   return (
     <div style={{ padding: 16, maxWidth: 700, margin: "0 auto" }}>
-      <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Today's Habits</h2>
+      {/* Date navigation header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
+          marginBottom: 18,
+        }}
+      >
+        <button
+          onClick={() => changeDate(-1)}
+          style={{
+            fontSize: 22,
+            padding: "4px 12px",
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          &larr;
+        </button>
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 20,
+            minWidth: 140,
+            textAlign: "center",
+          }}
+        >
+          {activeDate}
+        </span>
+        <button
+          onClick={() => changeDate(1)}
+          style={{
+            fontSize: 22,
+            padding: "4px 12px",
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          &rarr;
+        </button>
+      </div>
+      <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
+        Habits for {activeDate}
+      </h2>
       {renderGroupedChecklist()}
       <div style={{ marginTop: 32 }}>
         <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Progress Chart</h2>
@@ -128,8 +197,7 @@ export default function DailyViewPage() {
             {habits
               .filter((h) => !h.frequency.daily)
               .map((habit) => {
-                const today = new Date().toISOString().slice(0, 10);
-                const checked = habit.completedDates.includes(today);
+                const checked = habit.completedDates.includes(activeDate);
                 return (
                   <label
                     key={habit.id}
@@ -139,7 +207,7 @@ export default function DailyViewPage() {
                       type="checkbox"
                       checked={checked}
                       onChange={(e) =>
-                        handleComplete(habit.id, today, e.target.checked)
+                        handleComplete(habit.id, activeDate, e.target.checked)
                       }
                       style={{ accentColor: "#fc5200", width: 20, height: 20 }}
                     />
