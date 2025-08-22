@@ -12,10 +12,18 @@ import {
 } from "recharts";
 
 export default function HabitChart({ data, title }) {
-  const chartData = data.map((d) => ({
-    ...d,
-    reachScaled: d.reachScaled ?? 0,
-  }));
+  const chartData = data.map((d) => {
+    const baselineBar = d.baseline ?? 0;
+    const reachScaled = d.reachScaled ?? 0;
+    const reachGreenBar = Math.max(0, Math.min(reachScaled, 100 - baselineBar));
+    const reachYellowBar = Math.max(0, reachScaled - reachGreenBar);
+    return {
+      ...d,
+      baselineBar,
+      reachGreenBar,
+      reachYellowBar,
+    };
+  });
   return (
     <div
       style={{
@@ -58,16 +66,22 @@ export default function HabitChart({ data, title }) {
             }}
           />
           <Bar
-            dataKey="baseline"
+            dataKey="baselineBar"
             stackId="a"
             fill="#3c5ef8ff"
             name="Baseline (P1)"
           />
           <Bar
-            dataKey="reachScaled"
+            dataKey="reachGreenBar"
+            stackId="a"
+            fill="#22bb33"
+            name="Reach (P2) to Baseline"
+          />
+          <Bar
+            dataKey="reachYellowBar"
             stackId="a"
             fill="#fabf52ff"
-            name="Reach (P2)"
+            name="Reach (P2) above Baseline"
           />
         </BarChart>
       </ResponsiveContainer>
