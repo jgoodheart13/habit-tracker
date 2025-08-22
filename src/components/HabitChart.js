@@ -10,9 +10,15 @@ import {
   CartesianGrid,
   Area,
   ReferenceLine,
+  ComposedChart,
 } from "recharts";
 
 export default function HabitChart({ data, title }) {
+  const chartData = data.map((d) => ({
+    ...d,
+    delta: Math.max(0, (d.combined ?? 0) - (d.baseline ?? 0)),
+  }));
+
   return (
     <div
       style={{
@@ -26,8 +32,8 @@ export default function HabitChart({ data, title }) {
     >
       <h3 style={{ margin: "0 0 12px 0", fontWeight: 600 }}>{title}</h3>
       <ResponsiveContainer>
-        <LineChart
-          data={data}
+        <ComposedChart
+          data={chartData}
           margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
@@ -39,10 +45,10 @@ export default function HabitChart({ data, title }) {
           />
           <Tooltip
             formatter={(value) =>
-              value == null ? "-" : `${value.toFixed(1)}%`
+              value == null ? "-" : `${Number(value).toFixed(1)}%`
             }
           />
-          {/* Horizontal reference line at 100% */}
+
           <ReferenceLine
             y={100}
             stroke="#888"
@@ -54,7 +60,28 @@ export default function HabitChart({ data, title }) {
               fill: "#888",
             }}
           />
-          {/* Baseline Target Line */}
+
+          {/* stack areas: green up to baseline, yellow only above it */}
+          <Area
+            type="monotone"
+            dataKey="baseline"
+            stackId="1"
+            stroke="none"
+            fill="#228B22"
+            fillOpacity={0.25}
+            name="Baseline (P1)"
+          />
+          <Area
+            type="monotone"
+            dataKey="delta"
+            stackId="1"
+            stroke="none"
+            fill="#FFA500"
+            fillOpacity={0.25}
+            name="Baseline + Reach (P1+P2)"
+          />
+
+          {/* lines on top */}
           <Line
             type="monotone"
             dataKey="baseline"
@@ -63,15 +90,6 @@ export default function HabitChart({ data, title }) {
             dot={{ r: 4 }}
             name="Baseline (P1)"
           />
-          {/* Reach Area (fill between baseline and reach) */}
-          <Area
-            type="monotone"
-            dataKey="reach"
-            stroke="#fc5200"
-            fill="#fc520033"
-            name="Reach (P2)"
-          />
-          {/* Combined Line (optional) */}
           <Line
             type="monotone"
             dataKey="combined"
@@ -80,7 +98,7 @@ export default function HabitChart({ data, title }) {
             dot={false}
             name="Baseline + Reach (P1+P2)"
           />
-        </LineChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );
