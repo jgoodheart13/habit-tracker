@@ -90,12 +90,14 @@ export default function DailyViewPage() {
       h.completedDates.includes(date)
     ).length;
     const p2Percent = p2Total === 0 ? 0 : (p2Completed / p2Total) * 100;
-    // Combined: true sum
-    const combined = p1Percent + p2Percent;
+    // Inverse relationship: scaled reach
+    const reachScaled = p2Percent * (p1Percent / 100);
+    const combined = p1Percent + reachScaled;
     return {
       date,
       baseline: p1Percent,
       reach: p2Percent,
+      reachScaled,
       combined,
     };
   });

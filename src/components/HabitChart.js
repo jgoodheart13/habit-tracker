@@ -67,25 +67,25 @@ export default function HabitChart({ data, title }) {
             dataKey="baseline"
             stackId="1"
             stroke="none"
-            fill="#228B22"
+            fill="#3c5ef8ff"
             fillOpacity={0.25}
-            name="Baseline (P1)"
+            // name="Baseline (P1)"
           />
           <Area
             type="monotone"
             dataKey="delta"
             stackId="1"
             stroke="none"
-            fill="#FFA500"
+            fill="#fabf52ff"
             fillOpacity={0.25}
-            name="Baseline + Reach (P1+P2)"
+            // name="Baseline + Reach (P1+P2)"
           />
 
           {/* lines on top */}
           <Line
             type="monotone"
             dataKey="baseline"
-            stroke="#228B22"
+            stroke="#3c5ef8ff"
             strokeWidth={3}
             dot={{ r: 4 }}
             name="Baseline (P1)"
@@ -93,7 +93,7 @@ export default function HabitChart({ data, title }) {
           <Line
             type="monotone"
             dataKey="combined"
-            stroke="#FFA500"
+            stroke="#fabf52ff"
             strokeWidth={2}
             dot={false}
             name="Baseline + Reach (P1+P2)"
