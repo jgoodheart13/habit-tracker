@@ -1,24 +1,21 @@
 // HabitChart.js
 import React from 'react';
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  Area,
   ReferenceLine,
-  ComposedChart,
 } from "recharts";
 
 export default function HabitChart({ data, title }) {
   const chartData = data.map((d) => ({
     ...d,
-    delta: Math.max(0, (d.combined ?? 0) - (d.baseline ?? 0)),
+    reachScaled: d.reachScaled ?? 0,
   }));
-
   return (
     <div
       style={{
@@ -32,9 +29,10 @@ export default function HabitChart({ data, title }) {
     >
       <h3 style={{ margin: "0 0 12px 0", fontWeight: 600 }}>{title}</h3>
       <ResponsiveContainer>
-        <ComposedChart
+        <BarChart
           data={chartData}
           margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+          barCategoryGap={8}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -48,7 +46,6 @@ export default function HabitChart({ data, title }) {
               value == null ? "-" : `${Number(value).toFixed(1)}%`
             }
           />
-
           <ReferenceLine
             y={100}
             stroke="#888"
@@ -60,45 +57,19 @@ export default function HabitChart({ data, title }) {
               fill: "#888",
             }}
           />
-
-          {/* stack areas: green up to baseline, yellow only above it */}
-          <Area
-            type="monotone"
+          <Bar
             dataKey="baseline"
-            stackId="1"
-            stroke="none"
+            stackId="a"
             fill="#3c5ef8ff"
-            fillOpacity={0.25}
-            // name="Baseline (P1)"
-          />
-          <Area
-            type="monotone"
-            dataKey="delta"
-            stackId="1"
-            stroke="none"
-            fill="#fabf52ff"
-            fillOpacity={0.25}
-            // name="Baseline + Reach (P1+P2)"
-          />
-
-          {/* lines on top */}
-          <Line
-            type="monotone"
-            dataKey="baseline"
-            stroke="#3c5ef8ff"
-            strokeWidth={3}
-            dot={{ r: 4 }}
             name="Baseline (P1)"
           />
-          <Line
-            type="monotone"
-            dataKey="combined"
-            stroke="#fabf52ff"
-            strokeWidth={2}
-            dot={false}
-            name="Baseline + Reach (P1+P2)"
+          <Bar
+            dataKey="reachScaled"
+            stackId="a"
+            fill="#fabf52ff"
+            name="Reach (P2)"
           />
-        </ComposedChart>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );
