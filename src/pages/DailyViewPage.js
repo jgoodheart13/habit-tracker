@@ -6,6 +6,7 @@ import HabitChart from "../components/HabitChart";
 import WeeklyHabitBar from "../components/WeeklyHabitBar";
 import WeeklyProgressChart from "../components/WeeklyProgressChart";
 import HabitForm from "../components/HabitForm";
+import DailyProgressBar from "../components/DailyProgressBar";
 import {
   getHabits,
   markHabitComplete,
@@ -16,6 +17,8 @@ import {
 // function getLastNDates(n) { /* unused */ }
 
 export default function DailyViewPage() {
+  // Toggle for chart view: 'daily' or 'lookback'
+  const [chartView, setChartView] = useState("lookback");
   const [habits, setHabits] = useState([]);
   // const [selectedHabitIds, setSelectedHabitIds] = useState([]); // unused
   const [activeTab, setActiveTab] = useState("daily"); // 'daily' or 'weekly'
@@ -309,19 +312,66 @@ export default function DailyViewPage() {
       </div>
       {activeTab === "daily" && (
         <>
-          <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
-            Habits for {activeDate}
-          </h2>
-          {renderGroupedChecklist()}
-          <div style={{ marginTop: 32, marginBottom: 48 }}>
-            <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
-              Progress Chart
-            </h2>
-            <HabitChart
-              data={chartData}
-              title="Baseline vs Reach Habit Completion"
-            />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              margin: "24px 0 12px 0",
+            }}
+          >
+            <button
+              onClick={() => setChartView("daily")}
+              style={{
+                fontWeight: chartView === "daily" ? 700 : 400,
+                background: chartView === "daily" ? "#fc5200" : "#fff",
+                color: chartView === "daily" ? "#fff" : "#333",
+                border: "1px solid #ccc",
+                borderRadius: 6,
+                padding: "6px 18px",
+                cursor: "pointer",
+                fontSize: 15,
+                boxShadow:
+                  chartView === "daily"
+                    ? "0 2px 8px rgba(252,82,0,0.08)"
+                    : "none",
+                transition: "background 0.2s",
+              }}
+            >
+              Daily
+            </button>
+            <button
+              onClick={() => setChartView("lookback")}
+              style={{
+                fontWeight: chartView === "lookback" ? 700 : 400,
+                background: chartView === "lookback" ? "#fc5200" : "#fff",
+                color: chartView === "lookback" ? "#fff" : "#333",
+                border: "1px solid #ccc",
+                borderRadius: 6,
+                padding: "6px 18px",
+                cursor: "pointer",
+                fontSize: 15,
+                boxShadow:
+                  chartView === "lookback"
+                    ? "0 2px 8px rgba(252,82,0,0.08)"
+                    : "none",
+                transition: "background 0.2s",
+              }}
+            >
+              7 Day Lookback
+            </button>
           </div>
+          <div style={{ marginTop: 12, marginBottom: 48 }}>
+            {chartView === "daily" ? (
+              <DailyProgressBar habits={habits} activeDate={activeDate} />
+            ) : (
+              <HabitChart
+                data={chartData}
+                title="Daily Habit Completion (7 Day Lookback)"
+              />
+            )}
+          </div>
+          {renderGroupedChecklist()}
         </>
       )}
       {activeTab === "weekly" &&
