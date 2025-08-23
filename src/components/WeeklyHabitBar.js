@@ -1,6 +1,8 @@
 // WeeklyHabitBar.js
 import React from 'react';
 
+// Accept handleComplete and activeDate as props
+
 // Helper to get all days in current week (Monday-Sunday)
 function getWeekDays() {
   const now = new Date();
@@ -13,7 +15,7 @@ function getWeekDays() {
   });
 }
 
-export default function WeeklyHabitBar({ habit }) {
+export default function WeeklyHabitBar({ habit, activeDate, handleComplete, handleDelete }) {
   const weekDays = getWeekDays();
   const completed = weekDays.filter(d => habit.completedDates.includes(d));
   const n = habit.frequency.timesPerWeek;
@@ -36,9 +38,31 @@ export default function WeeklyHabitBar({ habit }) {
       colored.push('gray');
     }
   }
+  // Checkbox for this week's activeDate
+  const checked = habit.completedDates.includes(activeDate);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-      <span style={{ minWidth: 120, fontWeight: 500 }}>{habit.name}</span>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      background: '#fff',
+      padding: 10,
+      borderRadius: 8,
+      boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+      marginBottom: 8,
+    }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 180 }}>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={e => handleComplete(habit.id, activeDate, e.target.checked)}
+          style={{ accentColor: '#fc5200', width: 20, height: 20 }}
+        />
+        <span style={{ fontWeight: 500 }}>{habit.name}</span>
+        <span style={{ fontSize: 12, color: '#888' }}>
+          ({habit.frequency.timesPerWeek}x/week)
+        </span>
+      </label>
       <div style={{ display: 'flex', gap: 2 }}>
         {colored.map((color, idx) => (
           <div
@@ -66,6 +90,28 @@ export default function WeeklyHabitBar({ habit }) {
       <span style={{ marginLeft: 12, fontSize: 13, color: '#888' }}>
         {completed.length} / {n} goal
       </span>
+      <button
+        onClick={() => handleDelete(habit.id)}
+        title="Delete habit"
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          marginLeft: 'auto',
+          padding: 4,
+          color: '#fc5200',
+          display: 'flex',
+          alignItems: 'center',
+          borderRadius: 4,
+          transition: 'background 0.2s',
+        }}
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="8" width="8" height="8" rx="2" />
+          <rect x="8" y="4" width="4" height="2" rx="1" />
+          <rect x="5" y="6" width="10" height="2" rx="1" />
+        </svg>
+      </button>
     </div>
   );
 }

@@ -187,48 +187,20 @@ export default function DailyViewPage() {
           title="Baseline vs Reach Habit Completion"
         />
       </div>
-      {/* Weekly habits checkbox section */}
-      {habits.filter((h) => !h.frequency.daily).length > 0 && (
-        <div style={{ marginTop: 32, marginBottom: 16 }}>
-          <h2 style={{ fontWeight: 700, marginBottom: 12 }}>
-            Weekly Goal Checkboxes
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {habits
-              .filter((h) => !h.frequency.daily)
-              .map((habit) => {
-                const checked = habit.completedDates.includes(activeDate);
-                return (
-                  <label
-                    key={habit.id}
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) =>
-                        handleComplete(habit.id, activeDate, e.target.checked)
-                      }
-                      style={{ accentColor: "#fc5200", width: 20, height: 20 }}
-                    />
-                    <span style={{ fontWeight: 500 }}>{habit.name}</span>
-                    <span style={{ fontSize: 12, color: "#888" }}>
-                      ({habit.frequency.timesPerWeek}x/week)
-                    </span>
-                  </label>
-                );
-              })}
-          </div>
-        </div>
-      )}
-      {/* Weekly habits horizontal bar charts */}
+      {/* Unified weekly goals section: checkbox + bar chart */}
       {habits.filter((h) => !h.frequency.daily).length > 0 && (
         <div style={{ marginTop: 40 }}>
           <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Weekly Goals</h2>
           {habits
             .filter((h) => !h.frequency.daily)
             .map((habit) => (
-              <WeeklyHabitBar key={habit.id} habit={habit} />
+              <WeeklyHabitBar
+                key={habit.id}
+                habit={habit}
+                activeDate={activeDate}
+                handleComplete={handleComplete}
+                handleDelete={handleDelete}
+              />
             ))}
         </div>
       )}
