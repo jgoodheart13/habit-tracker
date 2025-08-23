@@ -25,6 +25,14 @@ export default function HabitChart({ data, title }) {
       reachYellowBar,
     };
   });
+
+  // Find max value for dynamic axis
+  const maxValue = Math.max(
+    100,
+    ...chartData.map((d) => d.baselineBar + d.reachGreenBar + d.reachYellowBar)
+  );
+  const maxY = Math.min(Math.ceil(maxValue / 10) * 10, 200);
+
   return (
     <div
       style={{
@@ -46,7 +54,7 @@ export default function HabitChart({ data, title }) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" tick={{ fontSize: 12 }} />
           <YAxis
-            domain={[0, 200]}
+            domain={[0, maxY]}
             tickFormatter={(tick) => `${tick}%`}
             tick={{ fontSize: 12 }}
           />

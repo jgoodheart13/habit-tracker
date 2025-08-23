@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import HabitChecklist from "../components/HabitChecklist";
 import HabitChart from "../components/HabitChart";
 import WeeklyHabitBar from "../components/WeeklyHabitBar";
+import WeeklyProgressChart from "../components/WeeklyProgressChart";
 import {
   getHabits,
   markHabitComplete,
@@ -180,29 +181,32 @@ export default function DailyViewPage() {
         Habits for {activeDate}
       </h2>
       {renderGroupedChecklist()}
-      <div style={{ marginTop: 32 }}>
+      <div style={{ marginTop: 32, marginBottom: 48 }}>
         <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Progress Chart</h2>
         <HabitChart
           data={chartData}
           title="Baseline vs Reach Habit Completion"
         />
       </div>
-      {/* Unified weekly goals section: checkbox + bar chart */}
+      {/* Weekly progress chart above weekly goals */}
       {habits.filter((h) => !h.frequency.daily).length > 0 && (
-        <div style={{ marginTop: 40 }}>
-          <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Weekly Goals</h2>
-          {habits
-            .filter((h) => !h.frequency.daily)
-            .map((habit) => (
-              <WeeklyHabitBar
-                key={habit.id}
-                habit={habit}
-                activeDate={activeDate}
-                handleComplete={handleComplete}
-                handleDelete={handleDelete}
-              />
-            ))}
-        </div>
+        <>
+          <WeeklyProgressChart habits={habits} activeDate={activeDate} />
+          <div style={{ marginTop: 16 }}>
+            <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Weekly Goals</h2>
+            {habits
+              .filter((h) => !h.frequency.daily)
+              .map((habit) => (
+                <WeeklyHabitBar
+                  key={habit.id}
+                  habit={habit}
+                  activeDate={activeDate}
+                  handleComplete={handleComplete}
+                  handleDelete={handleDelete}
+                />
+              ))}
+          </div>
+        </>
       )}
     </div>
   );
