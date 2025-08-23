@@ -5,30 +5,50 @@ import HabitChecklist from "../components/HabitChecklist";
 import HabitChart from "../components/HabitChart";
 import WeeklyHabitBar from "../components/WeeklyHabitBar";
 import WeeklyProgressChart from "../components/WeeklyProgressChart";
+import HabitForm from "../components/HabitForm";
 import {
   getHabits,
   markHabitComplete,
   deleteHabit,
 } from "../services/habitService";
-import { calculateRollingAverage } from "../utils/rollingAverage";
+// import { calculateRollingAverage } from "../utils/rollingAverage"; // Remove unused
 
-function getLastNDates(n) {
-  const dates = [];
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
-  return dates;
-}
+// function getLastNDates(n) { /* unused */ }
 
 export default function DailyViewPage() {
   const [habits, setHabits] = useState([]);
-  const [selectedHabitIds, setSelectedHabitIds] = useState([]);
+  // const [selectedHabitIds, setSelectedHabitIds] = useState([]); // unused
+  const [activeTab, setActiveTab] = useState("daily"); // 'daily' or 'weekly'
   // Track the active date (default to today)
   const [activeDate, setActiveDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
+  // Modal state for Add Habit
+  const [showAddHabit, setShowAddHabit] = useState(false);
+  // Context-sensitive default for HabitForm
+  function getDefaultHabit() {
+    if (activeTab === "daily") {
+      return {
+        name: "",
+        type: "P1",
+        frequency: { daily: true, timesPerWeek: 7 },
+      };
+    } else {
+      return {
+        name: "",
+        type: undefined,
+        frequency: { daily: false, timesPerWeek: 1 },
+      };
+    }
+  }
+
+  function handleAddHabit(newHabit) {
+    setHabits((prev) => [...prev, newHabit]);
+    setShowAddHabit(false);
+    // Optionally persist using habitService
+    // import { addHabit } from habitService if needed
+    // addHabit(newHabit);
+  }
 
   useEffect(() => {
     setHabits(getHabits());
@@ -51,15 +71,8 @@ export default function DailyViewPage() {
     setHabits(getHabits());
   }
 
-  function handleSelectHabit(id) {
-    setSelectedHabitIds((prev) =>
-      prev.includes(id) ? prev.filter((hid) => hid !== id) : [...prev, id]
-    );
-  }
-
-  function handleSelectAll() {
-    setSelectedHabitIds([]);
-  }
+  // function handleSelectHabit(id) { /* unused */ }
+  // function handleSelectAll() { /* unused */ }
 
   // Chart and checklist should use the active date as the reference
   const last14Days = (() => {
@@ -130,6 +143,123 @@ export default function DailyViewPage() {
 
   return (
     <div style={{ padding: 16, maxWidth: 700, margin: "0 auto" }}>
+      {/* Tab header + Add Habit button */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ display: "flex", gap: 12 }}>
+          <button
+            onClick={() => setActiveTab("daily")}
+            style={{
+              fontWeight: activeTab === "daily" ? 700 : 400,
+              background: activeTab === "daily" ? "#fc5200" : "#fff",
+              color: activeTab === "daily" ? "#fff" : "#333",
+              border: "1px solid #ccc",
+              borderRadius: 6,
+              padding: "6px 18px",
+              cursor: "pointer",
+              fontSize: 16,
+              boxShadow:
+                activeTab === "daily"
+                  ? "0 2px 8px rgba(252,82,0,0.08)"
+                  : "none",
+              transition: "background 0.2s",
+            }}
+          >
+            Daily View
+          </button>
+          <button
+            onClick={() => setActiveTab("weekly")}
+            style={{
+              fontWeight: activeTab === "weekly" ? 700 : 400,
+              background: activeTab === "weekly" ? "#fc5200" : "#fff",
+              color: activeTab === "weekly" ? "#fff" : "#333",
+              border: "1px solid #ccc",
+              borderRadius: 6,
+              padding: "6px 18px",
+              cursor: "pointer",
+              fontSize: 16,
+              boxShadow:
+                activeTab === "weekly"
+                  ? "0 2px 8px rgba(252,82,0,0.08)"
+                  : "none",
+              transition: "background 0.2s",
+            }}
+          >
+            Weekly View
+          </button>
+        </div>
+        <button
+          onClick={() => setShowAddHabit(true)}
+          style={{
+            padding: "8px 20px",
+            background: "#fc5200",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            fontWeight: 600,
+            fontSize: 16,
+            boxShadow: "0 2px 8px rgba(252,82,0,0.08)",
+            cursor: "pointer",
+          }}
+        >
+          Add Habit
+        </button>
+      </div>
+      {/* Add Habit Modal (simple inline modal for now) */}
+      {showAddHabit && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.18)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 32,
+              borderRadius: 16,
+              minWidth: 340,
+              boxShadow: "0 2px 16px rgba(0,0,0,0.13)",
+            }}
+          >
+            <h2 style={{ marginBottom: 18, fontWeight: 700 }}>
+              Add {activeTab === "daily" ? "Daily" : "Weekly"} Habit
+            </h2>
+            {/* Pass context-sensitive default to HabitForm */}
+            <HabitForm
+              onAdd={handleAddHabit}
+              defaultHabit={getDefaultHabit()}
+            />
+            <button
+              onClick={() => setShowAddHabit(false)}
+              style={{
+                marginTop: 18,
+                background: "#eee",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 18px",
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       {/* Date navigation header */}
       <div
         style={{
@@ -177,37 +307,45 @@ export default function DailyViewPage() {
           &rarr;
         </button>
       </div>
-      <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
-        Habits for {activeDate}
-      </h2>
-      {renderGroupedChecklist()}
-      <div style={{ marginTop: 32, marginBottom: 48 }}>
-        <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Progress Chart</h2>
-        <HabitChart
-          data={chartData}
-          title="Baseline vs Reach Habit Completion"
-        />
-      </div>
-      {/* Weekly progress chart above weekly goals */}
-      {habits.filter((h) => !h.frequency.daily).length > 0 && (
+      {activeTab === "daily" && (
         <>
-          <WeeklyProgressChart habits={habits} activeDate={activeDate} />
-          <div style={{ marginTop: 16 }}>
-            <h2 style={{ fontWeight: 700, marginBottom: 16 }}>Weekly Goals</h2>
-            {habits
-              .filter((h) => !h.frequency.daily)
-              .map((habit) => (
-                <WeeklyHabitBar
-                  key={habit.id}
-                  habit={habit}
-                  activeDate={activeDate}
-                  handleComplete={handleComplete}
-                  handleDelete={handleDelete}
-                />
-              ))}
+          <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
+            Habits for {activeDate}
+          </h2>
+          {renderGroupedChecklist()}
+          <div style={{ marginTop: 32, marginBottom: 48 }}>
+            <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
+              Progress Chart
+            </h2>
+            <HabitChart
+              data={chartData}
+              title="Baseline vs Reach Habit Completion"
+            />
           </div>
         </>
       )}
+      {activeTab === "weekly" &&
+        habits.filter((h) => !h.frequency.daily).length > 0 && (
+          <>
+            <WeeklyProgressChart habits={habits} activeDate={activeDate} />
+            <div style={{ marginTop: 16 }}>
+              <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
+                Weekly Goals
+              </h2>
+              {habits
+                .filter((h) => !h.frequency.daily)
+                .map((habit) => (
+                  <WeeklyHabitBar
+                    key={habit.id}
+                    habit={habit}
+                    activeDate={activeDate}
+                    handleComplete={handleComplete}
+                    handleDelete={handleDelete}
+                  />
+                ))}
+            </div>
+          </>
+        )}
     </div>
   );
 }

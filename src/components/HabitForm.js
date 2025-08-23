@@ -1,14 +1,27 @@
 // HabitForm.js
 import React, { useState } from 'react';
 
-const defaultHabit = {
-  name: "",
-  type: "P1", // Only used for daily habits
-  frequency: { daily: true, timesPerWeek: 7 },
-};
 
-export default function HabitForm({ onAdd }) {
-  const [habit, setHabit] = useState(defaultHabit);
+export default function HabitForm({ onAdd, defaultHabit }) {
+  const [habit, setHabit] = useState(
+    () =>
+      defaultHabit || {
+        name: "",
+        type: "P1",
+        frequency: { daily: true, timesPerWeek: 7 },
+      }
+  );
+
+  // If defaultHabit changes (e.g. switching tabs), reset form
+  React.useEffect(() => {
+    setHabit(
+      defaultHabit || {
+        name: "",
+        type: "P1",
+        frequency: { daily: true, timesPerWeek: 7 },
+      }
+    );
+  }, [defaultHabit]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -54,7 +67,13 @@ export default function HabitForm({ onAdd }) {
     e.preventDefault();
     if (!habit.name) return;
     onAdd({ ...habit, id: Date.now(), completedDates: [] });
-    setHabit(defaultHabit);
+    setHabit(
+      defaultHabit || {
+        name: "",
+        type: "P1",
+        frequency: { daily: true, timesPerWeek: 7 },
+      }
+    );
   }
 
   return (
