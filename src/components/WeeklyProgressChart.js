@@ -39,26 +39,27 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
   const p1Percent = totalP1 === 0 ? 0 : (p1Completed / totalP1) * 100;
   const p2Below100Raw =
     totalP2Possible === 0 ? 0 : (p2Completed / totalP2Possible) * 100;
-  const p2Below100Percent = Math.max(
-    0,
-    Math.min(p2Below100Raw, 100 - p1Percent)
-  );
-  const p2Above100Percent = Math.max(0, p1Percent + p2Below100Raw - 100);
+  let p1Bar = p1Percent;
+  let p2Below100Bar = Math.max(0, Math.min(p2Below100Raw, 100 - p1Percent));
+  let p2Above100Bar = Math.max(0, p1Percent + p2Below100Raw - 100);
+  let totalPercent = p1Percent + p2Below100Raw;
+  if (totalPercent >= 100) {
+    p1Bar = 0;
+    p2Below100Bar = 0;
+    p2Above100Bar = totalPercent;
+  }
   const chartData = [
     {
       name: weekLabel,
-      p1Bar: p1Percent,
-      p2Below100Bar: p2Below100Percent,
-      p2Above100Bar: p2Above100Percent,
-      total: p1Percent + p2Below100Percent + p2Above100Percent,
+      p1Bar,
+      p2Below100Bar,
+      p2Above100Bar,
+      total: p1Bar + p2Below100Bar + p2Above100Bar,
     },
   ];
   // Calculate dynamic axis domain
   const maxPercent = Math.min(
-    Math.max(
-      100,
-      Math.ceil((p1Percent + p2Below100Percent + p2Above100Percent) / 10) * 10
-    ),
+    Math.max(100, Math.ceil((p1Bar + p2Below100Bar + p2Above100Bar) / 10) * 10),
     200
   );
   return (

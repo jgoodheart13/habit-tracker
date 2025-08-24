@@ -27,19 +27,24 @@ export default function WeeklyHabitBar({
   const n = habit.frequency.timesPerWeek;
   // Sort completed dates by day order
   const completedSorted = weekDays.map((d) => habit.completedDates.includes(d));
-  // Color logic: first N completions are p1, extras are p2Above100, incomplete is 'incomplete'
+  // Color logic: if habit is 100% or more complete, all segments are p2Above100; else, first N completions are p1, extras are p2Above100, incomplete is 'incomplete'
   let colored = [];
-  let filled = 0;
-  for (let i = 0; i < weekDays.length; i++) {
-    if (completedSorted[i]) {
-      if (filled < n) {
-        colored.push("p1");
-        filled++;
+  if (completed.length >= n) {
+    // All segments are p2Above100
+    colored = weekDays.map(() => "p2Above100");
+  } else {
+    let filled = 0;
+    for (let i = 0; i < weekDays.length; i++) {
+      if (completedSorted[i]) {
+        if (filled < n) {
+          colored.push("p1");
+          filled++;
+        } else {
+          colored.push("p2Above100");
+        }
       } else {
-        colored.push("p2Above100");
+        colored.push("incomplete");
       }
-    } else {
-      colored.push("incomplete");
     }
   }
   // Checkbox for this week's activeDate
@@ -66,7 +71,14 @@ export default function WeeklyHabitBar({
           onChange={(e) =>
             handleComplete(habit.id, activeDate, e.target.checked)
           }
-          style={{ accentColor: theme.colors.accent, width: 20, height: 20 }}
+          style={{
+            accentColor:
+              completed.length >= n
+                ? theme.colors.p2Above100
+                : theme.colors.accent,
+            width: 20,
+            height: 20,
+          }}
         />
         <span style={{ fontWeight: 500 }}>{habit.name}</span>
         <span style={{ fontSize: 12, color: "#888" }}>
@@ -74,31 +86,39 @@ export default function WeeklyHabitBar({
         </span>
       </label>
       <div style={{ display: "flex", gap: 2 }}>
-        {colored.map((color, idx) => (
-          <div
-            key={idx}
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 6,
-              background:
-                color === "p1"
-                  ? "#3c5ef8"
-                  : color === "p2Above100"
-                  ? "#fabf52"
-                  : "#eee",
-              border: "1px solid #ccc",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 12,
-              color: "#333",
-            }}
-            title={weekDays[idx]}
-          >
-            {["M", "T", "W", "T", "F", "S", "S"][idx]}
-          </div>
-        ))}
+        {weekDays.map((day, idx) => {
+          const isRecorded = habit.completedDates.includes(day);
+          let color = theme.colors.incomplete;
+          if (isRecorded) {
+            if (completed.length >= n) {
+              color = theme.colors.p2Above100;
+            } else {
+              // Find how many completions so far
+              let filled = completed.slice(0, idx + 1).length;
+              color = filled <= n ? theme.colors.p1 : theme.colors.p2Above100;
+            }
+          }
+          return (
+            <div
+              key={idx}
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 6,
+                background: color,
+                border: `1px solid ${theme.colors.border}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                color: theme.colors.text,
+              }}
+              title={weekDays[idx]}
+            >
+              {["M", "T", "W", "T", "F", "S", "S"][idx]}
+            </div>
+          );
+        })}
       </div>
       <span style={{ marginLeft: 12, fontSize: 13, color: "#888" }}>
         {completed.length} / {n} goal

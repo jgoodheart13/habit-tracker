@@ -15,10 +15,16 @@ import {
 export default function HabitChart({ data, title }) {
   // Always use p1Percent for baselineBar
   const chartData = data.map((d) => {
-    const baselineBar = d.p1Percent ?? 0;
-    const reachScaled = d.reachScaled ?? 0;
-    const reachGreenBar = Math.max(0, Math.min(reachScaled, 100 - baselineBar));
-    const reachYellowBar = Math.max(0, reachScaled - reachGreenBar);
+    let baselineBar = d.p1Percent ?? 0;
+    let reachScaled = d.reachScaled ?? 0;
+    let reachGreenBar = Math.max(0, Math.min(reachScaled, 100 - baselineBar));
+    let reachYellowBar = Math.max(0, reachScaled - reachGreenBar);
+    let totalPercent = baselineBar + reachScaled;
+    if (totalPercent >= 100) {
+      baselineBar = 0;
+      reachGreenBar = 0;
+      reachYellowBar = totalPercent;
+    }
     return {
       ...d,
       baselineBar,

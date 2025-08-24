@@ -34,9 +34,15 @@ export default function DailyProgressBar({ habits, activeDate }) {
   const p2Percent = p2Total === 0 ? 0 : (p2Completed / p2Total) * 100;
   // Inverse relationship: scaled reach
   const reachScaled = p2Percent * (p1Percent / 100);
-  const baselineBar = p1Percent;
-  const reachGreenBar = Math.max(0, Math.min(reachScaled, 100 - baselineBar));
-  const reachYellowBar = Math.max(0, reachScaled - reachGreenBar);
+  let baselineBar = p1Percent;
+  let reachGreenBar = Math.max(0, Math.min(reachScaled, 100 - baselineBar));
+  let reachYellowBar = Math.max(0, reachScaled - reachGreenBar);
+  let totalPercent = baselineBar + reachScaled;
+  if (totalPercent >= 100) {
+    baselineBar = 0;
+    reachGreenBar = 0;
+    reachYellowBar = totalPercent;
+  }
   const chartData = [
     {
       name: activeDate,
