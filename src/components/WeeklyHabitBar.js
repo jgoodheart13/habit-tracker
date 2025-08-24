@@ -98,6 +98,8 @@ export default function WeeklyHabitBar({
               color = filled <= n ? theme.colors.p1 : theme.colors.p2Above100;
             }
           }
+          // Visual indicator for active day
+          const isActive = day === activeDate;
           return (
             <div
               key={idx}
@@ -106,12 +108,18 @@ export default function WeeklyHabitBar({
                 height: 24,
                 borderRadius: 6,
                 background: color,
-                border: `1px solid ${theme.colors.border}`,
+                border: isActive
+                  ? `2px solid ${theme.colors.accent}`
+                  : `1px solid ${theme.colors.border}`,
+                boxShadow: isActive
+                  ? `0 0 0 2px ${theme.colors.accent}55`
+                  : undefined,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 12,
                 color: theme.colors.text,
+                fontWeight: isActive ? 700 : 400,
               }}
               title={weekDays[idx]}
             >

@@ -59,7 +59,27 @@ export default function HabitChart({ data, title }) {
           barCategoryGap={8}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={theme.colors.border} />
-          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+          <XAxis
+            dataKey="date"
+            tick={({ x, y, payload }) => {
+              // Highlight the active day
+              const isActive =
+                payload.value === chartData[chartData.length - 1].date;
+              return (
+                <text
+                  x={x}
+                  y={y + 10}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fontWeight={isActive ? 700 : 400}
+                  fill={isActive ? theme.colors.accent : theme.colors.text}
+                  style={isActive ? { textDecoration: "underline" } : {}}
+                >
+                  {payload.value.slice(5)}
+                </text>
+              );
+            }}
+          />
           <YAxis
             domain={[0, maxY]}
             tickFormatter={(tick) => `${tick}%`}
