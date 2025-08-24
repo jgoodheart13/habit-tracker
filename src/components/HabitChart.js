@@ -65,6 +65,22 @@ export default function HabitChart({ data, title }) {
               // Highlight the active day
               const isActive =
                 payload.value === chartData[chartData.length - 1].date;
+              // Always show all date labels, and always show 100% label at the position of the dashed line
+              // Find the x position for 100% (ReferenceLine)
+              if (payload.value === "100%") {
+                return (
+                  <text
+                    x={x}
+                    y={y + 10}
+                    textAnchor="middle"
+                    fontSize={12}
+                    fontWeight={700}
+                    fill={theme.colors.textSecondary}
+                  >
+                    100%
+                  </text>
+                );
+              }
               return (
                 <text
                   x={x}
@@ -79,6 +95,7 @@ export default function HabitChart({ data, title }) {
                 </text>
               );
             }}
+            ticks={[...chartData.map((d) => d.date), "100%"]}
           />
           <YAxis
             domain={[0, maxY]}
@@ -94,12 +111,21 @@ export default function HabitChart({ data, title }) {
             y={100}
             stroke={theme.colors.textSecondary}
             strokeDasharray="6 3"
-            label={{
-              value: "Baseline Target",
-              position: "insideTopLeft",
-              fontSize: 14,
-              fill: theme.colors.textSecondary,
-            }}
+            // label={(() => {
+            //   const lastBar = chartData[chartData.length - 1];
+            //   const percent =
+            //     lastBar.baselineBar +
+            //     lastBar.reachGreenBar +
+            //     lastBar.reachYellowBar;
+            //   return percent >= 100
+            //     ? null
+            //     : {
+            //         value: "Baseline Target",
+            //         position: "insideTopLeft",
+            //         fontSize: 14,
+            //         fill: theme.colors.textSecondary,
+            //       };
+            // })()}
           />
           <Bar
             dataKey="baselineBar"

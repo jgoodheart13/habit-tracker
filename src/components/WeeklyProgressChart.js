@@ -93,24 +93,35 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           <XAxis
             type="number"
             domain={[0, maxPercent]}
-            tickFormatter={(tick) => `${tick}%`}
-            tick={{ fontSize: 14 }}
-          />
-          <Tooltip
-            formatter={(value) =>
-              value == null ? "-" : `${Number(value).toFixed(1)}%`
+            tickFormatter={(tick) => {
+              // If 100% or more, only show 100% and current percent
+              if (totalPercent >= 100) {
+                if (tick === 100 || tick === Math.round(totalPercent)) {
+                  return `${tick}%`;
+                }
+                return "";
+              }
+              return `${tick}%`;
+            }}
+            ticks={
+              totalPercent >= 100 ? [100, Math.round(totalPercent)] : undefined
             }
+            tick={{ fontSize: 14 }}
           />
           <ReferenceLine
             x={100}
             stroke={theme.colors.textSecondary}
             strokeDasharray="6 3"
-            label={{
-              value: "Baseline Target",
-              position: "top",
-              fontSize: 15,
-              fill: theme.colors.textSecondary,
-            }}
+            label={
+              totalPercent >= 100
+                ? null
+                : {
+                    value: "Baseline Target",
+                    position: "top",
+                    fontSize: 15,
+                    fill: theme.colors.textSecondary,
+                  }
+            }
           />
           <Bar
             dataKey="p1Bar"
