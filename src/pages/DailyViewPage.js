@@ -1,6 +1,7 @@
 // DailyViewPage.js
 
 import React, { useState, useEffect } from "react";
+import theme from "../styles/theme";
 import HabitChecklist from "../components/HabitChecklist";
 import HabitChart from "../components/HabitChart";
 import WeeklyHabitBar from "../components/WeeklyHabitBar";
@@ -97,7 +98,9 @@ export default function DailyViewPage() {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div>
-          <h3 style={{ margin: "8px 0", color: "#228B22" }}>Baseline (P1)</h3>
+          <h3 style={{ margin: "8px 0", color: theme.colors.p1 }}>
+            Baseline (P1)
+          </h3>
           <HabitChecklist
             habits={baselineHabits}
             onComplete={handleComplete}
@@ -106,7 +109,9 @@ export default function DailyViewPage() {
           />
         </div>
         <div>
-          <h3 style={{ margin: "8px 0", color: "#fc5200" }}>Reach (P2)</h3>
+          <h3 style={{ margin: "8px 0", color: theme.colors.accent }}>
+            Reach (P2)
+          </h3>
           <HabitChecklist
             habits={reachHabits}
             onComplete={handleComplete}
@@ -145,7 +150,14 @@ export default function DailyViewPage() {
   });
 
   return (
-    <div style={{ padding: 16, maxWidth: 700, margin: "0 auto" }}>
+    <div
+      style={{
+        padding: 16,
+        maxWidth: 700,
+        margin: "0 auto",
+        background: theme.colors.background,
+      }}
+    >
       {/* Tab header + Add Habit button */}
       <div
         style={{
@@ -160,17 +172,20 @@ export default function DailyViewPage() {
             onClick={() => setActiveTab("daily")}
             style={{
               fontWeight: activeTab === "daily" ? 700 : 400,
-              background: activeTab === "daily" ? "#fc5200" : "#fff",
-              color: activeTab === "daily" ? "#fff" : "#333",
-              border: "1px solid #ccc",
+              background:
+                activeTab === "daily"
+                  ? theme.colors.accent
+                  : theme.colors.background,
+              color:
+                activeTab === "daily"
+                  ? theme.colors.background
+                  : theme.colors.text,
+              border: `1px solid ${theme.colors.border}`,
               borderRadius: 6,
               padding: "6px 18px",
               cursor: "pointer",
               fontSize: 16,
-              boxShadow:
-                activeTab === "daily"
-                  ? "0 2px 8px rgba(252,82,0,0.08)"
-                  : "none",
+              boxShadow: activeTab === "daily" ? theme.colors.shadow : "none",
               transition: "background 0.2s",
             }}
           >
@@ -180,17 +195,20 @@ export default function DailyViewPage() {
             onClick={() => setActiveTab("weekly")}
             style={{
               fontWeight: activeTab === "weekly" ? 700 : 400,
-              background: activeTab === "weekly" ? "#fc5200" : "#fff",
-              color: activeTab === "weekly" ? "#fff" : "#333",
-              border: "1px solid #ccc",
+              background:
+                activeTab === "weekly"
+                  ? theme.colors.accent
+                  : theme.colors.background,
+              color:
+                activeTab === "weekly"
+                  ? theme.colors.background
+                  : theme.colors.text,
+              border: `1px solid ${theme.colors.border}`,
               borderRadius: 6,
               padding: "6px 18px",
               cursor: "pointer",
               fontSize: 16,
-              boxShadow:
-                activeTab === "weekly"
-                  ? "0 2px 8px rgba(252,82,0,0.08)"
-                  : "none",
+              boxShadow: activeTab === "weekly" ? theme.colors.shadow : "none",
               transition: "background 0.2s",
             }}
           >
@@ -201,13 +219,13 @@ export default function DailyViewPage() {
           onClick={() => setShowAddHabit(true)}
           style={{
             padding: "8px 20px",
-            background: "#fc5200",
-            color: "#fff",
+            background: theme.colors.accent,
+            color: theme.colors.background,
             border: "none",
             borderRadius: 6,
             fontWeight: 600,
             fontSize: 16,
-            boxShadow: "0 2px 8px rgba(252,82,0,0.08)",
+            boxShadow: theme.colors.shadow,
             cursor: "pointer",
           }}
         >
@@ -232,17 +250,23 @@ export default function DailyViewPage() {
         >
           <div
             style={{
-              background: "#fff",
+              background: theme.colors.background,
               padding: 32,
               borderRadius: 16,
               minWidth: 340,
-              boxShadow: "0 2px 16px rgba(0,0,0,0.13)",
+              boxShadow: theme.colors.shadow,
+              border: `1px solid ${theme.colors.border}`,
             }}
           >
-            <h2 style={{ marginBottom: 18, fontWeight: 700 }}>
+            <h2
+              style={{
+                marginBottom: 18,
+                fontWeight: 700,
+                color: theme.colors.text,
+              }}
+            >
               Add {activeTab === "daily" ? "Daily" : "Weekly"} Habit
             </h2>
-            {/* Pass context-sensitive default to HabitForm */}
             <HabitForm
               onAdd={handleAddHabit}
               defaultHabit={getDefaultHabit()}
@@ -251,9 +275,9 @@ export default function DailyViewPage() {
               onClick={() => setShowAddHabit(false)}
               style={{
                 marginTop: 18,
-                background: "#eee",
-                border: "none",
-                borderRadius: 6,
+                background: theme.colors.incomplete,
+                color: theme.colors.text,
+                border: `1px solid ${theme.colors.border}`,
                 padding: "8px 18px",
                 cursor: "pointer",
               }}
@@ -279,8 +303,10 @@ export default function DailyViewPage() {
             fontSize: 22,
             padding: "4px 12px",
             borderRadius: 6,
-            border: "1px solid #ccc",
-            background: "#fff",
+            boxShadow: theme.colors.shadow,
+            border: `1px solid ${theme.colors.border}`,
+            background: theme.colors.background,
+            color: theme.colors.text,
             cursor: "pointer",
           }}
         >
@@ -292,6 +318,7 @@ export default function DailyViewPage() {
             fontSize: 20,
             minWidth: 140,
             textAlign: "center",
+            color: theme.colors.text,
           }}
         >
           {activeDate}
@@ -302,8 +329,10 @@ export default function DailyViewPage() {
             fontSize: 22,
             padding: "4px 12px",
             borderRadius: 6,
-            border: "1px solid #ccc",
-            background: "#fff",
+            boxShadow: theme.colors.shadow,
+            border: `1px solid ${theme.colors.border}`,
+            background: theme.colors.background,
+            color: theme.colors.text,
             cursor: "pointer",
           }}
         >
@@ -324,17 +353,20 @@ export default function DailyViewPage() {
               onClick={() => setChartView("daily")}
               style={{
                 fontWeight: chartView === "daily" ? 700 : 400,
-                background: chartView === "daily" ? "#fc5200" : "#fff",
-                color: chartView === "daily" ? "#fff" : "#333",
-                border: "1px solid #ccc",
+                background:
+                  chartView === "daily"
+                    ? theme.colors.accent
+                    : theme.colors.background,
+                color:
+                  chartView === "daily"
+                    ? theme.colors.background
+                    : theme.colors.text,
+                border: `1px solid ${theme.colors.border}`,
                 borderRadius: 6,
                 padding: "6px 18px",
                 cursor: "pointer",
                 fontSize: 15,
-                boxShadow:
-                  chartView === "daily"
-                    ? "0 2px 8px rgba(252,82,0,0.08)"
-                    : "none",
+                boxShadow: chartView === "daily" ? theme.colors.shadow : "none",
                 transition: "background 0.2s",
               }}
             >
@@ -344,17 +376,21 @@ export default function DailyViewPage() {
               onClick={() => setChartView("lookback")}
               style={{
                 fontWeight: chartView === "lookback" ? 700 : 400,
-                background: chartView === "lookback" ? "#fc5200" : "#fff",
-                color: chartView === "lookback" ? "#fff" : "#333",
-                border: "1px solid #ccc",
+                background:
+                  chartView === "lookback"
+                    ? theme.colors.accent
+                    : theme.colors.background,
+                color:
+                  chartView === "lookback"
+                    ? theme.colors.background
+                    : theme.colors.text,
+                border: `1px solid ${theme.colors.border}`,
                 borderRadius: 6,
                 padding: "6px 18px",
                 cursor: "pointer",
                 fontSize: 15,
                 boxShadow:
-                  chartView === "lookback"
-                    ? "0 2px 8px rgba(252,82,0,0.08)"
-                    : "none",
+                  chartView === "lookback" ? theme.colors.shadow : "none",
                 transition: "background 0.2s",
               }}
             >

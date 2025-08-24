@@ -1,5 +1,6 @@
 // HabitChart.js
 import React from 'react';
+import theme from "../styles/theme";
 import {
   BarChart,
   Bar,
@@ -38,9 +39,9 @@ export default function HabitChart({ data, title }) {
       style={{
         width: "100%",
         height: 340,
-        background: "#fff",
+        background: theme.colors.background,
         borderRadius: 12,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+        boxShadow: theme.colors.shadow,
         padding: 16,
       }}
     >
@@ -51,7 +52,7 @@ export default function HabitChart({ data, title }) {
           margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           barCategoryGap={8}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.colors.border} />
           <XAxis dataKey="date" tick={{ fontSize: 12 }} />
           <YAxis
             domain={[0, maxY]}
@@ -65,31 +66,31 @@ export default function HabitChart({ data, title }) {
           />
           <ReferenceLine
             y={100}
-            stroke="#888"
+            stroke={theme.colors.textSecondary}
             strokeDasharray="6 3"
             label={{
               value: "Baseline Target",
               position: "insideTopLeft",
               fontSize: 14,
-              fill: "#888",
+              fill: theme.colors.textSecondary,
             }}
           />
           <Bar
             dataKey="baselineBar"
             stackId="a"
-            fill="#3c5ef8ff"
+            fill={theme.colors.p1}
             name="Baseline (P1)"
           />
           <Bar
             dataKey="reachGreenBar"
             stackId="a"
-            fill="#22bb33"
+            fill={theme.colors.p2Below100}
             name="Reach (P2) to Baseline"
           />
           <Bar
             dataKey="reachYellowBar"
             stackId="a"
-            fill="#fabf52ff"
+            fill={theme.colors.p2Above100}
             name="Reach (P2) above Baseline"
           />
         </BarChart>

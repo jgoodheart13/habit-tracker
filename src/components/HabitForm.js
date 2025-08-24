@@ -1,6 +1,6 @@
 // HabitForm.js
 import React, { useState } from 'react';
-
+import theme from "../styles/theme";
 
 export default function HabitForm({ onAdd, defaultHabit }) {
   const [habit, setHabit] = useState(
@@ -83,10 +83,10 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         display: "flex",
         flexDirection: "column",
         gap: 12,
-        background: "#fff",
+        background: theme.colors.background,
         padding: 16,
         borderRadius: 12,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+        boxShadow: theme.colors.shadow,
       }}
     >
       <input
@@ -95,7 +95,11 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         onChange={handleChange}
         placeholder="Habit name"
         required
-        style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+        style={{
+          padding: 8,
+          borderRadius: 6,
+          border: `1px solid ${theme.colors.border}`,
+        }}
       />
       <select
         name="frequency"
@@ -107,7 +111,11 @@ export default function HabitForm({ onAdd, defaultHabit }) {
             : "weeklyN"
         }
         onChange={handleChange}
-        style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+        style={{
+          padding: 8,
+          borderRadius: 6,
+          border: `1px solid ${theme.colors.border}`,
+        }}
       >
         <option value="dailyP1">Daily Priority 1</option>
         <option value="dailyP2">Daily Priority 2</option>
@@ -121,7 +129,11 @@ export default function HabitForm({ onAdd, defaultHabit }) {
           max={7}
           value={habit.frequency.timesPerWeek}
           onChange={handleChange}
-          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+          style={{
+            padding: 8,
+            borderRadius: 6,
+            border: `1px solid ${theme.colors.border}`,
+          }}
         />
       )}
       <button
@@ -129,8 +141,8 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         style={{
           padding: 10,
           borderRadius: 6,
-          background: "#fc5200",
-          color: "#fff",
+          background: theme.colors.accent,
+          color: theme.colors.background,
           border: "none",
           fontWeight: 600,
         }}

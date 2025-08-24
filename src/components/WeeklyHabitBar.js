@@ -1,5 +1,6 @@
 // WeeklyHabitBar.js
 import React from 'react';
+import theme from "../styles/theme";
 
 // Accept handleComplete and activeDate as props
 
@@ -15,7 +16,12 @@ function getWeekDays() {
   });
 }
 
-export default function WeeklyHabitBar({ habit, activeDate, handleComplete, handleDelete }) {
+export default function WeeklyHabitBar({
+  habit,
+  activeDate,
+  handleComplete,
+  handleDelete,
+}) {
   const weekDays = getWeekDays();
   const completed = weekDays.filter((d) => habit.completedDates.includes(d));
   const n = habit.frequency.timesPerWeek;
@@ -60,7 +66,7 @@ export default function WeeklyHabitBar({ habit, activeDate, handleComplete, hand
           onChange={(e) =>
             handleComplete(habit.id, activeDate, e.target.checked)
           }
-          style={{ accentColor: "#fc5200", width: 20, height: 20 }}
+          style={{ accentColor: theme.colors.accent, width: 20, height: 20 }}
         />
         <span style={{ fontWeight: 500 }}>{habit.name}</span>
         <span style={{ fontSize: 12, color: "#888" }}>
@@ -106,7 +112,7 @@ export default function WeeklyHabitBar({ habit, activeDate, handleComplete, hand
           cursor: "pointer",
           marginLeft: "auto",
           padding: 4,
-          color: "#fc5200",
+          color: theme.colors.accent,
           display: "flex",
           alignItems: "center",
           borderRadius: 4,

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import DailyViewPage from './pages/DailyViewPage';
 import HabitBuilderPage from './pages/HabitBuilderPage';
+import theme from "./styles/theme";
 
 export default function App() {
   const [page, setPage] = useState('daily');
@@ -27,7 +28,9 @@ export default function App() {
           boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
         }}
       >
-        <h1 style={{ color: "#fc5200", fontWeight: 800, fontSize: 28 }}>
+        <h1
+          style={{ color: theme.colors.accent, fontWeight: 800, fontSize: 28 }}
+        >
           Baseline Habit Tracker
         </h1>
       </header>

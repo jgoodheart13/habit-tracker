@@ -1,34 +1,71 @@
 // DailyProgressBar.js
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, LabelList } from 'recharts';
+import theme from "../styles/theme";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  ReferenceLine,
+  LabelList,
+} from "recharts";
 
 export default function DailyProgressBar({ habits, activeDate }) {
   // Only daily habits
-  const baselineHabits = habits.filter(h => h.type === 'P1' && h.frequency.daily);
-  const reachHabits = habits.filter(h => h.type === 'P2' && h.frequency.daily);
+  const baselineHabits = habits.filter(
+    (h) => h.type === "P1" && h.frequency.daily
+  );
+  const reachHabits = habits.filter(
+    (h) => h.type === "P2" && h.frequency.daily
+  );
   // Calculate for the given day
   const p1Total = baselineHabits.length;
-  const p1Completed = baselineHabits.filter(h => h.completedDates.includes(activeDate)).length;
+  const p1Completed = baselineHabits.filter((h) =>
+    h.completedDates.includes(activeDate)
+  ).length;
   const p1Percent = p1Total === 0 ? 0 : (p1Completed / p1Total) * 100;
   const p2Total = reachHabits.length;
-  const p2Completed = reachHabits.filter(h => h.completedDates.includes(activeDate)).length;
+  const p2Completed = reachHabits.filter((h) =>
+    h.completedDates.includes(activeDate)
+  ).length;
   const p2Percent = p2Total === 0 ? 0 : (p2Completed / p2Total) * 100;
   // Inverse relationship: scaled reach
   const reachScaled = p2Percent * (p1Percent / 100);
   const baselineBar = p1Percent;
   const reachGreenBar = Math.max(0, Math.min(reachScaled, 100 - baselineBar));
   const reachYellowBar = Math.max(0, reachScaled - reachGreenBar);
-  const chartData = [{
-    name: activeDate,
-    baselineBar,
-    reachGreenBar,
-    reachYellowBar,
-    total: baselineBar + reachGreenBar + reachYellowBar,
-  }];
-  const maxPercent = Math.min(Math.max(100, Math.ceil((baselineBar + reachGreenBar + reachYellowBar) / 10) * 10), 200);
+  const chartData = [
+    {
+      name: activeDate,
+      baselineBar,
+      reachGreenBar,
+      reachYellowBar,
+      total: baselineBar + reachGreenBar + reachYellowBar,
+    },
+  ];
+  const maxPercent = Math.min(
+    Math.max(
+      100,
+      Math.ceil((baselineBar + reachGreenBar + reachYellowBar) / 10) * 10
+    ),
+    200
+  );
   return (
-    <div style={{ width: '100%', height: 160, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: 18, marginBottom: 24 }}>
-      <h3 style={{ margin: '0 0 12px 0', fontWeight: 600 }}>Daily Progress</h3>
+    <div
+      style={{
+        width: "100%",
+        height: 160,
+        background: theme.colors.background,
+        borderRadius: 12,
+        boxShadow: theme.colors.shadow,
+        padding: 18,
+        marginBottom: 24,
+      }}
+    >
+      <h3 style={{ margin: "0 0 12px 0", fontWeight: 600 }}>Daily Progress</h3>
       <ResponsiveContainer width="100%" height={100}>
         <BarChart
           layout="vertical"
@@ -37,19 +74,71 @@ export default function DailyProgressBar({ habits, activeDate }) {
           barCategoryGap={16}
           barSize={40}
         >
-          <CartesianGrid strokeDasharray="6 6" stroke="#bbb" />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 15, fontWeight: 500 }} axisLine={false} tickLine={false} />
-          <XAxis type="number" domain={[0, maxPercent]} tickFormatter={tick => `${tick}%`} tick={{ fontSize: 13 }} />
-          <Tooltip formatter={value => value == null ? '-' : `${Number(value).toFixed(1)}%`} />
-          <ReferenceLine x={100} stroke="#888" strokeDasharray="6 3" label={{ value: 'Baseline Target', position: 'top', fontSize: 14, fill: '#888' }} />
-          <Bar dataKey="baselineBar" stackId="a" fill="#3c5ef8ff" name="Baseline (P1)">
-            <LabelList dataKey="baselineBar" position="top" formatter={v => v > 0 ? `${v.toFixed(1)}%` : ''} />
+          <CartesianGrid strokeDasharray="6 6" stroke={theme.colors.border} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            tick={{ fontSize: 15, fontWeight: 500 }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <XAxis
+            type="number"
+            domain={[0, maxPercent]}
+            tickFormatter={(tick) => `${tick}%`}
+            tick={{ fontSize: 13 }}
+          />
+          <Tooltip
+            formatter={(value) =>
+              value == null ? "-" : `${Number(value).toFixed(1)}%`
+            }
+          />
+          <ReferenceLine
+            x={100}
+            stroke={theme.colors.textSecondary}
+            strokeDasharray="6 3"
+            label={{
+              value: "Baseline Target",
+              position: "top",
+              fontSize: 14,
+              fill: theme.colors.textSecondary,
+            }}
+          />
+          <Bar
+            dataKey="baselineBar"
+            stackId="a"
+            fill={theme.colors.p1}
+            name="Baseline (P1)"
+          >
+            <LabelList
+              dataKey="baselineBar"
+              position="top"
+              formatter={(v) => (v > 0 ? `${v.toFixed(1)}%` : "")}
+            />
           </Bar>
-          <Bar dataKey="reachGreenBar" stackId="a" fill="#22bb33" name="Reach (P2) to Baseline">
-            <LabelList dataKey="reachGreenBar" position="top" formatter={v => v > 0 ? `${v.toFixed(1)}%` : ''} />
+          <Bar
+            dataKey="reachGreenBar"
+            stackId="a"
+            fill={theme.colors.p2Below100}
+            name="Reach (P2) to Baseline"
+          >
+            <LabelList
+              dataKey="reachGreenBar"
+              position="top"
+              formatter={(v) => (v > 0 ? `${v.toFixed(1)}%` : "")}
+            />
           </Bar>
-          <Bar dataKey="reachYellowBar" stackId="a" fill="#fabf52ff" name="Reach (P2) above Baseline">
-            <LabelList dataKey="reachYellowBar" position="top" formatter={v => v > 0 ? `${v.toFixed(1)}%` : ''} />
+          <Bar
+            dataKey="reachYellowBar"
+            stackId="a"
+            fill={theme.colors.p2Above100}
+            name="Reach (P2) above Baseline"
+          >
+            <LabelList
+              dataKey="reachYellowBar"
+              position="top"
+              formatter={(v) => (v > 0 ? `${v.toFixed(1)}%` : "")}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

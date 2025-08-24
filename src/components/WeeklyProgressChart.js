@@ -1,6 +1,7 @@
 // WeeklyProgressChart.js
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, LabelList } from 'recharts';
+import theme from "../styles/theme";
 
 export default function WeeklyProgressChart({ habits, activeDate }) {
   // Only weekly habits
@@ -80,7 +81,7 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           margin={{ top: 38, right: 40, left: 10, bottom: 10 }}
           barCategoryGap={16}
         >
-          <CartesianGrid strokeDasharray="6 6" stroke="#bbb" />
+          <CartesianGrid strokeDasharray="6 6" stroke={theme.colors.border} />
           <YAxis
             type="category"
             dataKey="name"
@@ -101,16 +102,21 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           />
           <ReferenceLine
             x={100}
-            stroke="#888"
+            stroke={theme.colors.textSecondary}
             strokeDasharray="6 3"
             label={{
               value: "Baseline Target",
               position: "top",
               fontSize: 15,
-              fill: "#888",
+              fill: theme.colors.textSecondary,
             }}
           />
-          <Bar dataKey="p1Bar" stackId="a" fill="#3c5ef8ff" name="P1 Progress">
+          <Bar
+            dataKey="p1Bar"
+            stackId="a"
+            fill={theme.colors.p1}
+            name="P1 Progress"
+          >
             <LabelList
               dataKey="p1Bar"
               position="top"
@@ -120,7 +126,7 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           <Bar
             dataKey="p2Below100Bar"
             stackId="a"
-            fill="#22bb33"
+            fill={theme.colors.p2Below100}
             name="P2 to Baseline"
           >
             <LabelList
@@ -132,7 +138,7 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           <Bar
             dataKey="p2Above100Bar"
             stackId="a"
-            fill="#fabf52ff"
+            fill={theme.colors.p2Above100}
             name="P2 Above Baseline"
           >
             <LabelList

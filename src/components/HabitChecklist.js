@@ -1,6 +1,7 @@
 // HabitChecklist.js
 
 import React from 'react';
+import theme from "../styles/theme";
 
 export default function HabitChecklist({ habits, onComplete, onDelete, date }) {
   // Use date prop if provided, fallback to today
@@ -14,7 +15,7 @@ export default function HabitChecklist({ habits, onComplete, onDelete, date }) {
             display: "flex",
             alignItems: "center",
             gap: 8,
-            background: "#fff",
+            background: theme.colors.background,
             padding: 10,
             borderRadius: 8,
             boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
@@ -26,10 +27,12 @@ export default function HabitChecklist({ habits, onComplete, onDelete, date }) {
             onChange={(e) =>
               onComplete(habit.id, selectedDate, e.target.checked)
             }
-            style={{ accentColor: "#fc5200", width: 20, height: 20 }}
+            style={{ accentColor: theme.colors.accent, width: 20, height: 20 }}
           />
           <span style={{ fontWeight: 500 }}>{habit.name}</span>
-          <span style={{ fontSize: 12, color: "#888" }}>({habit.type})</span>
+          <span style={{ fontSize: 12, color: theme.colors.textSecondary }}>
+            ({habit.type})
+          </span>
           <button
             onClick={() => onDelete(habit.id)}
             title="Delete habit"
@@ -39,7 +42,7 @@ export default function HabitChecklist({ habits, onComplete, onDelete, date }) {
               cursor: "pointer",
               marginLeft: "auto",
               padding: 4,
-              color: "#fc5200",
+              color: theme.colors.accent,
               display: "flex",
               alignItems: "center",
               borderRadius: 4,
