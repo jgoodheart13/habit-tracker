@@ -12,16 +12,13 @@ import {
   getHabits,
   markHabitComplete,
   deleteHabit,
+  updateHabit,
 } from "../services/habitService";
-// import { calculateRollingAverage } from "../utils/rollingAverage"; // Remove unused
-
-// function getLastNDates(n) { /* unused */ }
 
 export default function DailyViewPage() {
   // Toggle for chart view: 'daily' or 'lookback'
   const [chartView, setChartView] = useState("lookback");
   const [habits, setHabits] = useState([]);
-  // const [selectedHabitIds, setSelectedHabitIds] = useState([]); // unused
   const [activeTab, setActiveTab] = useState("daily"); // 'daily' or 'weekly'
   // Track the active date (default to today)
   const [activeDate, setActiveDate] = useState(() =>
@@ -75,8 +72,10 @@ export default function DailyViewPage() {
     setHabits(getHabits());
   }
 
-  // function handleSelectHabit(id) { /* unused */ }
-  // function handleSelectAll() { /* unused */ }
+  function handleEditHabit(id, newName) {
+    updateHabit(id, { name: newName });
+    setHabits(getHabits());
+  }
 
   // Chart and checklist should use the active date as the reference
   const last14Days = (() => {
@@ -105,6 +104,7 @@ export default function DailyViewPage() {
             habits={baselineHabits}
             onComplete={handleComplete}
             onDelete={handleDelete}
+            onEdit={handleEditHabit}
             date={activeDate}
           />
         </div>
@@ -116,6 +116,7 @@ export default function DailyViewPage() {
             habits={reachHabits}
             onComplete={handleComplete}
             onDelete={handleDelete}
+            onEdit={handleEditHabit}
             date={activeDate}
           />
         </div>
