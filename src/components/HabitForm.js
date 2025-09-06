@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import theme from "../styles/theme";
 
 export default function HabitForm({ onAdd, defaultHabit }) {
+  const isEdit = !!(defaultHabit && defaultHabit.id);
   const [habit, setHabit] = useState(
     () =>
       defaultHabit || {
@@ -66,14 +67,19 @@ export default function HabitForm({ onAdd, defaultHabit }) {
   function handleSubmit(e) {
     e.preventDefault();
     if (!habit.name) return;
-    onAdd({ ...habit, id: Date.now(), completedDates: [] });
-    setHabit(
-      defaultHabit || {
-        name: "",
-        type: "P1",
-        frequency: { daily: true, timesPerWeek: 7 },
-      }
-    );
+    if (isEdit) {
+      // For edit, keep id and completedDates
+      onAdd({ ...habit });
+    } else {
+      onAdd({ ...habit, id: Date.now(), completedDates: [] });
+      setHabit(
+        defaultHabit || {
+          name: "",
+          type: "P1",
+          frequency: { daily: true, timesPerWeek: 7 },
+        }
+      );
+    }
   }
 
   return (
@@ -147,7 +153,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
           fontWeight: 600,
         }}
       >
-        Add Habit
+        {isEdit ? "Save Changes" : "Add Habit"}
       </button>
     </form>
   );

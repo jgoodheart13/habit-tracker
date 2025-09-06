@@ -12,29 +12,8 @@ export default function HabitChecklist({
 }) {
   // Use date prop if provided, fallback to today
   const selectedDate = date || new Date().toISOString().slice(0, 10);
-  const [editingId, setEditingId] = React.useState(null);
-  const [editValue, setEditValue] = React.useState("");
-
   function handleEditClick(habit) {
-    setEditingId(habit.id);
-    setEditValue(habit.name);
-  }
-
-  function handleEditChange(e) {
-    setEditValue(e.target.value);
-  }
-
-  function handleEditSave(habit) {
-    if (editValue.trim()) {
-      onEdit(habit.id, editValue.trim());
-    }
-    setEditingId(null);
-    setEditValue("");
-  }
-
-  function handleEditCancel() {
-    setEditingId(null);
-    setEditValue("");
+    onEdit(habit);
   }
 
   return (
@@ -60,61 +39,10 @@ export default function HabitChecklist({
             }
             style={{ accentColor: theme.colors.accent, width: 20, height: 20 }}
           />
-          {editingId === habit.id ? (
-            <>
-              <input
-                value={editValue}
-                onChange={handleEditChange}
-                style={{
-                  fontWeight: 500,
-                  fontSize: 15,
-                  borderRadius: 6,
-                  border: `1px solid ${theme.colors.border}`,
-                  padding: "2px 8px",
-                  marginRight: 8,
-                }}
-                autoFocus
-              />
-              <button
-                onClick={() => handleEditSave(habit)}
-                style={{
-                  background: theme.colors.accent,
-                  color: theme.colors.background,
-                  border: "none",
-                  borderRadius: 4,
-                  padding: "2px 8px",
-                  marginRight: 4,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-                title="Save"
-              >
-                Save
-              </button>
-              <button
-                onClick={handleEditCancel}
-                style={{
-                  background: theme.colors.incomplete,
-                  color: theme.colors.text,
-                  border: `1px solid ${theme.colors.border}`,
-                  borderRadius: 4,
-                  padding: "2px 8px",
-                  cursor: "pointer",
-                  fontWeight: 500,
-                }}
-                title="Cancel"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <span style={{ fontWeight: 500 }}>{habit.name}</span>
-              <span style={{ fontSize: 12, color: theme.colors.textSecondary }}>
-                ({habit.type})
-              </span>
-            </>
-          )}
+          <span style={{ fontWeight: 500 }}>{habit.name}</span>
+          <span style={{ fontSize: 12, color: theme.colors.textSecondary }}>
+            ({habit.type})
+          </span>
           <div
             style={{
               display: "flex",
