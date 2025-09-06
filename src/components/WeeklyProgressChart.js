@@ -86,7 +86,8 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fontSize: 16, whiteSpace: "pre-line", fontWeight: 500 }}
+            width={0}
+            tick={null}
             axisLine={false}
             tickLine={false}
           />

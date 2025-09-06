@@ -99,7 +99,8 @@ export default function DailyProgressBar({ habits, activeDate }) {
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fontSize: 15, fontWeight: 500 }}
+            width={0}
+            tick={null}
             axisLine={false}
             tickLine={false}
           />
