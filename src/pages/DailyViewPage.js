@@ -16,6 +16,7 @@ import {
 } from "../services/habitService";
 
 export default function DailyViewPage() {
+  const [sortMode, setSortMode] = useState("priority"); // 'priority', 'category', 'time', 'unspecified'
   // Toggle for chart view: 'daily' or 'lookback'
   const [chartView, setChartView] = useState("lookback");
   const [habits, setHabits] = useState([]);
@@ -111,32 +112,74 @@ export default function DailyViewPage() {
 
   // Checklist grouping
   function renderGroupedChecklist() {
+    // Filter out weekly habits for Daily View
+    let filteredHabits = habits.filter((h) => h.frequency && h.frequency.daily);
+    let grouped = [];
+    if (sortMode === "priority") {
+      grouped = [
+        {
+          label: "Baseline (P1)",
+          color: theme.colors.p1,
+          habits: filteredHabits.filter((h) => h.type === "P1"),
+        },
+        {
+          label: "Reach (P2)",
+          color: theme.colors.accent,
+          habits: filteredHabits.filter((h) => h.type === "P2"),
+        },
+      ];
+    } else if (sortMode === "category" || sortMode === "time") {
+      const withTag = filteredHabits.filter(
+        (h) => h.tag && h.tag.type === sortMode && h.tag.label
+      );
+      const tagGroups = {};
+      withTag.forEach((h) => {
+        const tag = h.tag.label;
+        if (!tagGroups[tag]) tagGroups[tag] = [];
+        tagGroups[tag].push(h);
+      });
+      grouped = Object.keys(tagGroups).map((tag) => ({
+        label: tag,
+        color: theme.colors.accent,
+        habits: tagGroups[tag],
+      }));
+      // Unspecified
+      const unspecified = filteredHabits.filter(
+        (h) => !h.tag || !h.tag.label || h.tag.type !== sortMode
+      );
+      if (unspecified.length) {
+        grouped.push({
+          label: "Unspecified",
+          color: theme.colors.incomplete,
+          habits: unspecified,
+        });
+      }
+    } else {
+      // All unspecified
+      grouped = [
+        {
+          label: "Unspecified",
+          color: theme.colors.incomplete,
+          habits: filteredHabits,
+        },
+      ];
+    }
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        <div>
-          <h3 style={{ margin: "8px 0", color: theme.colors.p1 }}>
-            Baseline (P1)
-          </h3>
-          <HabitChecklist
-            habits={baselineHabits}
-            onComplete={handleComplete}
-            onDelete={handleDelete}
-            onEdit={handleEditClick}
-            date={activeDate}
-          />
-        </div>
-        <div>
-          <h3 style={{ margin: "8px 0", color: theme.colors.accent }}>
-            Reach (P2)
-          </h3>
-          <HabitChecklist
-            habits={reachHabits}
-            onComplete={handleComplete}
-            onDelete={handleDelete}
-            onEdit={handleEditClick}
-            date={activeDate}
-          />
-        </div>
+        {grouped.map((group) => (
+          <div key={group.label}>
+            <h3 style={{ margin: "8px 0", color: group.color }}>
+              {group.label}
+            </h3>
+            <HabitChecklist
+              habits={group.habits}
+              onComplete={handleComplete}
+              onDelete={handleDelete}
+              onEdit={handleEditClick}
+              date={activeDate}
+            />
+          </div>
+        ))}
       </div>
     );
   }
@@ -466,6 +509,26 @@ export default function DailyViewPage() {
             >
               7 Day Lookback
             </button>
+            {/* Sort Button */}
+            <div style={{ marginLeft: "auto" }}>
+              <label style={{ marginRight: 8, fontWeight: 500 }}>
+                Sort by:
+              </label>
+              <select
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 6,
+                  border: `1px solid ${theme.colors.border}`,
+                  fontSize: 15,
+                }}
+              >
+                <option value="priority">Priority</option>
+                <option value="category">Category</option>
+                <option value="time">Time</option>
+              </select>
+            </div>
           </div>
           <div style={{ marginTop: 12, marginBottom: 48 }}>
             {chartView === "daily" ? (

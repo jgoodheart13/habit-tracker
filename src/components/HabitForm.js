@@ -6,7 +6,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
   const [tag, setTag] = useState(() =>
     defaultHabit && defaultHabit.tag
       ? defaultHabit.tag
-      : { value: "", type: "category" }
+      : { label: "", type: "category" }
   );
   const isEdit = !!(defaultHabit && defaultHabit.id);
   const [habit, setHabit] = useState(
@@ -32,7 +32,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
   function handleChange(e) {
     const { name, value } = e.target;
     if (name === "tagValue") {
-      setTag((t) => ({ ...t, value }));
+      setTag((t) => ({ ...t, label: value }));
     } else if (name === "tagType") {
       setTag((t) => ({ ...t, type: value }));
     } else if (name === "type") {
@@ -88,7 +88,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
           frequency: { daily: true, timesPerWeek: 7 },
         }
       );
-      setTag({ value: "", type: "category" });
+      setTag({ label: "", type: "category" });
     }
   }
 
@@ -156,7 +156,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <input
             name="tagValue"
-            value={tag.value}
+            value={tag.label}
             onChange={handleChange}
             placeholder="Tag (e.g. Morning, Health)"
             style={{
