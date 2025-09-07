@@ -74,7 +74,6 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
         marginBottom: 36,
       }}
     >
-      <h3 style={{ margin: "0 0 16px 0", fontWeight: 600 }}>Weekly Progress</h3>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart
           layout="vertical"

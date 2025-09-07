@@ -71,22 +71,7 @@ export default function DailyProgressBar({ habits, activeDate }) {
         marginBottom: 24,
       }}
     >
-      <h3 style={{ margin: "0 0 12px 0", fontWeight: 600 }}>
-        Daily Progress
-        <span
-          style={{
-            marginLeft: 12,
-            fontSize: 14,
-            color: theme.colors.accent,
-            background: theme.colors.incomplete,
-            borderRadius: 6,
-            padding: "2px 8px",
-            fontWeight: 700,
-          }}
-        >
-          {activeDate}
-        </span>
-      </h3>
+
       <ResponsiveContainer width="100%" height={100}>
         <BarChart
           layout="vertical"

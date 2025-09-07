@@ -538,7 +538,7 @@ export default function DailyViewPage() {
         <>
           {/* Daily Progress Bar */}
           <div style={{ marginTop: 12, marginBottom: 48 }}>
-            <DailyProgressBar habits={habits} activeDate={activeDate} />
+            <DailyProgressBar habits={habits} activeDate={activeDate} showHeader={false} />
           </div>
           {/* Sort Button + Add Habit Button Row */}
           <div
@@ -588,7 +588,6 @@ export default function DailyViewPage() {
           <div style={{ marginTop: 12, marginBottom: 48 }}>
             <HabitChart
               data={chartData}
-              title="Daily Habit Completion (7 Day Lookback)"
               activeDate={activeDate}
             />
           </div>
@@ -637,7 +636,13 @@ export default function DailyViewPage() {
       {/* Weekly Goals Tab */}
       {activeTab === "goals" && (
         <>
-          <WeeklyProgressChart habits={habits} activeDate={activeDate} />
+          <div style={{ marginTop: 12, marginBottom: 48 }}>
+            <WeeklyProgressChart
+              habits={habits}
+              activeDate={activeDate}
+              showHeader={false}
+            />
+          </div>
           <div style={{ marginTop: 16 }}>
             <div
               style={{
