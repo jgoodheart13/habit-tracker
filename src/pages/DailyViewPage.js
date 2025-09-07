@@ -110,6 +110,26 @@ export default function DailyViewPage() {
   const baselineHabits = habits.filter((h) => h.type === "P1");
   const reachHabits = habits.filter((h) => h.type === "P2");
 
+  // Helper to get start of week (Monday)
+  function getMonday(dateStr) {
+    const d = new Date(dateStr);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
+    return new Date(d.setDate(diff));
+  }
+
+  // Static 7-day week starting Monday for lookback chart
+  function getWeekDates(dateStr) {
+    const monday = getMonday(dateStr);
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const dd = new Date(monday);
+      dd.setDate(monday.getDate() + i);
+      dates.push(dd.toISOString().slice(0, 10));
+    }
+    return dates;
+  }
+
   // Checklist grouping
   function renderGroupedChecklist() {
     // Filter out weekly habits for Daily View
@@ -185,21 +205,19 @@ export default function DailyViewPage() {
     );
   }
 
-  // Chart data for stacked lines
-  const chartData = last14Days.map((date) => {
-    // Baseline (P1)
+  // Chart data for stacked lines (7-day static week)
+  const weekDates = getWeekDates(activeDate);
+  const chartData = weekDates.map((date) => {
     const p1Total = baselineHabits.length;
     const p1Completed = baselineHabits.filter((h) =>
       h.completedDates.includes(date)
     ).length;
     const p1Percent = p1Total === 0 ? 0 : (p1Completed / p1Total) * 100;
-    // Reach (P2)
     const p2Total = reachHabits.length;
     const p2Completed = reachHabits.filter((h) =>
       h.completedDates.includes(date)
     ).length;
     const p2Percent = p2Total === 0 ? 0 : (p2Completed / p2Total) * 100;
-    // Inverse relationship: scaled reach
     const reachScaled = p2Percent * (p1Percent / 100);
     const combined = p1Percent + reachScaled;
     return {
@@ -538,6 +556,7 @@ export default function DailyViewPage() {
               <HabitChart
                 data={chartData}
                 title="Daily Habit Completion (7 Day Lookback)"
+                activeDate={activeDate}
               />
             )}
           </div>

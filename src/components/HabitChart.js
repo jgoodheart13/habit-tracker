@@ -12,7 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 
-export default function HabitChart({ data, title }) {
+export default function HabitChart({ data, title, activeDate }) {
   // Always use p1Percent for baselineBar
   const chartData = data.map((d) => {
     let baselineBar = d.p1Percent ?? 0;
@@ -62,9 +62,8 @@ export default function HabitChart({ data, title }) {
           <XAxis
             dataKey="date"
             tick={({ x, y, payload }) => {
-              // Highlight the active day
-              const isActive =
-                payload.value === chartData[chartData.length - 1].date;
+              // Highlight the active day using activeDate prop
+              const isActive = activeDate && payload.value === activeDate;
               // Always show all date labels, and always show 100% label at the position of the dashed line
               // Find the x position for 100% (ReferenceLine)
               if (payload.value === "100%") {
