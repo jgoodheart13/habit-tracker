@@ -129,12 +129,13 @@ export default function DailyViewPage() {
         },
       ];
     } else if (sortMode === "category" || sortMode === "time") {
+      // Updated logic for new tags structure
       const withTag = filteredHabits.filter(
-        (h) => h.tag && h.tag.type === sortMode && h.tag.label
+        (h) => h.tags && h.tags[sortMode] && h.tags[sortMode].label
       );
       const tagGroups = {};
       withTag.forEach((h) => {
-        const tag = h.tag.label;
+        const tag = h.tags[sortMode].label;
         if (!tagGroups[tag]) tagGroups[tag] = [];
         tagGroups[tag].push(h);
       });
@@ -145,7 +146,7 @@ export default function DailyViewPage() {
       }));
       // Unspecified
       const unspecified = filteredHabits.filter(
-        (h) => !h.tag || !h.tag.label || h.tag.type !== sortMode
+        (h) => !h.tags || !h.tags[sortMode] || !h.tags[sortMode].label
       );
       if (unspecified.length) {
         grouped.push({

@@ -1,14 +1,9 @@
 // HabitForm.js
 import React, { useState } from 'react';
 import theme from "../styles/theme";
+import { getTags, saveTag } from "../services/habitService";
 
 export default function HabitForm({ onAdd, defaultHabit }) {
-  const [tag, setTag] = useState(() =>
-    defaultHabit && defaultHabit.tag
-      ? defaultHabit.tag
-      : { label: "", type: "category" }
-  );
-  const isEdit = !!(defaultHabit && defaultHabit.id);
   const [habit, setHabit] = useState(
     () =>
       defaultHabit || {
@@ -17,6 +12,15 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         frequency: { daily: true, timesPerWeek: 7 },
       }
   );
+  const [tags, setTags] = useState(() => {
+    if (defaultHabit && defaultHabit.tags) return defaultHabit.tags;
+    return { category: null, time: null };
+  });
+  const [tagInput, setTagInput] = useState({ label: "", type: "category" });
+  const [allTags, setAllTags] = useState([]);
+  const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
+
+  const isEdit = !!(defaultHabit && defaultHabit.id);
 
   // If defaultHabit changes (e.g. switching tabs), reset form
   React.useEffect(() => {
@@ -29,13 +33,14 @@ export default function HabitForm({ onAdd, defaultHabit }) {
     );
   }, [defaultHabit]);
 
+  React.useEffect(() => {
+    setAllTags(getTags());
+    if (defaultHabit && defaultHabit.tags) setTags(defaultHabit.tags);
+  }, [defaultHabit]);
+
   function handleChange(e) {
     const { name, value } = e.target;
-    if (name === "tagValue") {
-      setTag((t) => ({ ...t, label: value }));
-    } else if (name === "tagType") {
-      setTag((t) => ({ ...t, type: value }));
-    } else if (name === "type") {
+    if (name === "type") {
       setHabit((h) => ({ ...h, type: value }));
     } else if (name === "name") {
       setHabit((h) => ({ ...h, name: value }));
@@ -73,14 +78,44 @@ export default function HabitForm({ onAdd, defaultHabit }) {
     }
   }
 
+  function handleTagInputChange(e) {
+    const { name, value } = e.target;
+    if (name === "tagValue") {
+      setTagInput((t) => ({ ...t, label: value }));
+      setTagDropdownOpen(true);
+    } else if (name === "tagType") {
+      setTagInput((t) => ({ ...t, type: value }));
+    }
+  }
+
+  function handleTagSelect(selectedTag) {
+    setTags((prev) => ({ ...prev, [selectedTag.type]: selectedTag }));
+    setTagInput({ label: "", type: selectedTag.type });
+    setTagDropdownOpen(false);
+  }
+
+  function handleTagAdd() {
+    if (tagInput.label) {
+      const newTag = { label: tagInput.label, type: tagInput.type };
+      setTags((prev) => ({ ...prev, [newTag.type]: newTag }));
+      saveTag(newTag);
+      setTagInput({ label: "", type: tagInput.type });
+      setTagDropdownOpen(false);
+    }
+  }
+
+  function handleTagRemove(type) {
+    setTags((prev) => ({ ...prev, [type]: null }));
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
     if (!habit.name) return;
-    const habitWithTag = { ...habit, tag };
+    const habitWithTags = { ...habit, tags };
     if (isEdit) {
-      onAdd(habitWithTag);
+      onAdd(habitWithTags);
     } else {
-      onAdd({ ...habitWithTag, id: Date.now(), completedDates: [] });
+      onAdd({ ...habitWithTags, id: Date.now(), completedDates: [] });
       setHabit(
         defaultHabit || {
           name: "",
@@ -88,9 +123,18 @@ export default function HabitForm({ onAdd, defaultHabit }) {
           frequency: { daily: true, timesPerWeek: 7 },
         }
       );
-      setTag({ label: "", type: "category" });
+      setTags({ category: null, time: null });
     }
   }
+
+  // Filter tags for dropdown
+  const filteredTags = tagInput.label
+    ? allTags.filter(
+        (t) =>
+          t.label.toLowerCase().includes(tagInput.label.toLowerCase()) &&
+          t.type === tagInput.type
+      )
+    : allTags.filter((t) => t.type === tagInput.type);
 
   return (
     <form
@@ -153,23 +197,32 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         />
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            position: "relative",
+          }}
+        >
           <input
             name="tagValue"
-            value={tag.label}
-            onChange={handleChange}
-            placeholder="Tag (e.g. Morning, Health)"
+            value={tagInput.label}
+            onChange={handleTagInputChange}
+            placeholder={`Add ${tagInput.type} tag`}
             style={{
               padding: 8,
               borderRadius: 6,
               border: `1px solid ${theme.colors.border}`,
               flex: 1,
             }}
+            onFocus={() => setTagDropdownOpen(true)}
+            onBlur={() => setTimeout(() => setTagDropdownOpen(false), 150)}
           />
           <select
             name="tagType"
-            value={tag.type}
-            onChange={handleChange}
+            value={tagInput.type}
+            onChange={handleTagInputChange}
             style={{
               padding: 8,
               borderRadius: 6,
@@ -179,6 +232,97 @@ export default function HabitForm({ onAdd, defaultHabit }) {
             <option value="category">Category</option>
             <option value="time">Time</option>
           </select>
+          <button
+            type="button"
+            onClick={handleTagAdd}
+            style={{
+              padding: "8px 12px",
+              marginLeft: 4,
+              borderRadius: 6,
+              background: theme.colors.accent,
+              color: theme.colors.background,
+              border: "none",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            Add
+          </button>
+          {tagDropdownOpen && filteredTags.length > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 38,
+                left: 0,
+                right: 0,
+                background: theme.colors.background,
+                border: `1px solid ${theme.colors.border}`,
+                borderRadius: 6,
+                boxShadow: theme.colors.shadow,
+                zIndex: 10,
+                maxHeight: 120,
+                overflowY: "auto",
+              }}
+            >
+              {filteredTags.map((t, idx) => (
+                <div
+                  key={t.label + t.type + idx}
+                  onMouseDown={() => handleTagSelect(t)}
+                  style={{
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                    background:
+                      t.label === tagInput.label
+                        ? theme.colors.accent
+                        : theme.colors.background,
+                    color:
+                      t.label === tagInput.label
+                        ? theme.colors.background
+                        : theme.colors.text,
+                  }}
+                >
+                  {t.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Show assigned tags as labels with remove option */}
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          {["category", "time"].map((type) =>
+            tags[type] ? (
+              <span
+                key={type}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  background: theme.colors.accent,
+                  color: theme.colors.background,
+                  borderRadius: 12,
+                  padding: "4px 10px",
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                <span style={{ marginRight: 6 }}>{tags[type].label}</span>
+                <button
+                  type="button"
+                  onClick={() => handleTagRemove(type)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: theme.colors.background,
+                    fontWeight: 700,
+                    fontSize: 15,
+                    cursor: "pointer",
+                    marginLeft: 2,
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ) : null
+          )}
         </div>
       </div>
       {/* Buttons row at bottom, inline with Cancel in modal */}

@@ -1,7 +1,22 @@
+const TAGS_KEY = "habit_tags";
+
+export function getTags() {
+  const tags = localStorage.getItem(TAGS_KEY);
+  return tags ? JSON.parse(tags) : [];
+}
+
+export function saveTag(tag) {
+  const tags = getTags();
+  // Only add if not already present (by label and type)
+  if (!tags.some((t) => t.label === tag.label && t.type === tag.type)) {
+    tags.push(tag);
+    localStorage.setItem(TAGS_KEY, JSON.stringify(tags));
+  }
+}
 // habitService.js
 // Abstracts localStorage for habits. Swap for API later.
 
-const HABITS_KEY = 'habits';
+const HABITS_KEY = "habits";
 
 export function getHabits() {
   const habits = localStorage.getItem(HABITS_KEY);
@@ -19,7 +34,9 @@ export function addHabit(habit) {
 }
 
 export function updateHabit(id, updates) {
-  const habits = getHabits().map(h => h.id === id ? { ...h, ...updates } : h);
+  const habits = getHabits().map((h) =>
+    h.id === id ? { ...h, ...updates } : h
+  );
   saveHabits(habits);
 }
 
@@ -50,6 +67,6 @@ export function markHabitComplete(id, date, isChecked) {
 }
 
 export function deleteHabit(id) {
-  const habits = getHabits().filter(h => h.id !== id);
+  const habits = getHabits().filter((h) => h.id !== id);
   saveHabits(habits);
 }
