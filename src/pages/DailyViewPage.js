@@ -30,7 +30,7 @@ export default function DailyViewPage() {
   const [editHabit, setEditHabit] = useState(null);
   // Context-sensitive default for HabitForm
   function getDefaultHabit() {
-    if (activeTab === "daily") {
+    if (activeTab === "daily" || activeTab === "overview") {
       return {
         name: "",
         type: "P1",
@@ -352,7 +352,7 @@ export default function DailyViewPage() {
                 color: theme.colors.text,
               }}
             >
-              Add {activeTab === "daily" ? "Daily" : "Weekly"} Habit
+              Add {(activeTab === "daily" || activeTab === "overview") ? "Daily" : "Weekly"} Habit
             </h2>
             <HabitForm
               onAdd={handleAddHabit}
@@ -635,28 +635,180 @@ export default function DailyViewPage() {
         </>
       )}
       {/* Weekly Goals Tab */}
-      {activeTab === "goals" &&
-        habits.filter((h) => !h.frequency.daily).length > 0 && (
-          <>
-            <WeeklyProgressChart habits={habits} activeDate={activeDate} />
-            <div style={{ marginTop: 16 }}>
-              <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
-                Weekly Goals
-              </h2>
-              {habits
-                .filter((h) => !h.frequency.daily)
-                .map((habit) => (
-                  <WeeklyHabitBar
-                    key={habit.id}
-                    habit={habit}
-                    activeDate={activeDate}
-                    handleComplete={handleComplete}
-                    handleDelete={handleDelete}
-                  />
-                ))}
+      {activeTab === "goals" && (
+        <>
+          <WeeklyProgressChart habits={habits} activeDate={activeDate} />
+          <div style={{ marginTop: 16 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <h2 style={{ fontWeight: 700, marginBottom: 0 }}>Weekly Goals</h2>
+              <div style={{ flex: 1 }} />
+              <button
+                onClick={() => setShowAddHabit(true)}
+                style={{
+                  padding: "8px 20px",
+                  background: theme.colors.accent,
+                  color: theme.colors.background,
+                  border: "none",
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 16,
+                  boxShadow: theme.colors.shadow,
+                  cursor: "pointer",
+                  marginLeft: 12,
+                }}
+              >
+                Add Habit
+              </button>
             </div>
-          </>
-        )}
+            {habits
+              .filter((h) => !h.frequency.daily)
+              .map((habit) => (
+                <WeeklyHabitBar
+                  key={habit.id}
+                  habit={habit}
+                  activeDate={activeDate}
+                  handleComplete={handleComplete}
+                  handleDelete={handleDelete}
+                />
+              ))}
+          </div>
+          {/* Add Habit Modal for Weekly Goals */}
+          {showAddHabit && activeTab === "goals" && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0,0,0,0.18)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1000,
+              }}
+            >
+              <div
+                style={{
+                  background: theme.colors.background,
+                  padding: 32,
+                  borderRadius: 16,
+                  minWidth: 340,
+                  boxShadow: theme.colors.shadow,
+                  border: `1px solid ${theme.colors.border}`,
+                }}
+              >
+                <h2
+                  style={{
+                    marginBottom: 18,
+                    fontWeight: 700,
+                    color: theme.colors.text,
+                  }}
+                >
+                  Add Weekly Habit
+                </h2>
+                <HabitForm
+                  onAdd={handleAddHabit}
+                  defaultHabit={{
+                    name: "",
+                    type: undefined,
+                    frequency: { daily: false, timesPerWeek: 1 },
+                  }}
+                />
+                <button
+                  onClick={() => setShowAddHabit(false)}
+                  style={{
+                    marginTop: 18,
+                    background: theme.colors.incomplete,
+                    color: theme.colors.text,
+                    border: `1px solid ${theme.colors.border}`,
+                    padding: "8px 18px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// Add Habit modal for Daily/Overview tabs (outside main return)
+export function AddHabitModal({ show, onClose, onAdd, tab }) {
+  if (!show) return null;
+  const isWeeklyGoals = tab === "goals";
+  const defaultHabit = isWeeklyGoals
+    ? {
+        name: "",
+        type: undefined,
+        frequency: { daily: false, timesPerWeek: 1 },
+      }
+    : {
+        name: "",
+        type: "P1",
+        frequency: { daily: true, timesPerWeek: 7 },
+      };
+  // Only show 'Add Weekly Habit' for Weekly Goals tab
+  const modalTitle = isWeeklyGoals ? "Add Weekly Habit" : "Add Daily Habit";
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "rgba(0,0,0,0.18)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+    >
+      <div
+        style={{
+          background: theme.colors.background,
+          padding: 32,
+          borderRadius: 16,
+          minWidth: 340,
+          boxShadow: theme.colors.shadow,
+          border: `1px solid ${theme.colors.border}`,
+        }}
+      >
+        <h2
+          style={{
+            marginBottom: 18,
+            fontWeight: 700,
+            color: theme.colors.text,
+          }}
+        >
+          {modalTitle}
+        </h2>
+        <HabitForm onAdd={onAdd} defaultHabit={defaultHabit} />
+        <button
+          onClick={onClose}
+          style={{
+            marginTop: 18,
+            background: theme.colors.incomplete,
+            color: theme.colors.text,
+            border: `1px solid ${theme.colors.border}`,
+            padding: "8px 18px",
+            cursor: "pointer",
+          }}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }
