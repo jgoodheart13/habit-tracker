@@ -287,7 +287,8 @@ export default function DailyViewPage() {
               padding: "6px 18px",
               cursor: "pointer",
               fontSize: 16,
-              boxShadow: activeTab === "overview" ? theme.colors.shadow : "none",
+              boxShadow:
+                activeTab === "overview" ? theme.colors.shadow : "none",
               transition: "background 0.2s",
             }}
           >
@@ -540,7 +541,11 @@ export default function DailyViewPage() {
             boxShadow: theme.colors.shadow,
           }}
         >
-          <span role="img" aria-label="clock" style={{ fontSize: 20, color: theme.colors.text }}>
+          <span
+            role="img"
+            aria-label="clock"
+            style={{ fontSize: 20, color: theme.colors.text }}
+          >
             &#128337;
           </span>
         </button>
@@ -552,10 +557,10 @@ export default function DailyViewPage() {
             <DailyProgressBar habits={habits} activeDate={activeDate} />
           </div>
           {/* Sort Button */}
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-            <label style={{ marginRight: 8, fontWeight: 500 }}>
-              Sort by:
-            </label>
+          <div
+            style={{ display: "flex", alignItems: "center", marginBottom: 16 }}
+          >
+            <label style={{ marginRight: 8, fontWeight: 500 }}>Sort by:</label>
             <select
               value={sortMode}
               onChange={(e) => setSortMode(e.target.value)}
@@ -585,32 +590,53 @@ export default function DailyViewPage() {
               activeDate={activeDate}
             />
           </div>
+          {/* Sort Button */}
+          <div
+            style={{ display: "flex", alignItems: "center", marginBottom: 16 }}
+          >
+            <label style={{ marginRight: 8, fontWeight: 500 }}>Sort by:</label>
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                fontSize: 15,
+              }}
+            >
+              <option value="priority">Priority</option>
+              <option value="category">Category</option>
+              <option value="time">Time</option>
+            </select>
+          </div>
           {/* Checklist (same as daily, but could be filtered differently if needed) */}
           {renderGroupedChecklist()}
         </>
       )}
       {/* Weekly Goals Tab */}
-      {activeTab === "goals" && habits.filter((h) => !h.frequency.daily).length > 0 && (
-        <>
-          <WeeklyProgressChart habits={habits} activeDate={activeDate} />
-          <div style={{ marginTop: 16 }}>
-            <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
-              Weekly Goals
-            </h2>
-            {habits
-              .filter((h) => !h.frequency.daily)
-              .map((habit) => (
-                <WeeklyHabitBar
-                  key={habit.id}
-                  habit={habit}
-                  activeDate={activeDate}
-                  handleComplete={handleComplete}
-                  handleDelete={handleDelete}
-                />
-              ))}
-          </div>
-        </>
-      )}
+      {activeTab === "goals" &&
+        habits.filter((h) => !h.frequency.daily).length > 0 && (
+          <>
+            <WeeklyProgressChart habits={habits} activeDate={activeDate} />
+            <div style={{ marginTop: 16 }}>
+              <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
+                Weekly Goals
+              </h2>
+              {habits
+                .filter((h) => !h.frequency.daily)
+                .map((habit) => (
+                  <WeeklyHabitBar
+                    key={habit.id}
+                    habit={habit}
+                    activeDate={activeDate}
+                    handleComplete={handleComplete}
+                    handleDelete={handleDelete}
+                  />
+                ))}
+            </div>
+          </>
+        )}
     </div>
   );
 }
