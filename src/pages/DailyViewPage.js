@@ -17,10 +17,9 @@ import {
 
 export default function DailyViewPage() {
   const [sortMode, setSortMode] = useState("priority"); // 'priority', 'category', 'time', 'unspecified'
-  // Toggle for chart view: 'daily' or 'lookback'
-  const [chartView, setChartView] = useState("lookback");
   const [habits, setHabits] = useState([]);
-  const [activeTab, setActiveTab] = useState("daily"); // 'daily' or 'weekly'
+  // Tabs: 'daily', 'overview', 'goals'
+  const [activeTab, setActiveTab] = useState("daily");
   // Track the active date (default to today)
   const [activeDate, setActiveDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
@@ -272,15 +271,15 @@ export default function DailyViewPage() {
             Daily View
           </button>
           <button
-            onClick={() => setActiveTab("weekly")}
+            onClick={() => setActiveTab("overview")}
             style={{
-              fontWeight: activeTab === "weekly" ? 700 : 400,
+              fontWeight: activeTab === "overview" ? 700 : 400,
               background:
-                activeTab === "weekly"
+                activeTab === "overview"
                   ? theme.colors.accent
                   : theme.colors.background,
               color:
-                activeTab === "weekly"
+                activeTab === "overview"
                   ? theme.colors.background
                   : theme.colors.text,
               border: `1px solid ${theme.colors.border}`,
@@ -288,11 +287,34 @@ export default function DailyViewPage() {
               padding: "6px 18px",
               cursor: "pointer",
               fontSize: 16,
-              boxShadow: activeTab === "weekly" ? theme.colors.shadow : "none",
+              boxShadow: activeTab === "overview" ? theme.colors.shadow : "none",
               transition: "background 0.2s",
             }}
           >
-            Weekly View
+            Weekly Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("goals")}
+            style={{
+              fontWeight: activeTab === "goals" ? 700 : 400,
+              background:
+                activeTab === "goals"
+                  ? theme.colors.accent
+                  : theme.colors.background,
+              color:
+                activeTab === "goals"
+                  ? theme.colors.background
+                  : theme.colors.text,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: 6,
+              padding: "6px 18px",
+              cursor: "pointer",
+              fontSize: 16,
+              boxShadow: activeTab === "goals" ? theme.colors.shadow : "none",
+              transition: "background 0.2s",
+            }}
+          >
+            Weekly Goals
           </button>
         </div>
         <button
@@ -473,118 +495,70 @@ export default function DailyViewPage() {
       </div>
       {activeTab === "daily" && (
         <>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              margin: "24px 0 12px 0",
-            }}
-          >
-            <button
-              onClick={() => setChartView("daily")}
-              style={{
-                fontWeight: chartView === "daily" ? 700 : 400,
-                background:
-                  chartView === "daily"
-                    ? theme.colors.accent
-                    : theme.colors.background,
-                color:
-                  chartView === "daily"
-                    ? theme.colors.background
-                    : theme.colors.text,
-                border: `1px solid ${theme.colors.border}`,
-                borderRadius: 6,
-                padding: "6px 18px",
-                cursor: "pointer",
-                fontSize: 15,
-                boxShadow: chartView === "daily" ? theme.colors.shadow : "none",
-                transition: "background 0.2s",
-              }}
-            >
-              Daily
-            </button>
-            <button
-              onClick={() => setChartView("lookback")}
-              style={{
-                fontWeight: chartView === "lookback" ? 700 : 400,
-                background:
-                  chartView === "lookback"
-                    ? theme.colors.accent
-                    : theme.colors.background,
-                color:
-                  chartView === "lookback"
-                    ? theme.colors.background
-                    : theme.colors.text,
-                border: `1px solid ${theme.colors.border}`,
-                borderRadius: 6,
-                padding: "6px 18px",
-                cursor: "pointer",
-                fontSize: 15,
-                boxShadow:
-                  chartView === "lookback" ? theme.colors.shadow : "none",
-                transition: "background 0.2s",
-              }}
-            >
-              7 Day Lookback
-            </button>
-            {/* Sort Button */}
-            <div style={{ marginLeft: "auto" }}>
-              <label style={{ marginRight: 8, fontWeight: 500 }}>
-                Sort by:
-              </label>
-              <select
-                value={sortMode}
-                onChange={(e) => setSortMode(e.target.value)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  border: `1px solid ${theme.colors.border}`,
-                  fontSize: 15,
-                }}
-              >
-                <option value="priority">Priority</option>
-                <option value="category">Category</option>
-                <option value="time">Time</option>
-              </select>
-            </div>
-          </div>
+          {/* Daily Progress Bar */}
           <div style={{ marginTop: 12, marginBottom: 48 }}>
-            {chartView === "daily" ? (
-              <DailyProgressBar habits={habits} activeDate={activeDate} />
-            ) : (
-              <HabitChart
-                data={chartData}
-                title="Daily Habit Completion (7 Day Lookback)"
-                activeDate={activeDate}
-              />
-            )}
+            <DailyProgressBar habits={habits} activeDate={activeDate} />
           </div>
+          {/* Sort Button */}
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+            <label style={{ marginRight: 8, fontWeight: 500 }}>
+              Sort by:
+            </label>
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                fontSize: 15,
+              }}
+            >
+              <option value="priority">Priority</option>
+              <option value="category">Category</option>
+              <option value="time">Time</option>
+            </select>
+          </div>
+          {/* Checklist */}
           {renderGroupedChecklist()}
         </>
       )}
-      {activeTab === "weekly" &&
-        habits.filter((h) => !h.frequency.daily).length > 0 && (
-          <>
-            <WeeklyProgressChart habits={habits} activeDate={activeDate} />
-            <div style={{ marginTop: 16 }}>
-              <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
-                Weekly Goals
-              </h2>
-              {habits
-                .filter((h) => !h.frequency.daily)
-                .map((habit) => (
-                  <WeeklyHabitBar
-                    key={habit.id}
-                    habit={habit}
-                    activeDate={activeDate}
-                    handleComplete={handleComplete}
-                    handleDelete={handleDelete}
-                  />
-                ))}
-            </div>
-          </>
-        )}
+      {/* Weekly Overview Tab */}
+      {activeTab === "overview" && (
+        <>
+          <div style={{ marginTop: 12, marginBottom: 48 }}>
+            <HabitChart
+              data={chartData}
+              title="Daily Habit Completion (7 Day Lookback)"
+              activeDate={activeDate}
+            />
+          </div>
+          {/* Checklist (same as daily, but could be filtered differently if needed) */}
+          {renderGroupedChecklist()}
+        </>
+      )}
+      {/* Weekly Goals Tab */}
+      {activeTab === "goals" && habits.filter((h) => !h.frequency.daily).length > 0 && (
+        <>
+          <WeeklyProgressChart habits={habits} activeDate={activeDate} />
+          <div style={{ marginTop: 16 }}>
+            <h2 style={{ fontWeight: 700, marginBottom: 16 }}>
+              Weekly Goals
+            </h2>
+            {habits
+              .filter((h) => !h.frequency.daily)
+              .map((habit) => (
+                <WeeklyHabitBar
+                  key={habit.id}
+                  habit={habit}
+                  activeDate={activeDate}
+                  handleComplete={handleComplete}
+                  handleDelete={handleDelete}
+                />
+              ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
