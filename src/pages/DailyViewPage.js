@@ -242,7 +242,7 @@ export default function DailyViewPage() {
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "center",
           marginBottom: 24,
         }}
       >
@@ -318,22 +318,6 @@ export default function DailyViewPage() {
             Weekly Goals
           </button>
         </div>
-        <button
-          onClick={() => setShowAddHabit(true)}
-          style={{
-            padding: "8px 20px",
-            background: theme.colors.accent,
-            color: theme.colors.background,
-            border: "none",
-            borderRadius: 6,
-            fontWeight: 600,
-            fontSize: 16,
-            boxShadow: theme.colors.shadow,
-            cursor: "pointer",
-          }}
-        >
-          Add Habit
-        </button>
       </div>
       {/* Add Habit Modal (simple inline modal for now) */}
       {showAddHabit && (
@@ -556,7 +540,7 @@ export default function DailyViewPage() {
           <div style={{ marginTop: 12, marginBottom: 48 }}>
             <DailyProgressBar habits={habits} activeDate={activeDate} />
           </div>
-          {/* Sort Button */}
+          {/* Sort Button + Add Habit Button Row */}
           <div
             style={{ display: "flex", alignItems: "center", marginBottom: 16 }}
           >
@@ -575,6 +559,24 @@ export default function DailyViewPage() {
               <option value="category">Category</option>
               <option value="time">Time</option>
             </select>
+            <div style={{ flex: 1 }} />
+            <button
+              onClick={() => setShowAddHabit(true)}
+              style={{
+                padding: "8px 20px",
+                background: theme.colors.accent,
+                color: theme.colors.background,
+                border: "none",
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: 16,
+                boxShadow: theme.colors.shadow,
+                cursor: "pointer",
+                marginLeft: 12,
+              }}
+            >
+              Add Habit
+            </button>
           </div>
           {/* Checklist */}
           {renderGroupedChecklist()}
@@ -590,7 +592,7 @@ export default function DailyViewPage() {
               activeDate={activeDate}
             />
           </div>
-          {/* Sort Button */}
+          {/* Sort Button + Add Habit Button Row */}
           <div
             style={{ display: "flex", alignItems: "center", marginBottom: 16 }}
           >
@@ -609,6 +611,24 @@ export default function DailyViewPage() {
               <option value="category">Category</option>
               <option value="time">Time</option>
             </select>
+            <div style={{ flex: 1 }} />
+            <button
+              onClick={() => setShowAddHabit(true)}
+              style={{
+                padding: "8px 20px",
+                background: theme.colors.accent,
+                color: theme.colors.background,
+                border: "none",
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: 16,
+                boxShadow: theme.colors.shadow,
+                cursor: "pointer",
+                marginLeft: 12,
+              }}
+            >
+              Add Habit
+            </button>
           </div>
           {/* Checklist (same as daily, but could be filtered differently if needed) */}
           {renderGroupedChecklist()}
