@@ -452,6 +452,21 @@ export default function DailyViewPage() {
         }}
       >
         <button
+          onClick={() => changeDate(-7)}
+          style={{
+            fontSize: 22,
+            padding: "4px 12px",
+            borderRadius: 6,
+            boxShadow: theme.colors.shadow,
+            border: `1px solid ${theme.colors.border}`,
+            background: theme.colors.background,
+            color: theme.colors.text,
+            cursor: "pointer",
+          }}
+        >
+          &#171;
+        </button>
+        <button
           onClick={() => changeDate(-1)}
           style={{
             fontSize: 22,
@@ -475,7 +490,10 @@ export default function DailyViewPage() {
             color: theme.colors.text,
           }}
         >
-          {activeDate}
+          {(() => {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            return activeDate === todayStr ? "Today" : activeDate;
+          })()}
         </span>
         <button
           onClick={() => changeDate(1)}
@@ -491,6 +509,40 @@ export default function DailyViewPage() {
           }}
         >
           &rarr;
+        </button>
+        <button
+          onClick={() => changeDate(7)}
+          style={{
+            fontSize: 22,
+            padding: "4px 12px",
+            borderRadius: 6,
+            boxShadow: theme.colors.shadow,
+            border: `1px solid ${theme.colors.border}`,
+            background: theme.colors.background,
+            color: theme.colors.text,
+            cursor: "pointer",
+            marginRight: 8,
+          }}
+        >
+          &#187;
+        </button>
+        <button
+          onClick={() => setActiveDate(new Date().toISOString().slice(0, 10))}
+          title="Go to Today"
+          style={{
+            background: theme.colors.background,
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: "50%",
+            padding: "4px 8px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            boxShadow: theme.colors.shadow,
+          }}
+        >
+          <span role="img" aria-label="clock" style={{ fontSize: 20, color: theme.colors.text }}>
+            &#128337;
+          </span>
         </button>
       </div>
       {activeTab === "daily" && (
