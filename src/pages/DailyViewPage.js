@@ -352,7 +352,11 @@ export default function DailyViewPage() {
                 color: theme.colors.text,
               }}
             >
-              Add {(activeTab === "daily" || activeTab === "overview") ? "Daily" : "Weekly"} Habit
+              Add{" "}
+              {activeTab === "daily" || activeTab === "overview"
+                ? "Daily"
+                : "Weekly"}{" "}
+              Habit
             </h2>
             <HabitForm
               onAdd={handleAddHabit}
@@ -538,7 +542,11 @@ export default function DailyViewPage() {
         <>
           {/* Daily Progress Bar */}
           <div style={{ marginTop: 12, marginBottom: 48 }}>
-            <DailyProgressBar habits={habits} activeDate={activeDate} showHeader={false} />
+            <DailyProgressBar
+              habits={habits}
+              activeDate={activeDate}
+              showHeader={false}
+            />
           </div>
           {/* Sort Button + Add Habit Button Row */}
           <div
@@ -586,10 +594,7 @@ export default function DailyViewPage() {
       {activeTab === "overview" && (
         <>
           <div style={{ marginTop: 12, marginBottom: 48 }}>
-            <HabitChart
-              data={chartData}
-              activeDate={activeDate}
-            />
+            <HabitChart data={chartData} activeDate={activeDate} />
           </div>
           {/* Sort Button + Add Habit Button Row */}
           <div
@@ -680,6 +685,7 @@ export default function DailyViewPage() {
                   activeDate={activeDate}
                   handleComplete={handleComplete}
                   handleDelete={handleDelete}
+                  onEdit={handleEditClick}
                 />
               ))}
           </div>
