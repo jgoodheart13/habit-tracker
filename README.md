@@ -1,3 +1,15 @@
+### `npm run start:local`
+
+Runs the app in development mode using environment variables from `local.env`.
+This is useful for local testing with different credentials or settings.
+
+You must have the `env-cmd` package installed (already included in dependencies).
+
+Example `local.env`:
+
+```
+REACT_APP_B2C_CLIENT_ID=your-local-client-id-here
+```
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

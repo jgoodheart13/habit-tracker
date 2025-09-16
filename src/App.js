@@ -1,12 +1,9 @@
 
-import React, { useState } from 'react';
-import DailyViewPage from './pages/DailyViewPage';
-import HabitBuilderPage from './pages/HabitBuilderPage';
+import React from "react";
+import AppRouter from "./AppRouter";
 import theme from "./styles/theme";
 
 export default function App() {
-  const [page, setPage] = useState('daily');
-
   return (
     <div
       style={{
@@ -35,11 +32,7 @@ export default function App() {
         </h1>
       </header>
       <main>
-        {page === "daily" ? (
-          <DailyViewPage />
-        ) : (
-          <HabitBuilderPage onHabitAdded={() => setPage("daily")} />
-        )}
+        <AppRouter />
       </main>
     </div>
   );
