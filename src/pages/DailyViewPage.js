@@ -63,6 +63,9 @@ export default function DailyViewPage() {
       try {
         if (isAuthenticated) {
           const token = await getAccessTokenSilently();
+          const base64Header = token.split(".")[0];
+          const decodedHeader = JSON.parse(atob(base64Header));
+          console.log("Decoded token header:", decodedHeader);
           console.log("Auth0 access token:", token);
           console.log("Auth0 user:", user);
           setHabits(getHabits());

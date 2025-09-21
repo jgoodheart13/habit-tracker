@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch Chrome (Reach4 Dev)",
             "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}",
+            "webRoot": "${workspaceFolder}/src",
             "runtimeArgs": [
                 // "--disable-web-security",
                 "--user-data-dir=${workspaceFolder}/.vscode/chrome-user-data",
