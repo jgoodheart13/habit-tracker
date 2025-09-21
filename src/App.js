@@ -42,9 +42,11 @@ export default function App() {
               color: theme.colors.accent,
               fontWeight: 800,
               fontSize: 28,
+              margin: "0 auto",
+              textAlign: "center",
             }}
           >
-            Baseline Habit Tracker
+            Reach 4
           </h1>
         </header>
         <main>

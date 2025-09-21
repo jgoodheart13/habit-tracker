@@ -7,9 +7,18 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
+            "name": "Launch Chrome (Reach4 Dev)",
             "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}/src"
+            "webRoot": "${workspaceFolder}",
+            "runtimeArgs": [
+                // "--disable-web-security",
+                "--user-data-dir=${workspaceFolder}/.vscode/chrome-user-data",
+                "--remote-debugging-port=9222"
+            ],
+            "skipFiles": [
+                "<node_internals>/**",
+                "**/node_modules/**"
+            ]
         }
     ]
 }

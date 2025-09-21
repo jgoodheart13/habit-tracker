@@ -14,8 +14,12 @@ import {
   deleteHabit,
   updateHabit,
 } from "../services/habitService";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export default function DailyViewPage() {
+  // Auth0 token debug
+  const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
+
   const [sortMode, setSortMode] = useState("priority"); // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([]);
   // Tabs: 'daily', 'overview', 'goals'
@@ -54,9 +58,23 @@ export default function DailyViewPage() {
   }
 
   useEffect(() => {
-    setHabits(getHabits());
-  }, []);
-
+    // Log Auth0 token for debugging
+    (async () => {
+      try {
+        if (isAuthenticated) {
+          const token = await getAccessTokenSilently();
+          console.log("Auth0 access token:", token);
+          console.log("Auth0 user:", user);
+          setHabits(getHabits());
+        } else {
+          console.log("User not authenticated");
+        }
+      } catch (err) {
+        console.error("Error getting Auth0 token:", err);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]);
   // Arrow navigation handlers
   function changeDate(offset) {
     const d = new Date(activeDate);
