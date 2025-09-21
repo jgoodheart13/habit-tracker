@@ -67,6 +67,9 @@ export default function DailyViewPage() {
           const decodedHeader = JSON.parse(atob(base64Header));
           console.log("Decoded token header:", decodedHeader);
           console.log("Auth0 access token:", token);
+          const base64Payload = token.split(".")[1];
+          const decodedPayload = JSON.parse(atob(base64Payload));
+          console.log("Auth0 decoded token:", decodedPayload);
           console.log("Auth0 user:", user);
           setHabits(getHabits());
         } else {
