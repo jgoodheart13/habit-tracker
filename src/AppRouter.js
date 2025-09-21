@@ -1,29 +1,33 @@
 // AppRouter.js
 import React from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 import DailyViewPage from "./pages/DailyViewPage";
 
-function getToken() {
-  return localStorage.getItem("b2c_token");
-}
-
 function PrivateRoute({ children, ...rest }) {
-  return getToken() ? children : <Navigate to="/auth" replace />;
+  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      loginWithRedirect();
+    }
+  }, [isLoading, isAuthenticated, loginWithRedirect]);
+  if (isLoading) return null;
+  return isAuthenticated ? children : null;
 }
 
 export default function AppRouter() {
   return (
     <Router>
       <Routes>
-        <Route path="/auth" element={<LandingPage />} />
-        <Route path="/" element={
-          <PrivateRoute>
-            <DailyViewPage />
-          </PrivateRoute>
-        } />
-        {/* Catch-all: redirect to /auth if not logged in */}
-        <Route path="*" element={<Navigate to="/auth" replace />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <DailyViewPage />
+            </PrivateRoute>
+          }
+        />
+        {/* Optionally add other routes here */}
       </Routes>
     </Router>
   );
