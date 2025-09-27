@@ -10,6 +10,7 @@ import HabitForm from "../components/HabitForm";
 import DailyProgressBar from "../components/DailyProgressBar";
 import {
   getHabits,
+  addHabit,
   markHabitComplete,
   deleteHabit,
   updateHabit,
@@ -49,12 +50,11 @@ export default function DailyViewPage() {
     }
   }
 
-  function handleAddHabit(newHabit) {
-    setHabits((prev) => [...prev, newHabit]);
+  async function handleAddHabit(newHabit) {
+    await addHabit(newHabit);
+    const updated = await getHabits();
+    setHabits(updated);
     setShowAddHabit(false);
-    // Optionally persist using habitService
-    // import { addHabit } from habitService if needed
-    // addHabit(newHabit);
   }
 
   useEffect(() => {
@@ -63,15 +63,8 @@ export default function DailyViewPage() {
       try {
         if (isAuthenticated) {
           const token = await getAccessTokenSilently();
-          const base64Header = token.split(".")[0];
-          const decodedHeader = JSON.parse(atob(base64Header));
-          console.log("Decoded token header:", decodedHeader);
-          console.log("Auth0 access token:", token);
-          const base64Payload = token.split(".")[1];
-          const decodedPayload = JSON.parse(atob(base64Payload));
-          console.log("Auth0 decoded token:", decodedPayload);
-          console.log("Auth0 user:", user);
-          setHabits(getHabits());
+          const habitsFromApi = await getHabits();
+          setHabits(habitsFromApi);
         } else {
           console.log("User not authenticated");
         }
@@ -89,19 +82,28 @@ export default function DailyViewPage() {
   }
 
   function handleComplete(id, date, isChecked) {
-    markHabitComplete(id, date, isChecked);
-    setHabits(getHabits());
+    (async () => {
+      await markHabitComplete(id, date, isChecked);
+      const updated = await getHabits();
+      setHabits(updated);
+    })();
   }
 
   function handleDelete(id) {
-    deleteHabit(id);
-    setHabits(getHabits());
+    (async () => {
+      await deleteHabit(id);
+      const updated = await getHabits();
+      setHabits(updated);
+    })();
   }
 
   function handleEditHabit(id, newName) {
-    updateHabit(id, { name: newName });
-    setHabits(getHabits());
-    setEditHabit(null);
+    (async () => {
+      await updateHabit(id, { name: newName });
+      const updated = await getHabits();
+      setHabits(updated);
+      setEditHabit(null);
+    })();
   }
 
   function handleEditClick(habit) {
@@ -109,9 +111,12 @@ export default function DailyViewPage() {
   }
 
   function handleEditHabitSave(updatedHabit) {
-    updateHabit(updatedHabit.id, updatedHabit);
-    setHabits(getHabits());
-    setEditHabit(null);
+    (async () => {
+      await updateHabit(updatedHabit.id, updatedHabit);
+      const updated = await getHabits();
+      setHabits(updated);
+      setEditHabit(null);
+    })();
   }
 
   function handleEditHabitCancel() {
