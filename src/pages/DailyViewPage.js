@@ -63,6 +63,7 @@ export default function DailyViewPage() {
       try {
         if (isAuthenticated) {
           const token = await getAccessTokenSilently();
+          localStorage.setItem("auth_token", token);
           const habitsFromApi = await getHabits();
           setHabits(habitsFromApi);
         } else {
