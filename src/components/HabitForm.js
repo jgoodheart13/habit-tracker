@@ -115,7 +115,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
     if (isEdit) {
       onAdd(habitWithTags);
     } else {
-      onAdd({ ...habitWithTags, id: Date.now(), completedDates: [] });
+      onAdd({ ...habitWithTags, completedDates: [] });
       setHabit(
         defaultHabit || {
           name: "",

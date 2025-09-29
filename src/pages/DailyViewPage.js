@@ -57,24 +57,34 @@ export default function DailyViewPage() {
     setShowAddHabit(false);
   }
 
-  useEffect(() => {
-    // Log Auth0 token for debugging
-    (async () => {
+  async function getAuthToken() {
+    if (isAuthenticated) {
       try {
-        if (isAuthenticated) {
-          const token = await getAccessTokenSilently();
-          localStorage.setItem("auth_token", token);
-          const habitsFromApi = await getHabits();
-          setHabits(habitsFromApi);
-        } else {
-          console.log("User not authenticated");
-        }
+        const token = await getAccessTokenSilently();
+        localStorage.setItem("auth_token", token);
       } catch (err) {
         console.error("Error getting Auth0 token:", err);
       }
-    })();
+    }
+  }
+
+  useEffect(() => {
+    // Log Auth0 token for debugging
+    async function fetchHabits() {
+      try {
+        const habitsFromApi = await getHabits();
+        setHabits(habitsFromApi);
+      } catch (err) {
+        console.error("Error fetching habits:", err);
+      }
+    }
+    if (isAuthenticated) {
+      fetchHabits();
+    } else {
+      getAuthToken();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated]);
   // Arrow navigation handlers
   function changeDate(offset) {
     const d = new Date(activeDate);
