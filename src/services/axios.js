@@ -25,10 +25,14 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle 401/403 errors, redirect to login, etc.
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      // Optionally trigger a logout or redirect
-      // window.location.href = "/login";
+    // Handle 401/403 errors, redirect to logout page
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
+      setTimeout(() => {
+        window.location.href = "/logout";
+      }, 100);
     }
     // Optionally log errors
     // console.error("API error:", error);

@@ -18,8 +18,8 @@ import {
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function DailyViewPage() {
-  // Auth0 token debug
-  const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
+  // Auth0 authentication status
+  const { isAuthenticated, user } = useAuth0();
 
   const [sortMode, setSortMode] = useState("priority"); // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([]);
@@ -57,19 +57,8 @@ export default function DailyViewPage() {
     setShowAddHabit(false);
   }
 
-  async function getAuthToken() {
-    if (isAuthenticated) {
-      try {
-        const token = await getAccessTokenSilently();
-        localStorage.setItem("auth_token", token);
-      } catch (err) {
-        console.error("Error getting Auth0 token:", err);
-      }
-    }
-  }
-
   useEffect(() => {
-    // Log Auth0 token for debugging
+    // Fetch habits when authenticated
     async function fetchHabits() {
       try {
         const habitsFromApi = await getHabits();
@@ -78,10 +67,9 @@ export default function DailyViewPage() {
         console.error("Error fetching habits:", err);
       }
     }
+
     if (isAuthenticated) {
       fetchHabits();
-    } else {
-      getAuthToken();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);

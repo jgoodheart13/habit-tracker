@@ -3,6 +3,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import DailyViewPage from "./pages/DailyViewPage";
+import LogoutPage from "./pages/LogoutPage";
 
 function PrivateRoute({ children, ...rest }) {
   const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
@@ -27,6 +28,7 @@ export default function AppRouter() {
             </PrivateRoute>
           }
         />
+        <Route path="/logout" element={<LogoutPage />} />
         {/* Optionally add other routes here */}
       </Routes>
     </Router>
