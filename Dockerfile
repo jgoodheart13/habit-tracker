@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --production
+RUN npm install
 
 # Copy the rest of the application code to the working directory
 COPY . .
@@ -24,6 +24,8 @@ RUN if [ "$BUILD_ENV" = "prod" ]; then \
     else \
       npm run build:local; \
     fi
+
+RUN npm prune --omit=dev   # remove dev deps AFTER build to slim final image
 
 # Expose the port the app runs on
 EXPOSE 8080
