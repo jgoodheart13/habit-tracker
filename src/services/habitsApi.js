@@ -1,5 +1,15 @@
 
 import api from "./axios";
+// Tag API calls
+export async function fetchTags() {
+  const response = await api.get(`/tags`);
+  return response.data;
+}
+
+export async function addTag(tag) {
+  const response = await api.post(`/tags`, tag);
+  return response.data;
+}
 
 export async function fetchHabits() {
   const response = await api.get(`/habits`);
