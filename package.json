@@ -18,7 +18,14 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start:local": "env-cmd -f local.env react-scripts start",
+    "start:local": "env-cmd -f .local.env react-scripts start",
+    "build:local": "env-cmd -f .local.env npm run build",
+    "start:dev": "env-cmd -f .dev.env react-scripts start",
+    "build:dev": "env-cmd -f .dev.env npm run build",
+    "start:qa": "env-cmd -f .qa.env react-scripts start",
+    "build:qa": "env-cmd -f .qa.env npm run build",
+    "start:prod": "env-cmd -f .prod.env react-scripts start",
+    "build:prod": "env-cmd -f .prod.env npm run build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
