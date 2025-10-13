@@ -106,7 +106,9 @@ export default function HabitForm({ onAdd, defaultHabit }) {
     if (tagInput.label) {
       const newTag = { label: tagInput.label, type: tagInput.type };
       setTags((prev) => ({ ...prev, [newTag.type]: newTag }));
-      saveTag(newTag);
+      saveTag(newTag).then(() => {
+        getTags().then((tags) => setAllTags(Array.isArray(tags) ? tags : []));
+      });
       setTagInput({ label: "", type: tagInput.type });
       setTagDropdownOpen(false);
     }
@@ -135,14 +137,17 @@ export default function HabitForm({ onAdd, defaultHabit }) {
     }
   }
 
-  // Filter tags for dropdown
-  const filteredTags = tagInput.label
-    ? allTags.filter(
-        (t) =>
-          t.label.toLowerCase().includes(tagInput.label.toLowerCase()) &&
-          t.type === tagInput.type
-      )
-    : allTags.filter((t) => t.type === tagInput.type);
+  // Filter tags for dropdown (useMemo ensures UI updates when allTags or tagInput changes)
+  const filteredTags = React.useMemo(() => {
+    if (!Array.isArray(allTags)) return [];
+    return tagInput.label
+      ? allTags.filter(
+          (t) =>
+            t.label.toLowerCase().includes(tagInput.label.toLowerCase()) &&
+            t.type === tagInput.type
+        )
+      : allTags.filter((t) => t.type === tagInput.type);
+  }, [allTags, tagInput]);
 
   return (
     <form
