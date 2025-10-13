@@ -35,6 +35,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
 
   React.useEffect(() => {
     setAllTags(getTags());
+      try {
     if (defaultHabit && defaultHabit.tags) setTags(defaultHabit.tags);
   }, [defaultHabit]);
 
