@@ -10,6 +10,39 @@ Example `local.env`:
 ```
 REACT_APP_B2C_CLIENT_ID=your-local-client-id-here
 ```
+
+## Auth0 Configuration
+
+If you ever change your Auth0 tenant, client ID, or API audience, update the following environment variables in your `.env` or `local.env` file:
+
+```
+REACT_APP_AUTH0_DOMAIN=your-tenant-region.auth0.com
+REACT_APP_AUTH0_CLIENT_ID=your-client-id
+REACT_APP_AUTH0_AUDIENCE=your-api-audience
+REACT_APP_API_URL=http://your-api-url
+```
+
+**Allowed Callback URLs in Auth0 Dashboard:**
+- Make sure your application's callback URLs (e.g. `http://localhost:3000`) are listed in the Auth0 dashboard under your application's settings.
+
+**Where to update:**
+- These variables are used in your React app for authentication and API calls.
+- If you change any Auth0 settings, update these values and restart your development server.
+
+**Typical places to update:**
+- `.env` or `local.env` in your project root
+- Auth0 Dashboard → Applications → [Your App] → Settings
+
+**Example:**
+```
+REACT_APP_AUTH0_DOMAIN=dev-uzwwd4s0ket1jp5g.us.auth0.com
+REACT_APP_AUTH0_CLIENT_ID=bK2x5SXyRvvWOfvmpTAkOS2jdp9jaq11
+REACT_APP_AUTH0_AUDIENCE=https://api.reach4.dev
+REACT_APP_API_URL=http://127.0.0.1:8000
+```
+
+**Restart your app after making changes to environment variables.**
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
