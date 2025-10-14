@@ -133,9 +133,13 @@ export default function DailyViewPage() {
     }
     return dates;
   })();
-  // Organize habits by type
-  const baselineHabits = habits.filter((h) => h.type === "P1");
-  const reachHabits = habits.filter((h) => h.type === "P2");
+  // Organize habits by type and daily logic
+  const baselineHabits = habits.filter(
+    (h) => h.type === "P1" && h.frequency && h.frequency.timesPerWeek === 7
+  );
+  const reachHabits = habits.filter(
+    (h) => h.type === "P2" && h.frequency && h.frequency.timesPerWeek === 7
+  );
 
   // Helper to get start of week (Monday)
   function getMonday(dateStr) {
@@ -159,8 +163,10 @@ export default function DailyViewPage() {
 
   // Checklist grouping
   function renderGroupedChecklist() {
-    // Filter out weekly habits for Daily View
-    let filteredHabits = habits.filter((h) => h.frequency && h.frequency.daily);
+    // Filter out non-daily habits for Daily View (daily = timesPerWeek === 7)
+    let filteredHabits = habits.filter(
+      (h) => h.frequency && h.frequency.timesPerWeek === 7
+    );
     let grouped = [];
     if (sortMode === "priority") {
       grouped = [
