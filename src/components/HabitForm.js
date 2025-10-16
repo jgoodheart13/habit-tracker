@@ -28,7 +28,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
       defaultHabit || {
         name: "",
         type: "P1",
-        frequency: { daily: true, timesPerWeek: 7 },
+        frequency: { timesPerWeek: 7 },
       }
     );
   }, [defaultHabit]);
@@ -52,37 +52,6 @@ export default function HabitForm({ onAdd, defaultHabit }) {
       setHabit((h) => ({ ...h, type: value }));
     } else if (name === "name") {
       setHabit((h) => ({ ...h, name: value }));
-    } else if (name === "frequency") {
-      if (value === "dailyP1") {
-        setHabit((h) => ({
-          ...h,
-          type: "P1",
-          frequency: { daily: true, timesPerWeek: 7 },
-        }));
-      } else if (value === "dailyP2") {
-        setHabit((h) => ({
-          ...h,
-          type: "P2",
-          frequency: { daily: true, timesPerWeek: 7 },
-        }));
-      } else if (value === "weeklyN") {
-        setHabit((h) => ({
-          ...h,
-          type: undefined,
-          frequency: {
-            daily: false,
-            timesPerWeek: h.frequency.timesPerWeek || 1,
-          },
-        }));
-      }
-    } else if (name === "timesPerWeek") {
-      setHabit((h) => ({
-        ...h,
-        frequency: {
-          ...h.frequency,
-          timesPerWeek: value === "" ? "" : Number(value),
-        },
-      }));
     }
   }
 
@@ -130,7 +99,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         defaultHabit || {
           name: "",
           type: "P1",
-          frequency: { daily: true, timesPerWeek: 7 },
+          frequency: { timesPerWeek: 7 },
         }
       );
       setTags({ category: null, time: null });
@@ -174,27 +143,77 @@ export default function HabitForm({ onAdd, defaultHabit }) {
           border: `1px solid ${theme.colors.border}`,
         }}
       />
-      <select
-        name="frequency"
-        value={
-          habit.frequency.timesPerWeek === 7
-            ? habit.type === "P2"
-              ? "dailyP2"
-              : "dailyP1"
-            : "weeklyN"
-        }
-        onChange={handleChange}
-        style={{
-          padding: 8,
-          borderRadius: 6,
-          border: `1px solid ${theme.colors.border}`,
-        }}
-      >
-        <option value="dailyP1">Daily Priority 1</option>
-        <option value="dailyP2">Daily Priority 2</option>
-        <option value="weeklyN">N x Week Priority</option>
-      </select>
-      {!habit.frequency.timesPerWeek === 7 && (
+      {/* Horizontal switch for P1/P2 */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <label style={{ fontWeight: 500, marginRight: 8 }}>Type:</label>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            background: theme.colors.background,
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: 20,
+            padding: 2,
+            width: 80,
+            position: "relative",
+          }}
+        >
+          <div
+            onClick={() => setHabit((h) => ({ ...h, type: "P1" }))}
+            style={{
+              flex: 1,
+              zIndex: 2,
+              textAlign: "center",
+              padding: "4px 0",
+              cursor: "pointer",
+              color:
+                habit.type === "P1"
+                  ? theme.colors.background
+                  : theme.colors.text,
+              fontWeight: habit.type === "P1" ? 700 : 400,
+              userSelect: "none",
+            }}
+          >
+            P1
+          </div>
+          <div
+            onClick={() => setHabit((h) => ({ ...h, type: "P2" }))}
+            style={{
+              flex: 1,
+              zIndex: 2,
+              textAlign: "center",
+              padding: "4px 0",
+              cursor: "pointer",
+              color:
+                habit.type === "P2"
+                  ? theme.colors.background
+                  : theme.colors.text,
+              fontWeight: habit.type === "P2" ? 700 : 400,
+              userSelect: "none",
+            }}
+          >
+            P2
+          </div>
+          {/* Switch thumb */}
+          <div
+            style={{
+              position: "absolute",
+              top: 2,
+              left: habit.type === "P1" ? 2 : 40,
+              width: 38,
+              height: 28,
+              borderRadius: 16,
+              background:
+                habit.type === "P1" ? theme.colors.p1 : theme.colors.accent,
+              transition: "left 0.2s",
+              zIndex: 1,
+            }}
+          />
+        </div>
+      </div>
+      {/* Times per week input */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <label style={{ fontWeight: 500 }}>Times per week:</label>
         <input
           type="number"
           name="timesPerWeek"
@@ -206,9 +225,10 @@ export default function HabitForm({ onAdd, defaultHabit }) {
             padding: 8,
             borderRadius: 6,
             border: `1px solid ${theme.colors.border}`,
+            width: 60,
           }}
         />
-      )}
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div
           style={{

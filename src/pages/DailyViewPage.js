@@ -742,7 +742,7 @@ export default function DailyViewPage() {
               </button>
             </div>
             {habits
-              .filter((h) => !h.frequency.timesPerWeek === 7)
+              .filter((h) => h.frequency && h.frequency.timesPerWeek !== 7)
               .map((habit) => (
                 <WeeklyHabitBar
                   key={habit.id}
@@ -793,8 +793,8 @@ export default function DailyViewPage() {
                   onAdd={handleAddHabit}
                   defaultHabit={{
                     name: "",
-                    type: undefined,
-                    frequency: { daily: false, timesPerWeek: 1 },
+                    type: "P1",
+                    frequency: { timesPerWeek: 3 },
                   }}
                 />
                 <button
@@ -827,12 +827,12 @@ export function AddHabitModal({ show, onClose, onAdd, tab }) {
     ? {
         name: "",
         type: undefined,
-        frequency: { daily: false, timesPerWeek: 1 },
+        frequency: { timesPerWeek: 1 },
       }
     : {
         name: "",
         type: "P1",
-        frequency: { daily: true, timesPerWeek: 7 },
+        frequency: { timesPerWeek: 7 },
       };
   // Only show 'Add Weekly Habit' for Weekly Goals tab
   const modalTitle = isWeeklyGoals ? "Add Weekly Habit" : "Add Daily Habit";
