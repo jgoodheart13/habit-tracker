@@ -9,6 +9,8 @@ on:
 jobs:
   build-docker-image:
     runs-on: ubuntu-latest
+    outputs:
+      build_timestamp: ${{ steps.build_time.outputs.value }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,15 +20,16 @@ jobs:
       - name: Get Build Timestamp
         id: build_time
         run: echo "value=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
       - name: Build Docker Image Dev
         if: startsWith(github.ref, 'refs/heads/main')
         uses: docker/build-push-action@v3
+
         with:
           context: .
           file: ./Dockerfile
           outputs: type=docker,dest=docker-image.tar
           tags: reach4.web:build-${{ steps.build_time.outputs.value }}
+          load: true
           build-args: |
             BUILD_ENV=dev
 
