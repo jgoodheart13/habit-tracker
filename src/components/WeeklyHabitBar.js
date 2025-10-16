@@ -53,8 +53,10 @@ export default function WeeklyHabitBar({
       >
         <input
           type="checkbox"
-          checked={false}
-          readOnly
+          checked={habit.completedDates.includes(activeDate)}
+          onChange={(e) =>
+            handleComplete(habit.id, activeDate, e.target.checked)
+          }
           style={{
             accentColor:
               completed.length >= n
