@@ -86,11 +86,33 @@ export default function DailyViewPage() {
   }
 
   function handleComplete(id, date, isChecked) {
-    (async () => {
-      await markHabitComplete(id, date, isChecked);
-      const updated = await getHabits();
-      setHabits(updated);
-    })();
+    // Save previous state for rollback
+    const prevHabits = habits;
+    // Optimistically update UI
+    setHabits((habits) =>
+      habits.map((h) =>
+        h.id === id
+          ? {
+              ...h,
+              completedDates: isChecked
+                ? [...(h.completedDates || []), date]
+                : (h.completedDates || []).filter((d) => d !== date),
+            }
+          : h
+      )
+    );
+    // Make API call
+    markHabitComplete(id, date, isChecked)
+      .then(async () => {
+        // Optionally refresh from backend for consistency
+        const updated = await getHabits();
+        setHabits(updated);
+      })
+      .catch(() => {
+        // On error, revert UI and show error
+        setHabits(prevHabits);
+        alert("Failed to update habit. Please try again.");
+      });
   }
 
   function handleDelete(id) {
