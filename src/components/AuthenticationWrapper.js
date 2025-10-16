@@ -1,32 +1,32 @@
 // AuthenticationWrapper.js
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
 export function AuthenticationWrapper({ children }) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
-  
+  const [tokenReady, setTokenReady] = useState(false);
+
   useEffect(() => {
     async function setAuthToken() {
       if (isAuthenticated) {
         try {
-          const token = await getAccessTokenSilently();
+          const token = await getAccessTokenSilently({
+            audience: process.env.REACT_APP_AUTH0_AUDIENCE,
+            scope: "openid profile email"
+          });
           localStorage.setItem("auth_token", token);
-          console.log("Auth token set successfully");
         } catch (err) {
           console.error("Error getting Auth0 token:", err);
         }
       }
+      setTokenReady(true);
     }
-    
     setAuthToken();
-    
-    // Set up a token refresh interval - adjust time based on your token expiration
-    const refreshInterval = setInterval(() => {
-      setAuthToken();
-    }, 3600000); // Refresh every hour (or adjust based on your token lifetime)
-    
+    const refreshInterval = setInterval(setAuthToken, 3600000);
     return () => clearInterval(refreshInterval);
   }, [isAuthenticated, getAccessTokenSilently]);
-  
+
+  if (isAuthenticated && !tokenReady) return null; // or a loading spinner
+
   return children;
 }
