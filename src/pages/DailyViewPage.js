@@ -711,7 +711,7 @@ export default function DailyViewPage() {
               </button>
             </div>
             {habits
-              .filter((h) => !h.frequency.daily)
+              .filter((h) => !h.frequency.timesPerWeek === 7)
               .map((habit) => (
                 <WeeklyHabitBar
                   key={habit.id}

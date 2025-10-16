@@ -5,7 +5,7 @@ import theme from "../styles/theme";
 
 export default function WeeklyProgressChart({ habits, activeDate }) {
   // Only weekly habits
-  const weeklyHabits = habits.filter((h) => !h.frequency.daily);
+  const weeklyHabits = habits.filter((h) => !h.frequency.timesPerWeek === 7);
   // Get all days in current week (Monday-Sunday)
   const now = new Date(activeDate);
   const monday = new Date(now);

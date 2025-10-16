@@ -16,10 +16,10 @@ import {
 export default function DailyProgressBar({ habits, activeDate }) {
   // Only daily habits
   const baselineHabits = habits.filter(
-    (h) => h.type === "P1" && h.frequency.daily
+    (h) => h.type === "P1" && h.frequency.timesPerWeek === 7
   );
   const reachHabits = habits.filter(
-    (h) => h.type === "P2" && h.frequency.daily
+    (h) => h.type === "P2" && h.frequency.timesPerWeek === 7
   );
   // Calculate for the given day
   const p1Total = baselineHabits.length;

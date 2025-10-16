@@ -177,7 +177,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
       <select
         name="frequency"
         value={
-          habit.frequency.daily
+          habit.frequency.timesPerWeek === 7
             ? habit.type === "P2"
               ? "dailyP2"
               : "dailyP1"
@@ -194,7 +194,7 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         <option value="dailyP2">Daily Priority 2</option>
         <option value="weeklyN">N x Week Priority</option>
       </select>
-      {!habit.frequency.daily && (
+      {!habit.frequency.timesPerWeek === 7 && (
         <input
           type="number"
           name="timesPerWeek"
