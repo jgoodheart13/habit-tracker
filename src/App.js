@@ -1,4 +1,3 @@
-
 import React from "react";
 import AppRouter from "./AppRouter";
 import theme from "./styles/theme";
@@ -69,31 +68,63 @@ function AppContent() {
           fontFamily: "Inter, Arial, sans-serif",
           background: "#f7f7f7",
           minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <header
           style={{
+            width: "100%",
+            maxWidth: 800,
+            margin: "0 auto",
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
             padding: 24,
             background: "#fff",
             borderBottom: "1px solid #eee",
             boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+            position: "relative",
           }}
         >
-          <h1
+          {/* Left: Logo */}
+          <div style={{ display: "flex", alignItems: "center", minWidth: 48 }}>
+            <img
+              src={
+                process.env.PUBLIC_URL +
+                "/Reach4LogoMock-NoLogo-transparent.png"
+              }
+              alt="Reach4 Logo"
+              style={{ width: 38, height: 38, marginRight: 8 }}
+            />
+          </div>
+          {/* Center: Title */}
+          <div
             style={{
-              color: theme.colors.accent,
-              fontWeight: 800,
-              fontSize: 28,
-              margin: "0 auto",
-              textAlign: "center",
+              flex: 1,
+              display: "flex",
+              justifyContent: "center",
+              pointerEvents: "none",
+              position: "absolute",
+              left: 0,
+              right: 0,
             }}
           >
-            Reach 4
-          </h1>
-          <div style={{ position: "absolute", right: 32, top: 24 }}>
+            <h1
+              style={{
+                color: theme.colors.accent,
+                fontWeight: 800,
+                fontSize: 28,
+                margin: 0,
+                textAlign: "center",
+                pointerEvents: "auto",
+              }}
+            >
+              Reach 4
+            </h1>
+          </div>
+          {/* Right: User Icon */}
+          <div style={{ position: "relative", marginLeft: "auto", zIndex: 2 }}>
             {isAuthenticated && (
               <div style={{ position: "relative" }}>
                 <button
@@ -149,7 +180,7 @@ function AppContent() {
             )}
           </div>
         </header>
-        <main>
+        <main style={{ width: "100%" }}>
           <AppRouter />
         </main>
       </div>

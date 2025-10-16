@@ -16,6 +16,7 @@ import {
   updateHabit,
 } from "../services/habitService";
 import { useAuth0 } from "@auth0/auth0-react";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function DailyViewPage() {
   // Auth0 authentication status
@@ -23,6 +24,7 @@ export default function DailyViewPage() {
 
   const [sortMode, setSortMode] = useState("priority"); // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([]);
+  const [habitsLoading, setHabitsLoading] = useState(true);
   // Tabs: 'daily', 'overview', 'goals'
   const [activeTab, setActiveTab] = useState("daily");
   // Track the active date (default to today)
@@ -65,10 +67,13 @@ export default function DailyViewPage() {
         setHabits(habitsFromApi);
       } catch (err) {
         console.error("Error fetching habits:", err);
+      } finally {
+        setHabitsLoading(false);
       }
     }
 
     if (isAuthenticated) {
+      setHabitsLoading(true);
       fetchHabits();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -261,6 +266,10 @@ export default function DailyViewPage() {
       combined,
     };
   });
+
+  if (habitsLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div
