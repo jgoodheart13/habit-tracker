@@ -25,52 +25,35 @@ export default function WeeklyHabitBar({
   const weekDays = getWeekDays();
   const completed = weekDays.filter((d) => habit.completedDates.includes(d));
   const n = habit.frequency.timesPerWeek;
-  // Sort completed dates by day order
-  const completedSorted = weekDays.map((d) => habit.completedDates.includes(d));
   // Color logic: if habit is 100% or more complete, all segments are p2Above100; else, first N completions are p1, extras are p2Above100, incomplete is 'incomplete'
-  let colored = [];
-  if (completed.length >= n) {
-    // All segments are p2Above100
-    colored = weekDays.map(() => "p2Above100");
-  } else {
-    let filled = 0;
-    for (let i = 0; i < weekDays.length; i++) {
-      if (completedSorted[i]) {
-        if (filled < n) {
-          colored.push("p1");
-          filled++;
-        } else {
-          colored.push("p2Above100");
-        }
-      } else {
-        colored.push("incomplete");
-      }
-    }
-  }
-  // Checkbox for this week's activeDate
-  const checked = habit.completedDates.includes(activeDate);
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
         background: "#fff",
         padding: 10,
         borderRadius: 8,
         boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
         marginBottom: 8,
+        minWidth: 0,
       }}
     >
-      <label
-        style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 180 }}
+      {/* Habit name and info column (flexible) */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          minWidth: 0,
+          flex: 1,
+          gap: 8,
+          overflow: "hidden",
+        }}
       >
         <input
           type="checkbox"
-          checked={checked}
-          onChange={(e) =>
-            handleComplete(habit.id, activeDate, e.target.checked)
-          }
+          checked={false}
+          readOnly
           style={{
             accentColor:
               completed.length >= n
@@ -78,14 +61,26 @@ export default function WeeklyHabitBar({
                 : theme.colors.accent,
             width: 20,
             height: 20,
+            flexShrink: 0,
           }}
         />
-        <span style={{ fontWeight: 500 }}>{habit.name}</span>
-        <span style={{ fontSize: 12, color: "#888" }}>
-          ({habit.frequency.timesPerWeek}x/week)
+        <span
+          style={{
+            fontWeight: 500,
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+            minWidth: 0,
+          }}
+        >
+          {habit.name}
         </span>
-      </label>
-      <div style={{ display: "flex", gap: 2 }}>
+        {/* <span style={{ fontSize: 12, color: "#888", flexShrink: 0 }}>
+          ({habit.frequency.timesPerWeek}x/week)
+        </span> */}
+      </div>
+      {/* 7 static-width day columns */}
+      <div style={{ display: "flex", gap: 2, minWidth: 168 }}>
         {weekDays.map((day, idx) => {
           const isRecorded = habit.completedDates.includes(day);
           let color = theme.colors.incomplete;
@@ -93,12 +88,10 @@ export default function WeeklyHabitBar({
             if (completed.length >= n) {
               color = theme.colors.p2Above100;
             } else {
-              // Find how many completions so far
               let filled = completed.slice(0, idx + 1).length;
               color = filled <= n ? theme.colors.p1 : theme.colors.p2Above100;
             }
           }
-          // Visual indicator for active day
           const isActive = day === activeDate;
           return (
             <div
@@ -120,6 +113,7 @@ export default function WeeklyHabitBar({
                 fontSize: 12,
                 color: theme.colors.text,
                 fontWeight: isActive ? 700 : 400,
+                flexShrink: 0,
               }}
               title={weekDays[idx]}
             >
@@ -128,7 +122,10 @@ export default function WeeklyHabitBar({
           );
         })}
       </div>
-      <span style={{ marginLeft: 12, fontSize: 13, color: "#888" }}>
+      {/* Goal count and delete button (fixed width) */}
+      <span
+        style={{ marginLeft: 12, fontSize: 13, color: "#888", flexShrink: 0 }}
+      >
         {completed.length} / {n} goal
       </span>
       <button
@@ -138,13 +135,14 @@ export default function WeeklyHabitBar({
           background: "none",
           border: "none",
           cursor: "pointer",
-          marginLeft: "auto",
+          marginLeft: 8,
           padding: 4,
           color: theme.colors.accent,
           display: "flex",
           alignItems: "center",
           borderRadius: 4,
           transition: "background 0.2s",
+          flexShrink: 0,
         }}
       >
         <svg

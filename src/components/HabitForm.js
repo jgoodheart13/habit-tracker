@@ -52,6 +52,11 @@ export default function HabitForm({ onAdd, defaultHabit }) {
       setHabit((h) => ({ ...h, type: value }));
     } else if (name === "name") {
       setHabit((h) => ({ ...h, name: value }));
+    } else if (name === "timesPerWeek") {
+      setHabit((h) => ({
+        ...h,
+        frequency: { ...h.frequency, timesPerWeek: value },
+      }));
     }
   }
 
