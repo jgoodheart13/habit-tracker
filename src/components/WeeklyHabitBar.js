@@ -21,6 +21,7 @@ export default function WeeklyHabitBar({
   activeDate,
   handleComplete,
   handleDelete,
+  onEdit,
 }) {
   const weekDays = getWeekDays();
   const completed = weekDays.filter((d) => habit.completedDates.includes(d));
@@ -128,6 +129,42 @@ export default function WeeklyHabitBar({
       >
         {completed.length} / {n} goal
       </span>
+      {/* Edit button */}
+      <button
+        onClick={() => onEdit && onEdit(habit)}
+        title="Edit habit"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          marginLeft: 8,
+          padding: 4,
+          color: theme.colors.text,
+          display: "flex",
+          alignItems: "center",
+          borderRadius: 4,
+          transition: "background 0.2s",
+          flexShrink: 0,
+        }}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z"
+            fill="currentColor"
+          />
+          <path
+            d="M17.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.13 1.13 3.75 3.75 1.13-1.13z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+      {/* Delete button */}
       <button
         onClick={() => handleDelete(habit.id)}
         title="Delete habit"
@@ -135,7 +172,7 @@ export default function WeeklyHabitBar({
           background: "none",
           border: "none",
           cursor: "pointer",
-          marginLeft: 8,
+          marginLeft: 4,
           padding: 4,
           color: theme.colors.accent,
           display: "flex",
