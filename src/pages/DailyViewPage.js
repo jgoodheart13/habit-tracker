@@ -117,6 +117,111 @@ export default function DailyViewPage() {
           background: theme.colors.background,
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 16px",
+            background: theme.colors.background,
+            borderBottom: `1px solid ${theme.colors.border}`,
+          }}
+        >
+          <h2 style={{ fontWeight: 700, margin: 0 }}>Weekly Progress</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              onClick={() => changeDate(-7)}
+              style={{
+                fontSize: 16,
+                padding: "4px 8px",
+                borderRadius: 4,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.background,
+                color: theme.colors.text,
+                cursor: "pointer",
+              }}
+            >
+              &#171;
+            </button>
+            <button
+              onClick={() => changeDate(-1)}
+              style={{
+                fontSize: 16,
+                padding: "4px 8px",
+                borderRadius: 4,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.background,
+                color: theme.colors.text,
+                cursor: "pointer",
+              }}
+            >
+              &larr;
+            </button>
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 16,
+                textAlign: "center",
+                color: theme.colors.text,
+              }}
+            >
+              {activeDate === new Date().toISOString().slice(0, 10)
+                ? "Today"
+                : activeDate}
+            </span>
+            <button
+              onClick={() => changeDate(1)}
+              style={{
+                fontSize: 16,
+                padding: "4px 8px",
+                borderRadius: 4,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.background,
+                color: theme.colors.text,
+                cursor: "pointer",
+              }}
+            >
+              &rarr;
+            </button>
+            <button
+              onClick={() => changeDate(7)}
+              style={{
+                fontSize: 16,
+                padding: "4px 8px",
+                borderRadius: 4,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.background,
+                color: theme.colors.text,
+                cursor: "pointer",
+              }}
+            >
+              &#187;
+            </button>
+            <button
+              onClick={() =>
+                setActiveDate(new Date().toISOString().slice(0, 10))
+              }
+              title="Go to Today"
+              style={{
+                background: theme.colors.background,
+                border: `1px solid ${theme.colors.border}`,
+                borderRadius: "50%",
+                padding: "4px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <span
+                role="img"
+                aria-label="clock"
+                style={{ fontSize: 16, color: theme.colors.text }}
+              >
+                &#128337;
+              </span>
+            </button>
+          </div>
+        </div>
         <div style={{ marginTop: 12, marginBottom: 48 }}>
           <WeeklyProgressChart
             habits={habits}
@@ -132,7 +237,6 @@ export default function DailyViewPage() {
               marginBottom: 16,
             }}
           >
-            <h2 style={{ fontWeight: 700, marginBottom: 0 }}>Weekly Goals</h2>
             <label style={{ marginLeft: 24, marginRight: 8, fontWeight: 500 }}>
               Sort by:
             </label>
@@ -151,114 +255,8 @@ export default function DailyViewPage() {
               <option value="time">Time</option>
             </select>
           </div>
-          {/* Add navigation buttons for changing the active date */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 16,
-              marginBottom: 18,
-            }}
-          >
-            <button
-              onClick={() => changeDate(-7)}
-              style={{
-                fontSize: 22,
-                padding: "4px 12px",
-                borderRadius: 6,
-                boxShadow: theme.colors.shadow,
-                border: `1px solid ${theme.colors.border}`,
-                background: theme.colors.background,
-                color: theme.colors.text,
-                cursor: "pointer",
-              }}
-            >
-              &#171;
-            </button>
-            <button
-              onClick={() => changeDate(-1)}
-              style={{
-                fontSize: 22,
-                padding: "4px 12px",
-                borderRadius: 6,
-                boxShadow: theme.colors.shadow,
-                border: `1px solid ${theme.colors.border}`,
-                background: theme.colors.background,
-                color: theme.colors.text,
-                cursor: "pointer",
-              }}
-            >
-              &larr;
-            </button>
-            <span
-              style={{
-                fontWeight: 700,
-                fontSize: 20,
-                minWidth: 140,
-                textAlign: "center",
-                color: theme.colors.text,
-              }}
-            >
-              {activeDate === new Date().toISOString().slice(0, 10)
-                ? "Today"
-                : activeDate}
-            </span>
-            <button
-              onClick={() => changeDate(1)}
-              style={{
-                fontSize: 22,
-                padding: "4px 12px",
-                borderRadius: 6,
-                boxShadow: theme.colors.shadow,
-                border: `1px solid ${theme.colors.border}`,
-                background: theme.colors.background,
-                color: theme.colors.text,
-                cursor: "pointer",
-              }}
-            >
-              &rarr;
-            </button>
-            <button
-              onClick={() => changeDate(7)}
-              style={{
-                fontSize: 22,
-                padding: "4px 12px",
-                borderRadius: 6,
-                boxShadow: theme.colors.shadow,
-                border: `1px solid ${theme.colors.border}`,
-                background: theme.colors.background,
-                color: theme.colors.text,
-                cursor: "pointer",
-              }}
-            >
-              &#187;
-            </button>
-            <button
-              onClick={() =>
-                setActiveDate(new Date().toISOString().slice(0, 10))
-              }
-              title="Go to Today"
-              style={{
-                background: theme.colors.background,
-                border: `1px solid ${theme.colors.border}`,
-                borderRadius: "50%",
-                padding: "4px 8px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                boxShadow: theme.colors.shadow,
-              }}
-            >
-              <span
-                role="img"
-                aria-label="clock"
-                style={{ fontSize: 20, color: theme.colors.text }}
-              >
-                &#128337;
-              </span>
-            </button>
-          </div>
+
+          {/* Weekly Goals */}
           <div
             style={{
               display: "flex",
