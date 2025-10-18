@@ -68,6 +68,7 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
         height: 200,
         background: "#fff",
         borderRadius: 12,
+        overflow: "hidden",
         boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
         padding: 28,
         marginBottom: 36,

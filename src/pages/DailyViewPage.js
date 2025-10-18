@@ -312,8 +312,10 @@ export default function DailyViewPage() {
       }}
     >
       <Sidebar>
-        <h3>Weekly Progress</h3>
-        <p>Progress bar or other content can go here.</p>
+        <h3>Daily Progress</h3>
+        <div style={{ flexGrow: 1, display: "flex" }}>
+          <DailyProgressBar habits={habits} activeDate={activeDate} />
+        </div>
       </Sidebar>
 
       <div

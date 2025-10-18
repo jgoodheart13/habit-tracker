@@ -28,7 +28,8 @@ export default function Sidebar({ children }) {
             fontSize: 24,
           }}
         >
-          {isExpanded ? "\u25C0" : "\u25B6"} {/* Unicode arrows for better visuals */}
+          {isExpanded ? "\u25C0" : "\u25B6"}{" "}
+          {/* Unicode arrows for better visuals */}
         </button>
       </div>
 
@@ -42,6 +43,7 @@ export default function Sidebar({ children }) {
             display: "flex",
             flexDirection: "column",
             padding: "16px",
+            height: "100vh", // full viewport height
           }}
         >
           {children}
