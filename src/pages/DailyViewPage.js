@@ -27,7 +27,7 @@ export default function DailyViewPage() {
   const [habits, setHabits] = useState([]);
   const [habitsLoading, setHabitsLoading] = useState(true);
   // Tabs: 'daily', 'overview', 'goals'
-  const [activeTab, setActiveTab] = useState("daily");
+  const [activeTab, setActiveTab] = useState("goals"); // Set "goals" as the default tab
   // Track the active date (default to today)
   const [activeDate, setActiveDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
@@ -312,7 +312,7 @@ export default function DailyViewPage() {
       }}
     >
       <Sidebar>
-        <h3>Daily Progress</h3>
+        <h3>Weekly Progress</h3>
         <p>Progress bar or other content can go here.</p>
       </Sidebar>
 
@@ -335,29 +335,6 @@ export default function DailyViewPage() {
           }}
         >
           <div style={{ display: "flex", gap: 12 }}>
-            <button
-              onClick={() => setActiveTab("daily")}
-              style={{
-                fontWeight: activeTab === "daily" ? 700 : 400,
-                background:
-                  activeTab === "daily"
-                    ? theme.colors.accent
-                    : theme.colors.background,
-                color:
-                  activeTab === "daily"
-                    ? theme.colors.background
-                    : theme.colors.text,
-                border: `1px solid ${theme.colors.border}`,
-                borderRadius: 6,
-                padding: "6px 18px",
-                cursor: "pointer",
-                fontSize: 16,
-                boxShadow: activeTab === "daily" ? theme.colors.shadow : "none",
-                transition: "background 0.2s",
-              }}
-            >
-              Daily View
-            </button>
             <button
               onClick={() => setActiveTab("overview")}
               style={{
@@ -404,6 +381,29 @@ export default function DailyViewPage() {
               }}
             >
               Weekly Goals
+            </button>
+            <button
+              onClick={() => setActiveTab("daily")}
+              style={{
+                fontWeight: activeTab === "daily" ? 700 : 400,
+                background:
+                  activeTab === "daily"
+                    ? theme.colors.accent
+                    : theme.colors.background,
+                color:
+                  activeTab === "daily"
+                    ? theme.colors.background
+                    : theme.colors.text,
+                border: `1px solid ${theme.colors.border}`,
+                borderRadius: 6,
+                padding: "6px 18px",
+                cursor: "pointer",
+                fontSize: 16,
+                boxShadow: activeTab === "daily" ? theme.colors.shadow : "none",
+                transition: "background 0.2s",
+              }}
+            >
+              Daily View
             </button>
           </div>
         </div>
