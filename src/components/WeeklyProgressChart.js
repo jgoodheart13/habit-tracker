@@ -51,23 +51,15 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
     p2Below100Bar = 0;
     p2Above100Bar = totalPercent;
   }
-  const chartData = weekDays.map((day) => {
-    const isCurrentDay = day === now.toISOString().slice(0, 10);
-    const dayHabits = weeklyHabits.map((habit) => ({
-      ...habit,
-      isCompleted: habit.completedDates.includes(day),
-    }));
+  const weeklyData = {
+    name: "Current Week",
+    p1Bar: p1Percent, // Aggregate P1 progress for the week
+    p2Below100Bar: Math.max(0, Math.min(p2Below100Raw, 100 - p1Percent)),
+    p2Above100Bar: Math.max(0, p1Percent + p2Below100Raw - 100),
+    total: p1Percent + p2Below100Raw,
+  };
 
-    return {
-      name: day,
-      p1Bar: isCurrentDay ? p1Bar : 0, // Example logic for p1Bar
-      p2Below100Bar: isCurrentDay ? p2Below100Bar : 0, // Example logic for p2Below100Bar
-      p2Above100Bar: isCurrentDay ? p2Above100Bar : 0, // Example logic for p2Above100Bar
-      total: p1Bar + p2Below100Bar + p2Above100Bar,
-      isCurrentDay,
-      dayHabits, // Include habits for the day
-    };
-  });
+  const chartData = [weeklyData]; // Single bar for the entire week
 
   // Calculate dynamic axis domain
   const maxPercent = Math.min(
