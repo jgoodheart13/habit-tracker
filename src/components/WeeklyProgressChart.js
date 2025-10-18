@@ -4,10 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import theme from "../styles/theme";
 
 export default function WeeklyProgressChart({ habits, activeDate }) {
-  // Only weekly habits
-  const weeklyHabits = habits.filter(
-    (h) => h.frequency && h.frequency.timesPerWeek !== 7
-  );
+  const weeklyHabits = habits;
   // Get all days in current week (Monday-Sunday)
   const now = new Date(activeDate);
   const monday = new Date(now);
