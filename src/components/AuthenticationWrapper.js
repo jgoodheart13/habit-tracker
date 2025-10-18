@@ -1,6 +1,7 @@
 // AuthenticationWrapper.js
 import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import LoadingScreen from "./LoadingScreen";
 
 export function AuthenticationWrapper({ children }) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -12,7 +13,7 @@ export function AuthenticationWrapper({ children }) {
         try {
           const token = await getAccessTokenSilently({
             audience: process.env.REACT_APP_AUTH0_AUDIENCE,
-            scope: "openid profile email"
+            scope: "openid profile email",
           });
           localStorage.setItem("auth_token", token);
         } catch (err) {
@@ -26,7 +27,9 @@ export function AuthenticationWrapper({ children }) {
     return () => clearInterval(refreshInterval);
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  if (isAuthenticated && !tokenReady) return null; // or a loading spinner
+  if (isAuthenticated && !tokenReady) {
+    return <LoadingScreen />;
+  }
 
   return children;
 }
