@@ -1,12 +1,21 @@
 // WeeklyProgressChart.js
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, LabelList } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  CartesianGrid,
+  ReferenceLine,
+  LabelList,
+} from "recharts";
 import theme from "../styles/theme";
 
 export default function WeeklyProgressChart({ habits, activeDate }) {
   const weeklyHabits = habits;
   // Get all days in current week (Monday-Sunday)
-  const now = new Date(activeDate);
+  const now = new Date(activeDate || new Date().toISOString().slice(0, 10)); // Ensure activeDate is valid
   const monday = new Date(now);
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -14,11 +23,6 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
     d.setDate(monday.getDate() + i);
     return d.toISOString().slice(0, 10);
   });
-  // Format week range label
-  const weekLabel = `${weekDays[0].replace(/-/g, "/")}\n${weekDays[6].replace(
-    /-/g,
-    "/"
-  )}`;
   // Calculate P1 and P2 segments
   let totalP1 = 0;
   let totalP2Possible = 0;
@@ -47,20 +51,32 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
     p2Below100Bar = 0;
     p2Above100Bar = totalPercent;
   }
-  const chartData = [
-    {
-      name: weekLabel,
-      p1Bar,
-      p2Below100Bar,
-      p2Above100Bar,
+  const chartData = weekDays.map((day) => {
+    const isCurrentDay = day === now.toISOString().slice(0, 10);
+    const dayHabits = weeklyHabits.map((habit) => ({
+      ...habit,
+      isCompleted: habit.completedDates.includes(day),
+    }));
+
+    return {
+      name: day,
+      p1Bar: isCurrentDay ? p1Bar : 0, // Example logic for p1Bar
+      p2Below100Bar: isCurrentDay ? p2Below100Bar : 0, // Example logic for p2Below100Bar
+      p2Above100Bar: isCurrentDay ? p2Above100Bar : 0, // Example logic for p2Above100Bar
       total: p1Bar + p2Below100Bar + p2Above100Bar,
-    },
-  ];
+      isCurrentDay,
+      dayHabits, // Include habits for the day
+    };
+  });
+
   // Calculate dynamic axis domain
   const maxPercent = Math.min(
     Math.max(100, Math.ceil((p1Bar + p2Below100Bar + p2Above100Bar) / 10) * 10),
     200
   );
+  console.log("Debugging activeDate:", activeDate);
+  console.log("Debugging weekDays:", weekDays);
+  console.log("Debugging habits:", weeklyHabits);
   return (
     <div
       style={{
@@ -128,6 +144,11 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
             stackId="a"
             fill={theme.colors.p1}
             name="P1 Progress"
+            style={(data) =>
+              data.isCurrentDay
+                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
+                : {}
+            }
           >
             <LabelList
               dataKey="p1Bar"
@@ -140,6 +161,11 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
             stackId="a"
             fill={theme.colors.p2Below100}
             name="P2 to Baseline"
+            style={(data) =>
+              data.isCurrentDay
+                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
+                : {}
+            }
           >
             <LabelList
               dataKey="p2Below100Bar"
@@ -152,6 +178,11 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
             stackId="a"
             fill={theme.colors.p2Above100}
             name="P2 Above Baseline"
+            style={(data) =>
+              data.isCurrentDay
+                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
+                : {}
+            }
           >
             <LabelList
               dataKey="p2Above100Bar"
