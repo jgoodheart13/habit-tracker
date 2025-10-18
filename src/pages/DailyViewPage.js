@@ -53,10 +53,20 @@ export default function DailyViewPage() {
   }
 
   async function handleAddHabit(newHabit) {
-    await addHabit(newHabit);
-    const updated = await getHabits();
-    setHabits(updated);
+    // Optimistic UI: add habit locally with temp ID
+    const tempId = `temp-${Date.now()}`;
+    const optimisticHabit = { ...newHabit, id: tempId };
+    setHabits((prev) => [...prev, optimisticHabit]);
     setShowAddHabit(false);
+    try {
+      const savedHabit = await addHabit(newHabit);
+      // Replace temp habit with saved habit from backend
+      setHabits((prev) => prev.map((h) => (h.id === tempId ? savedHabit : h)));
+    } catch (err) {
+      // Rollback: remove temp habit
+      setHabits((prev) => prev.filter((h) => h.id !== tempId));
+      alert("Failed to save habit. Please try again.");
+    }
   }
 
   useEffect(() => {

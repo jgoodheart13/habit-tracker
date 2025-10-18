@@ -39,6 +39,7 @@ jobs:
         with:
           name: docker-image
           path: docker-image.tar
+          retention-days: 1
 
   push-docker-image-to-registry-dev:
     if: startsWith(github.ref, 'refs/heads/main')
