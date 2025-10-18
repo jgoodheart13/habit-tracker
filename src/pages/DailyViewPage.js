@@ -732,6 +732,25 @@ export default function DailyViewPage() {
               }}
             >
               <h2 style={{ fontWeight: 700, marginBottom: 0 }}>Weekly Goals</h2>
+              <label
+                style={{ marginLeft: 24, marginRight: 8, fontWeight: 500 }}
+              >
+                Sort by:
+              </label>
+              <select
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 6,
+                  border: `1px solid ${theme.colors.border}`,
+                  fontSize: 15,
+                }}
+              >
+                <option value="priority">Priority</option>
+                <option value="category">Category</option>
+                <option value="time">Time</option>
+              </select>
               <div style={{ flex: 1 }} />
               <button
                 onClick={() => setShowAddHabit(true)}
@@ -751,78 +770,83 @@ export default function DailyViewPage() {
                 Add Habit
               </button>
             </div>
-            {habits
-              .filter((h) => h.frequency && h.frequency.timesPerWeek !== 7)
-              .map((habit) => (
-                <WeeklyHabitBar
-                  key={habit.id}
-                  habit={habit}
-                  activeDate={activeDate}
-                  handleComplete={handleComplete}
-                  handleDelete={handleDelete}
-                  onEdit={handleEditClick}
-                />
-              ))}
+            {/* Grouped/sorted habits for weekly view */}
+            {(() => {
+              // Grouping logic copied from renderGroupedChecklist, but for all habits
+              let grouped = [];
+              if (sortMode === "priority") {
+                grouped = [
+                  {
+                    label: "Baseline (P1)",
+                    color: theme.colors.p1,
+                    habits: habits.filter((h) => h.type === "P1"),
+                  },
+                  {
+                    label: "Reach (P2)",
+                    color: theme.colors.accent,
+                    habits: habits.filter((h) => h.type === "P2"),
+                  },
+                ];
+              } else if (sortMode === "category" || sortMode === "time") {
+                const withTag = habits.filter(
+                  (h) => h.tags && h.tags[sortMode] && h.tags[sortMode].label
+                );
+                const tagGroups = {};
+                withTag.forEach((h) => {
+                  const tag = h.tags[sortMode].label;
+                  if (!tagGroups[tag]) tagGroups[tag] = [];
+                  tagGroups[tag].push(h);
+                });
+                grouped = Object.keys(tagGroups).map((tag) => ({
+                  label: tag,
+                  color: theme.colors.accent,
+                  habits: tagGroups[tag],
+                }));
+                // Unspecified
+                const unspecified = habits.filter(
+                  (h) => !h.tags || !h.tags[sortMode] || !h.tags[sortMode].label
+                );
+                if (unspecified.length) {
+                  grouped.push({
+                    label: "Unspecified",
+                    color: theme.colors.incomplete,
+                    habits: unspecified,
+                  });
+                }
+              } else {
+                grouped = [
+                  {
+                    label: "All Habits",
+                    color: theme.colors.accent,
+                    habits,
+                  },
+                ];
+              }
+              return (
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 24 }}
+                >
+                  {grouped.map((group) => (
+                    <div key={group.label}>
+                      <h3 style={{ margin: "8px 0", color: group.color }}>
+                        {group.label}
+                      </h3>
+                      {group.habits.map((habit) => (
+                        <WeeklyHabitBar
+                          key={habit.id}
+                          habit={habit}
+                          activeDate={activeDate}
+                          handleComplete={handleComplete}
+                          handleDelete={handleDelete}
+                          onEdit={handleEditClick}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
-          {/* Add Habit Modal for Weekly Goals */}
-          {showAddHabit && activeTab === "goals" && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.18)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
-              }}
-            >
-              <div
-                style={{
-                  background: theme.colors.background,
-                  padding: 32,
-                  borderRadius: 16,
-                  minWidth: 340,
-                  boxShadow: theme.colors.shadow,
-                  border: `1px solid ${theme.colors.border}`,
-                }}
-              >
-                <h2
-                  style={{
-                    marginBottom: 18,
-                    fontWeight: 700,
-                    color: theme.colors.text,
-                  }}
-                >
-                  Add Weekly Habit
-                </h2>
-                <HabitForm
-                  onAdd={handleAddHabit}
-                  defaultHabit={{
-                    name: "",
-                    type: "P1",
-                    frequency: { timesPerWeek: 3 },
-                  }}
-                />
-                <button
-                  onClick={() => setShowAddHabit(false)}
-                  style={{
-                    marginTop: 18,
-                    background: theme.colors.incomplete,
-                    color: theme.colors.text,
-                    border: `1px solid ${theme.colors.border}`,
-                    padding: "8px 18px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
