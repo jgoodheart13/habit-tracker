@@ -14,12 +14,8 @@ import {
 
 export default function DailyProgressBar({ habits, activeDate }) {
   // Filter daily habits
-  const baselineHabits = habits.filter(
-    (h) => h.type === "P1" && h.frequency.timesPerWeek === 7
-  );
-  const reachHabits = habits.filter(
-    (h) => h.type === "P2" && h.frequency.timesPerWeek === 7
-  );
+  const baselineHabits = habits.filter((h) => h.type === "P1");
+  const reachHabits = habits.filter((h) => h.type === "P2");
 
   // Calculate completion %
   const p1Total = baselineHabits.length;
@@ -33,17 +29,14 @@ export default function DailyProgressBar({ habits, activeDate }) {
     h.completedDates.includes(activeDate)
   ).length;
   const p2Percent =
-    p2Total === 0
-      ? 0
-      : (p2Completed / Math.max(p1Total, p2Total)) * (p1Percent / 100);
+    p2Total === 0 ? 0 : (p2Completed / Math.max(p1Total, p2Total)) * p1Percent;
 
   // Combined scaled reach
-  // const reachScaled = p2Percent * (p1Percent / 100);
-  const totalPercent = Math.min(p1Percent + p2Percent, 200);
+  const totalPercent = p1Percent + p2Percent; // Ensure totalPercent is calculated correctly
 
   // Define maxPercent for the Y-axis domain
-  const maxPercent =
-    totalPercent > 100 ? Math.ceil(totalPercent / 10) * 10 : 100; // Dynamically adjust maxPercent based on totalPercent
+  let maxPercent = totalPercent > 100 ? Math.ceil(totalPercent / 10) * 10 : 100; // Dynamically adjust maxPercent
+  maxPercent = Math.min(maxPercent, 200); // Ensure theoretical maximum of 200%
 
   // Chart data — just one bar
   const chartData = [
@@ -63,7 +56,7 @@ export default function DailyProgressBar({ habits, activeDate }) {
         padding: 12,
       }}
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="95%">
         <BarChart
           data={chartData}
           layout="horizontal" // Vertical bar (Y = %)
