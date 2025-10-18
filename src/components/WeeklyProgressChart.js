@@ -73,7 +73,6 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
     <div
       style={{
         width: "100%",
-        height: 200,
         background: "#fff",
         borderRadius: 12,
         overflow: "hidden",
@@ -82,14 +81,14 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
         marginBottom: 36,
       }}
     >
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={120}>
         <BarChart
           layout="vertical"
           data={chartData}
-          margin={{ top: 38, right: 40, left: 10, bottom: 10 }}
-          barCategoryGap={16}
+          margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
+          barCategoryGap={8}
         >
-          <CartesianGrid strokeDasharray="6 6" stroke={theme.colors.border} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.colors.border} />
           <YAxis
             type="category"
             dataKey="name"
@@ -101,20 +100,8 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           <XAxis
             type="number"
             domain={[0, maxPercent]}
-            tickFormatter={(tick) => {
-              // If 100% or more, only show 100% and current percent
-              if (totalPercent >= 100) {
-                if (tick === 100 || tick === Math.round(totalPercent)) {
-                  return `${tick}%`;
-                }
-                return "";
-              }
-              return `${tick}%`;
-            }}
-            ticks={
-              totalPercent >= 100 ? [100, Math.round(totalPercent)] : undefined
-            }
-            tick={{ fontSize: 14 }}
+            tickFormatter={(tick) => `${tick}%`}
+            tick={{ fontSize: 12 }}
           />
           <ReferenceLine
             x={100}
@@ -124,7 +111,6 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
               totalPercent >= 100
                 ? null
                 : {
-                    value: "Baseline Target",
                     position: "top",
                     fontSize: 15,
                     fill: theme.colors.textSecondary,

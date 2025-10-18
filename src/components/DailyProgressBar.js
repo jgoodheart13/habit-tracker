@@ -105,15 +105,6 @@ export default function DailyProgressBar({ habits, activeDate }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <text
-        x={50} // Adjust position to fit within the white chart area
-        y={20}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        style={{ fontSize: 16, fill: theme.colors.textPrimary }}
-      >
-        Daily Progress
-      </text>
     </div>
   );
 }

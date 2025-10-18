@@ -222,7 +222,7 @@ export default function DailyViewPage() {
             </button>
           </div>
         </div>
-        <div style={{ marginTop: 12, marginBottom: 48 }}>
+        <div style={{ marginTop: 12, marginBottom: 8 }}>
           <WeeklyProgressChart
             habits={habits}
             showHeader={false}
