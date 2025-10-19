@@ -1,12 +1,21 @@
 // WeeklyProgressChart.js
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, LabelList } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  CartesianGrid,
+  ReferenceLine,
+  LabelList,
+} from "recharts";
 import theme from "../styles/theme";
 
 export default function WeeklyProgressChart({ habits, activeDate }) {
   const weeklyHabits = habits;
   // Get all days in current week (Monday-Sunday)
-  const now = new Date(activeDate);
+  const now = new Date(activeDate || new Date().toISOString().slice(0, 10)); // Ensure activeDate is valid
   const monday = new Date(now);
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -14,11 +23,6 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
     d.setDate(monday.getDate() + i);
     return d.toISOString().slice(0, 10);
   });
-  // Format week range label
-  const weekLabel = `${weekDays[0].replace(/-/g, "/")}\n${weekDays[6].replace(
-    /-/g,
-    "/"
-  )}`;
   // Calculate P1 and P2 segments
   let totalP1 = 0;
   let totalP2Possible = 0;
@@ -47,40 +51,43 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
     p2Below100Bar = 0;
     p2Above100Bar = totalPercent;
   }
-  const chartData = [
-    {
-      name: weekLabel,
-      p1Bar,
-      p2Below100Bar,
-      p2Above100Bar,
-      total: p1Bar + p2Below100Bar + p2Above100Bar,
-    },
-  ];
+  const weeklyData = {
+    name: "Current Week",
+    p1Bar: p1Percent, // Aggregate P1 progress for the week
+    p2Below100Bar: Math.max(0, Math.min(p2Below100Raw, 100 - p1Percent)),
+    p2Above100Bar: Math.max(0, p1Percent + p2Below100Raw - 100),
+    total: p1Percent + p2Below100Raw,
+  };
+
+  const chartData = [weeklyData]; // Single bar for the entire week
+
   // Calculate dynamic axis domain
   const maxPercent = Math.min(
     Math.max(100, Math.ceil((p1Bar + p2Below100Bar + p2Above100Bar) / 10) * 10),
     200
   );
+  console.log("Debugging activeDate:", activeDate);
+  console.log("Debugging weekDays:", weekDays);
+  console.log("Debugging habits:", weeklyHabits);
   return (
     <div
       style={{
-        width: "100%",
-        height: 200,
+        width: "92%",
         background: "#fff",
         borderRadius: 12,
+        overflow: "hidden",
         boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
         padding: 28,
-        marginBottom: 36,
       }}
     >
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={120}>
         <BarChart
           layout="vertical"
           data={chartData}
-          margin={{ top: 38, right: 40, left: 10, bottom: 10 }}
-          barCategoryGap={16}
+          margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
+          barCategoryGap={8}
         >
-          <CartesianGrid strokeDasharray="6 6" stroke={theme.colors.border} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.colors.border} />
           <YAxis
             type="category"
             dataKey="name"
@@ -92,20 +99,8 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
           <XAxis
             type="number"
             domain={[0, maxPercent]}
-            tickFormatter={(tick) => {
-              // If 100% or more, only show 100% and current percent
-              if (totalPercent >= 100) {
-                if (tick === 100 || tick === Math.round(totalPercent)) {
-                  return `${tick}%`;
-                }
-                return "";
-              }
-              return `${tick}%`;
-            }}
-            ticks={
-              totalPercent >= 100 ? [100, Math.round(totalPercent)] : undefined
-            }
-            tick={{ fontSize: 14 }}
+            tickFormatter={(tick) => `${tick}%`}
+            tick={{ fontSize: 12 }}
           />
           <ReferenceLine
             x={100}
@@ -115,7 +110,6 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
               totalPercent >= 100
                 ? null
                 : {
-                    value: "Baseline Target",
                     position: "top",
                     fontSize: 15,
                     fill: theme.colors.textSecondary,
@@ -127,6 +121,11 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
             stackId="a"
             fill={theme.colors.p1}
             name="P1 Progress"
+            style={(data) =>
+              data.isCurrentDay
+                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
+                : {}
+            }
           >
             <LabelList
               dataKey="p1Bar"
@@ -139,6 +138,11 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
             stackId="a"
             fill={theme.colors.p2Below100}
             name="P2 to Baseline"
+            style={(data) =>
+              data.isCurrentDay
+                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
+                : {}
+            }
           >
             <LabelList
               dataKey="p2Below100Bar"
@@ -151,6 +155,11 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
             stackId="a"
             fill={theme.colors.p2Above100}
             name="P2 Above Baseline"
+            style={(data) =>
+              data.isCurrentDay
+                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
+                : {}
+            }
           >
             <LabelList
               dataKey="p2Above100Bar"
