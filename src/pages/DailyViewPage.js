@@ -45,34 +45,55 @@ export default function DailyViewPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
-  // Optimistic UI for habit completion
+  // Track the most recent completion request
+  const latestRequestRef = React.useRef(0);
+
   function handleComplete(id, date, isChecked) {
-    // Save previous state for rollback
     const prevHabits = habits;
-    // Optimistically update UI
-    setHabits((habits) =>
-      habits.map((h) =>
+
+    // 1️⃣ Optimistic UI update
+    setHabits((prev) =>
+      prev.map((h) =>
         h.id === id
           ? {
               ...h,
               completedDates: isChecked
                 ? [...(h.completedDates || []), date]
                 : (h.completedDates || []).filter((d) => d !== date),
+              pending: true, // optional flag for UI feedback
             }
           : h
       )
     );
-    // Make API call
+
+    // 2️⃣ Increment request ID
+    const requestId = ++latestRequestRef.current;
+
+    // 3️⃣ Send API call
     markHabitComplete(id, date, isChecked)
       .then(async () => {
-        // Optionally refresh from backend for consistency
-        const updated = await getHabits();
-        setHabits(updated);
+        // only act if this is still the latest request
+        if (requestId === latestRequestRef.current) {
+          try {
+            const updated = await getHabits();
+            setHabits((current) => {
+              // don’t overwrite if the user changed something else since
+              if (current.some((h) => h.pending)) {
+                return current.map((h) => ({ ...h, pending: false }));
+              }
+              return updated;
+            });
+          } catch (err) {
+            console.error("Refresh failed:", err);
+          }
+        }
       })
       .catch(() => {
-        // On error, revert UI and show error
-        setHabits(prevHabits);
-        alert("Failed to update habit. Please try again.");
+        // rollback only if still latest (avoid undoing newer actions)
+        if (requestId === latestRequestRef.current) {
+          setHabits(prevHabits);
+          alert("Failed to update habit. Please try again.");
+        }
       });
   }
 

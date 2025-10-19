@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 export default function Sidebar({ children }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div style={{ display: "flex", height: "100%" }}>
