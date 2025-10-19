@@ -53,10 +53,10 @@ export default function DailyProgressBar({ habits, activeDate }) {
         background: theme.colors.background,
         borderRadius: 12,
         boxShadow: theme.colors.shadow,
-        padding: 12,
+        paddingTop: 12,
       }}
     >
-      <ResponsiveContainer width="100%" height="95%">
+      <ResponsiveContainer width="100%" height="100%" overflow="visible">
         <BarChart
           data={chartData}
           layout="horizontal" // Vertical bar (Y = %)
