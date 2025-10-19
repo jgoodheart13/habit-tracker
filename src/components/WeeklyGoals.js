@@ -9,12 +9,12 @@ export default function WeeklyGoals({ habits, sortMode, handleComplete, handleDe
     if (sortMode === "priority") {
       return [
         {
-          label: "Baseline (P1)",
+          label: "Baseline",
           color: theme.colors.p1,
           habits: habits.filter((h) => h.type === "P1"),
         },
         {
-          label: "Reach (P2)",
+          label: "Reach",
           color: theme.colors.accent,
           habits: habits.filter((h) => h.type === "P2"),
         },
