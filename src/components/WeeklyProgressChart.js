@@ -72,13 +72,12 @@ export default function WeeklyProgressChart({ habits, activeDate }) {
   return (
     <div
       style={{
-        width: "100%",
+        width: "92%",
         background: "#fff",
         borderRadius: 12,
         overflow: "hidden",
         boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
         padding: 28,
-        marginBottom: 36,
       }}
     >
       <ResponsiveContainer width="100%" height={120}>

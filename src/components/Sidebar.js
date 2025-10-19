@@ -44,6 +44,8 @@ export default function Sidebar({ children }) {
             flexDirection: "column",
             padding: "16px",
             height: "100vh", // full viewport height
+            overflow: "hidden", // Prevent overflow of child elements
+            boxSizing: "border-box", // Include padding and border in dimensions
           }}
         >
           {children}
