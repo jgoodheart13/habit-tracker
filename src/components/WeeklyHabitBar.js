@@ -1,20 +1,8 @@
 // WeeklyHabitBar.js
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import theme from "../styles/theme";
 
 // Accept handleComplete and activeDate as props
-
-// Helper to get all days in current week (Monday-Sunday)
-function getWeekDays() {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    return d.toISOString().slice(0, 10);
-  });
-}
 
 export default function WeeklyHabitBar({
   habit,
@@ -22,8 +10,21 @@ export default function WeeklyHabitBar({
   handleComplete,
   handleDelete,
   onEdit,
+  activeWeekRange, // New prop for active week range
 }) {
-  const weekDays = getWeekDays();
+  const [weekDays, setWeekDays] = useState([]);
+
+  useEffect(() => {
+    if (activeWeekRange) {
+      const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(activeWeekRange.start);
+        d.setDate(d.getDate() + i);
+        return d.toISOString().slice(0, 10);
+      });
+      setWeekDays(days);
+    }
+  }, [activeWeekRange]); // Update weekDays when activeWeekRange changes
+
   const completed = weekDays.filter((d) => habit.completedDates.includes(d));
   const n = habit.frequency.timesPerWeek;
   // Color logic: if habit is 100% or more complete, all segments are p2Above100; else, first N completions are p1, extras are p2Above100, incomplete is 'incomplete'
@@ -126,11 +127,13 @@ export default function WeeklyHabitBar({
         })}
       </div>
       {/* Goal count and delete button (fixed width) */}
-      <span
-        style={{ marginLeft: 12, fontSize: 13, color: "#888", flexShrink: 0 }}
-      >
-        {completed.length} / {n} goal
-      </span>
+      {habit.type === "P1" && (
+        <span
+          style={{ marginLeft: 12, fontSize: 13, color: "#888", flexShrink: 0 }}
+        >
+          {completed.length} / {n}
+        </span>
+      )}
       {/* Edit button */}
       <button
         onClick={() => onEdit && onEdit(habit)}

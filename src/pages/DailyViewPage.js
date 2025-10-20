@@ -106,10 +106,26 @@ export default function DailyViewPage() {
   }
 
   function changeDate(offset) {
-    const d = new Date(activeDate);
-    d.setDate(d.getDate() + offset);
-    setActiveDate(d.toISOString().slice(0, 10));
+    const currentDate = new Date(activeDate);
+    const newDate = new Date(currentDate);
+    newDate.setUTCDate(currentDate.getUTCDate() + offset); // Use UTC methods to avoid timezone drift
+    setActiveDate(newDate.toISOString().slice(0, 10));
   }
+
+  function getWeekRange(date) {
+    const inputDate = new Date(date);
+    const dayOfWeek = inputDate.getUTCDay(); // Use UTC to avoid timezone drift
+    const monday = new Date(inputDate);
+    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7)); // Adjust to Monday
+    const sunday = new Date(monday);
+    sunday.setUTCDate(monday.getUTCDate() + 6); // Add 6 days to get Sunday
+    return {
+      start: monday.toISOString().slice(0, 10),
+      end: sunday.toISOString().slice(0, 10),
+    };
+  }
+
+  const activeWeekRange = getWeekRange(activeDate); // Calculate the active week range
 
   if (habitsLoading) {
     return <LoadingScreen />;
@@ -246,8 +262,8 @@ export default function DailyViewPage() {
         <div style={{ marginTop: 12, marginBottom: 8 }}>
           <WeeklyProgressChart
             habits={habits}
+            activeWeekRange={activeWeekRange}
             showHeader={false}
-            activeDate={activeDate}
           />
         </div>
         <div style={{ marginTop: 16 }}>
@@ -287,6 +303,7 @@ export default function DailyViewPage() {
           >
             <WeeklyGoals
               habits={habits}
+              activeWeekRange={activeWeekRange}
               sortMode={sortMode}
               handleComplete={handleComplete}
               handleDelete={handleDelete}

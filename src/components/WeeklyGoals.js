@@ -4,7 +4,14 @@ import React from "react";
 import WeeklyHabitBar from "./WeeklyHabitBar";
 import theme from "../styles/theme";
 
-export default function WeeklyGoals({ habits, sortMode, handleComplete, handleDelete, activeDate }) {
+export default function WeeklyGoals({
+  habits,
+  sortMode,
+  handleComplete,
+  handleDelete,
+  activeDate,
+  activeWeekRange,
+}) {
   const grouped = (() => {
     if (sortMode === "priority") {
       return [
@@ -74,6 +81,7 @@ export default function WeeklyGoals({ habits, sortMode, handleComplete, handleDe
               handleComplete={handleComplete}
               handleDelete={handleDelete}
               activeDate={activeDate}
+              activeWeekRange={activeWeekRange}
             />
           ))}
         </div>
