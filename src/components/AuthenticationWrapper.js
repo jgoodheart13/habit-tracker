@@ -16,6 +16,7 @@ export function AuthenticationWrapper({ children }) {
             scope: "openid profile email",
           });
           localStorage.setItem("auth_token", token);
+          console.log("Auth0 token set in localStorage");
         } catch (err) {
           console.error("Error getting Auth0 token:", err);
         }
@@ -27,7 +28,7 @@ export function AuthenticationWrapper({ children }) {
     return () => clearInterval(refreshInterval);
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  if (isAuthenticated && !tokenReady) {
+  if (!tokenReady) {
     return <LoadingScreen />;
   }
 

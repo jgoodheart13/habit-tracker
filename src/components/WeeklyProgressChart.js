@@ -15,19 +15,12 @@ import theme from "../styles/theme";
 export default function WeeklyProgressChart({ habits, activeWeekRange }) {
   const weeklyHabits = habits;
   // Get all days in current week (Monday-Sunday)
-  const now = new Date(activeWeekRange.start); // Ensure activeDate is valid
-  // const monday = new Date(now);
-  // monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-  // const weekDays = Array.from({ length: 7 }, (_, i) => {
-  //   const d = new Date(monday);
-  //   d.setDate(monday.getDate() + i);
-  //   return d.toISOString().slice(0, 10);
-  // });
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(activeWeekRange.start);
     d.setDate(d.getDate() + i);
     return d.toISOString().slice(0, 10);
   }); // Calculate week days based on activeWeekRange
+
   // Calculate P1 and P2 segments
   let totalP1 = 0;
   let totalP2Possible = 0;
@@ -71,9 +64,7 @@ export default function WeeklyProgressChart({ habits, activeWeekRange }) {
     Math.max(100, Math.ceil((p1Bar + p2Below100Bar + p2Above100Bar) / 10) * 10),
     200
   );
-  console.log("Debugging activeWeekRange:", activeWeekRange); // Updated debug log to use activeWeekRange
-  console.log("Debugging weekDays:", weekDays);
-  console.log("Debugging habits:", weeklyHabits);
+
   return (
     <div
       style={{
