@@ -6,11 +6,10 @@ export default function LogoutPage() {
   const { logout } = useAuth0();
   
   useEffect(() => {
-    // Clear any stored tokens
-    localStorage.removeItem('auth_token');
-    
     // Perform Auth0 logout and redirect to home page
     const timer = setTimeout(() => {
+      localStorage.removeItem('auth_token');
+
       logout({ 
         logoutParams: {
           returnTo: window.location.origin,
