@@ -8,19 +8,7 @@ const api = axios.create({
 // Request interceptor to add token from localStorage
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor for global error handling, logging, etc.
-api.interceptors.response.use(
-  (response) => {
-    // You can add custom logic here (e.g., logging, notifications)
+        // You can add custom logic here (e.g., logging, notifications)
     const token = localStorage.getItem("auth_token")
     let decoded = null
     if (token) {
@@ -46,6 +34,21 @@ api.interceptors.response.use(
         }
       }
     }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    else{
+      console.log("No auth token found in localStorage");
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor for global error handling, logging, etc.
+api.interceptors.response.use(
+  (response) => {
+
     return response
   },
     (error) => {
