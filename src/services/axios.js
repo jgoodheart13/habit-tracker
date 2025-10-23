@@ -50,6 +50,10 @@ api.interceptors.response.use(
   },
     (error) => {
       // Handle 401/403 errors, redirect to logout page
+      if (error.response){
+        console.log("Error", error);
+        console.log("Error Response:", error.response);
+      }
       if (
         error.response &&
         (error.response.status === 401 || error.response.status === 403)
