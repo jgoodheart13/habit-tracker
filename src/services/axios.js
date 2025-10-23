@@ -53,6 +53,12 @@ api.interceptors.response.use(
       if (error.response){
         console.log("Error", error);
         console.log("Error Response:", error.response);
+        if (error.response.data)
+        {
+          console.log("Error Response Data:", error.response.data);
+          if (error.response.data.detail)
+            console.log("Error Response Data Detail:", error.response.data.detail);
+        }
       }
       if (
         error.response &&
