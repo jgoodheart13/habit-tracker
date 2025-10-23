@@ -1,7 +1,10 @@
 // AuthenticationWrapper.js
 import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import React from "react";
 import LoadingScreen from "./LoadingScreen";
+
+export const AuthContext = React.createContext({ tokenReady: false });
 
 export function AuthenticationWrapper({ children }) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -16,21 +19,26 @@ export function AuthenticationWrapper({ children }) {
             scope: "openid profile email",
           });
           localStorage.setItem("auth_token", token);
+          setTokenReady(true);
           console.log("Auth0 token set in localStorage");
         } catch (err) {
           console.error("Error getting Auth0 token:", err);
         }
       }
-      setTokenReady(true);
     }
-    setAuthToken();
+    if (isAuthenticated)
+      setAuthToken();
     const refreshInterval = setInterval(setAuthToken, 3600000);
     return () => clearInterval(refreshInterval);
-  }, [isAuthenticated, getAccessTokenSilently]);
+  }, [isAuthenticated]);
 
-  if (!tokenReady) {
-    return <LoadingScreen />;
-  }
+  // if (!tokenReady && window.location.href.endsWith("logout")=== false) {
+  //   return <LoadingScreen />;
+  // }
 
-  return children;
+  return (
+    <AuthContext.Provider value={{ tokenReady }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }

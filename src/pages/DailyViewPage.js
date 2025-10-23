@@ -1,6 +1,6 @@
 // DailyViewPage.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import theme from "../styles/theme";
 import WeeklyProgressChart from "../components/WeeklyProgressChart";
 import HabitForm from "../components/HabitForm";
@@ -14,10 +14,12 @@ import { useAuth0 } from "@auth0/auth0-react";
 import LoadingScreen from "../components/LoadingScreen";
 import Sidebar from "../components/Sidebar";
 import WeeklyGoals from "../components/WeeklyGoals";
+import { AuthContext } from "../components/AuthenticationWrapper";
 
 export default function DailyViewPage() {
   // Auth0 authentication status
   const { isAuthenticated } = useAuth0();
+  const { tokenReady } = useContext(AuthContext);
 
   const [sortMode, setSortMode] = useState("priority"); // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([]);
@@ -27,7 +29,7 @@ export default function DailyViewPage() {
   );
 
   useEffect(() => {
-    // Fetch habits when authenticated
+    // Fetch habits when authenticated and token is ready
     async function fetchHabits() {
       try {
         const habitsFromApi = await getHabits();
@@ -39,12 +41,12 @@ export default function DailyViewPage() {
       }
     }
 
-    if (isAuthenticated) {
+    if (isAuthenticated && tokenReady) {
       setHabitsLoading(true);
       fetchHabits();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, tokenReady]);
   // Track the most recent completion request
   const latestRequestRef = React.useRef(0);
 
@@ -127,7 +129,7 @@ export default function DailyViewPage() {
 
   const activeWeekRange = getWeekRange(activeDate); // Calculate the active week range
 
-  if (habitsLoading) {
+  if (habitsLoading || !isAuthenticated || !tokenReady) {
     return <LoadingScreen />;
   }
 
