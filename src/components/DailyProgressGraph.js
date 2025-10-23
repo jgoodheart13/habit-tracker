@@ -1,16 +1,4 @@
-import React from "react";
-import theme from "../styles/theme";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  ReferenceLine,
-  LabelList,
-} from "recharts";
+import ProgressGraph from './ProgressGraph';
 
 export default function DailyProgressGraph({ habits, activeDate }) {
   // Filter daily habits
@@ -31,6 +19,8 @@ export default function DailyProgressGraph({ habits, activeDate }) {
   const p2Percent =
     p2Total === 0 ? 0 : (p2Completed / Math.max(p1Total, p2Total)) * p1Percent;
 
+  const p2Below100Raw = p2Total === 0 ? 0 : (p2Completed / p2Total) * Math.max(p1Percent, 5);
+
   // Combined scaled reach
   const totalPercent = p1Percent + p2Percent; // Ensure totalPercent is calculated correctly
 
@@ -38,66 +28,20 @@ export default function DailyProgressGraph({ habits, activeDate }) {
   let maxPercent = totalPercent > 100 ? Math.ceil(totalPercent / 10) * 10 : 100; // Dynamically adjust maxPercent
   maxPercent = Math.min(maxPercent, 200); // Ensure theoretical maximum of 200%
 
-  // Chart data — just one bar
-  const chartData = [
-    {
-      day: "Today",
-      percent: totalPercent,
-    },
-  ];
+  const dailyData = {
+    name: "Today",
+    p1Bar: p1Percent, // Aggregate P1 progress for the day
+    p2Below100Bar: Math.max(0, Math.min(p2Below100Raw, 100 - p1Percent)),
+    p2Above100Bar: Math.max(0, p1Percent + p2Below100Raw - 100),
+    total: p1Percent + p2Below100Raw,
+  };
+
+  const chartData = [dailyData];
 
   return (
-    <div
-      style={{
-        width: "100%",
-        background: theme.colors.background,
-        borderRadius: 12,
-        boxShadow: theme.colors.shadow,
-        paddingTop: 12,
-      }}
-    >
-      <ResponsiveContainer width="100%" height="100%" overflow="visible">
-        <BarChart
-          data={chartData}
-          layout="horizontal" // Vertical bar (Y = %)
-          margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.colors.border} />
-          {/* X-axis: hidden, no categories */}
-          <XAxis dataKey="day" axisLine={false} tickLine={false} tick={false} />
-          {/* Y-axis: shows % scale */}
-          <YAxis
-            type="number"
-            domain={[0, maxPercent]}
-            tick={null} // Remove redundant tick marks
-            axisLine={false}
-            tickLine={false}
-          />
-          <Tooltip
-            formatter={(value) => [`${value.toFixed(1)}%`, "Progress"]}
-          />
-          <ReferenceLine
-            y={100}
-            stroke={theme.colors.textSecondary}
-            strokeDasharray="6 3"
-          />
-          <Bar
-            dataKey="percent"
-            fill={
-              totalPercent >= 100
-                ? theme.colors.p2Above100
-                : theme.colors.p2Below100
-            } // Use theme colors for bar fill
-            radius={[6, 6, 0, 0]}
-          >
-            <LabelList
-              dataKey="percent"
-              position="top"
-              formatter={(v) => `${v.toFixed(1)}%`}
-            />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <>
+      <h2 style={{ fontWeight: 700, margin: 0 }}>Daily Progress</h2>
+      <ProgressGraph chartData={chartData} maxPercent={maxPercent} totalPercent={totalPercent} />
+    </>
   );
 }

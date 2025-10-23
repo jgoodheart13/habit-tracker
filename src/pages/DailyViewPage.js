@@ -12,7 +12,6 @@ import {
 } from "../services/habitService";
 import { useAuth0 } from "@auth0/auth0-react";
 import LoadingScreen from "../components/LoadingScreen";
-import Sidebar from "../components/Sidebar";
 import WeeklyHabitsList from "../components/WeeklyHabitsList";
 import { AuthContext } from "../components/AuthenticationWrapper";
 
@@ -140,13 +139,6 @@ export default function DailyViewPage() {
         height: "100vh",
       }}
     >
-      <Sidebar>
-        <h3>Daily Progress</h3>
-        <div style={{ flexGrow: 1, display: "flex" }}>
-          <DailyProgressGraph habits={habits} activeDate={activeDate} />
-        </div>
-      </Sidebar>
-
       <div
         style={{
           flexGrow: 1,
@@ -166,7 +158,6 @@ export default function DailyViewPage() {
             borderBottom: `1px solid ${theme.colors.border}`,
           }}
         >
-          <h2 style={{ fontWeight: 700, margin: 0 }}>Weekly Progress</h2>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <button
               onClick={() => changeDate(-7)}
@@ -261,12 +252,15 @@ export default function DailyViewPage() {
             </button>
           </div>
         </div>
-        <div style={{ marginTop: 12, marginBottom: 8 }}>
+        <div>
           <WeeklyProgressGraph
             habits={habits}
             activeWeekRange={activeWeekRange}
             showHeader={false}
           />
+        </div>
+        <div>
+          <DailyProgressGraph habits={habits} activeDate={activeDate} />
         </div>
         <div style={{ marginTop: 16 }}>
           <div
