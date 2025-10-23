@@ -1,4 +1,4 @@
-// WeeklyProgressChart.js
+// WeeklyProgressGraph.js
 import React from 'react';
 import {
   BarChart,
@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import theme from "../styles/theme";
 
-export default function WeeklyProgressChart({ habits, activeWeekRange }) {
+export default function WeeklyProgressGraph({ habits, activeWeekRange }) {
   const weeklyHabits = habits;
   // Get all days in current week (Monday-Sunday)
   const weekDays = Array.from({ length: 7 }, (_, i) => {

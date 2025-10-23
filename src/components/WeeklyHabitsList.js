@@ -1,10 +1,10 @@
-// WeeklyGoals.js
+// WeeklyHabitsList.js
 
 import React from "react";
-import WeeklyHabitBar from "./WeeklyHabitBar";
+import WeeklyHabitRow from "./WeeklyHabitRow";
 import theme from "../styles/theme";
 
-export default function WeeklyGoals({
+export default function WeeklyHabitsList({
   habits,
   sortMode,
   handleComplete,
@@ -75,7 +75,7 @@ export default function WeeklyGoals({
         <div key={group.label}>
           <h3 style={{ margin: "8px 0", color: group.color }}>{group.label}</h3>
           {group.habits.map((habit) => (
-            <WeeklyHabitBar
+            <WeeklyHabitRow
               key={habit.id}
               habit={habit}
               handleComplete={handleComplete}

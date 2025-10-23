@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import theme from "../styles/theme";
-import WeeklyProgressChart from "../components/WeeklyProgressChart";
+import WeeklyProgressGraph from "../components/WeeklyProgressGraph";
 import HabitForm from "../components/HabitForm";
-import DailyProgressBar from "../components/DailyProgressBar";
+import DailyProgressGraph from "../components/DailyProgressGraph";
 import {
   getHabits,
   markHabitComplete,
@@ -13,7 +13,7 @@ import {
 import { useAuth0 } from "@auth0/auth0-react";
 import LoadingScreen from "../components/LoadingScreen";
 import Sidebar from "../components/Sidebar";
-import WeeklyGoals from "../components/WeeklyGoals";
+import WeeklyHabitsList from "../components/WeeklyHabitsList";
 import { AuthContext } from "../components/AuthenticationWrapper";
 
 export default function DailyViewPage() {
@@ -143,7 +143,7 @@ export default function DailyViewPage() {
       <Sidebar>
         <h3>Daily Progress</h3>
         <div style={{ flexGrow: 1, display: "flex" }}>
-          <DailyProgressBar habits={habits} activeDate={activeDate} />
+          <DailyProgressGraph habits={habits} activeDate={activeDate} />
         </div>
       </Sidebar>
 
@@ -262,7 +262,7 @@ export default function DailyViewPage() {
           </div>
         </div>
         <div style={{ marginTop: 12, marginBottom: 8 }}>
-          <WeeklyProgressChart
+          <WeeklyProgressGraph
             habits={habits}
             activeWeekRange={activeWeekRange}
             showHeader={false}
@@ -303,7 +303,7 @@ export default function DailyViewPage() {
               gap: 24,
             }}
           >
-            <WeeklyGoals
+            <WeeklyHabitsList
               habits={habits}
               activeWeekRange={activeWeekRange}
               sortMode={sortMode}
@@ -321,8 +321,8 @@ export default function DailyViewPage() {
 // Add Habit modal for Daily/Overview tabs (outside main return)
 export function AddHabitModal({ show, onClose, onAdd, tab }) {
   if (!show) return null;
-  const isWeeklyGoals = tab === "goals";
-  const defaultHabit = isWeeklyGoals
+  const isWeeklyHabitsList = tab === "goals";
+  const defaultHabit = isWeeklyHabitsList
     ? {
         name: "",
         type: undefined,
@@ -334,7 +334,7 @@ export function AddHabitModal({ show, onClose, onAdd, tab }) {
         frequency: { timesPerWeek: 7 },
       };
   // Only show 'Add Weekly Habit' for Weekly Goals tab
-  const modalTitle = isWeeklyGoals ? "Add Weekly Habit" : "Add Daily Habit";
+  const modalTitle = isWeeklyHabitsList ? "Add Weekly Habit" : "Add Daily Habit";
   return (
     <div
       style={{

@@ -12,7 +12,7 @@ import {
   LabelList,
 } from "recharts";
 
-export default function DailyProgressBar({ habits, activeDate }) {
+export default function DailyProgressGraph({ habits, activeDate }) {
   // Filter daily habits
   const baselineHabits = habits.filter((h) => h.type === "P1");
   const reachHabits = habits.filter((h) => h.type === "P2");

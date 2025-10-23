@@ -1,10 +1,10 @@
-// WeeklyHabitBar.js
+// WeeklyHabitRow.js
 import React, { useEffect, useState } from "react";
 import theme from "../styles/theme";
 
 // Accept handleComplete and activeDate as props
 
-export default function WeeklyHabitBar({
+export default function WeeklyHabitRow({
   habit,
   activeDate,
   handleComplete,
