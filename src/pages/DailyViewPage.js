@@ -24,33 +24,33 @@ export default function DailyViewPage() {
   const [habits, setHabits] = useState([]);
   const [habitsLoading, setHabitsLoading] = useState(true);
   const [activeDate, setActiveDate] = useState(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+    new Date().toLocaleDateString("en-CA")
+  )
 
   useEffect(() => {
     // Fetch habits when authenticated and token is ready
     async function fetchHabits() {
       try {
-        const habitsFromApi = await getHabits();
-        setHabits(habitsFromApi);
+        const habitsFromApi = await getHabits()
+        setHabits(habitsFromApi)
       } catch (err) {
-        console.error("Error fetching habits:", err);
+        console.error("Error fetching habits:", err)
       } finally {
-        setHabitsLoading(false);
+        setHabitsLoading(false)
       }
     }
 
     if (isAuthenticated && tokenReady) {
-      setHabitsLoading(true);
-      fetchHabits();
+      setHabitsLoading(true)
+      fetchHabits()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, tokenReady]);
+  }, [isAuthenticated, tokenReady])
   // Track the most recent completion request
-  const latestRequestRef = React.useRef(0);
+  const latestRequestRef = React.useRef(0)
 
   function handleComplete(id, date, isChecked) {
-    const prevHabits = habits;
+    const prevHabits = habits
 
     // 1️⃣ Optimistic UI update
     setHabits((prev) =>
@@ -65,10 +65,10 @@ export default function DailyViewPage() {
             }
           : h
       )
-    );
+    )
 
     // 2️⃣ Increment request ID
-    const requestId = ++latestRequestRef.current;
+    const requestId = ++latestRequestRef.current
 
     // 3️⃣ Send API call
     markHabitComplete(id, date, isChecked)
@@ -76,60 +76,60 @@ export default function DailyViewPage() {
         // only act if this is still the latest request
         if (requestId === latestRequestRef.current) {
           try {
-            const updated = await getHabits();
+            const updated = await getHabits()
             setHabits((current) => {
               // don’t overwrite if the user changed something else since
               if (current.some((h) => h.pending)) {
-                return current.map((h) => ({ ...h, pending: false }));
+                return current.map((h) => ({ ...h, pending: false }))
               }
-              return updated;
-            });
+              return updated
+            })
           } catch (err) {
-            console.error("Refresh failed:", err);
+            console.error("Refresh failed:", err)
           }
         }
       })
       .catch(() => {
         // rollback only if still latest (avoid undoing newer actions)
         if (requestId === latestRequestRef.current) {
-          setHabits(prevHabits);
-          alert("Failed to update habit. Please try again.");
+          setHabits(prevHabits)
+          alert("Failed to update habit. Please try again.")
         }
-      });
+      })
   }
 
   function handleDelete(id) {
-    (async () => {
-      await deleteHabit(id);
-      const updated = await getHabits();
-      setHabits(updated);
-    })();
+    ;(async () => {
+      await deleteHabit(id)
+      const updated = await getHabits()
+      setHabits(updated)
+    })()
   }
 
   function changeDate(offset) {
-    const currentDate = new Date(activeDate);
-    const newDate = new Date(currentDate);
-    newDate.setUTCDate(currentDate.getUTCDate() + offset); // Use UTC methods to avoid timezone drift
-    setActiveDate(newDate.toISOString().slice(0, 10));
+    const currentDate = new Date(activeDate)
+    const newDate = new Date(currentDate)
+    newDate.setUTCDate(currentDate.getUTCDate() + offset) // Use UTC methods to avoid timezone drift
+    setActiveDate(newDate.toISOString().slice(0, 10))
   }
 
   function getWeekRange(date) {
-    const inputDate = new Date(date);
-    const dayOfWeek = inputDate.getUTCDay(); // Use UTC to avoid timezone drift
-    const monday = new Date(inputDate);
-    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7)); // Adjust to Monday
-    const sunday = new Date(monday);
-    sunday.setUTCDate(monday.getUTCDate() + 6); // Add 6 days to get Sunday
+    const inputDate = new Date(date)
+    const dayOfWeek = inputDate.getUTCDay() // Use UTC to avoid timezone drift
+    const monday = new Date(inputDate)
+    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7)) // Adjust to Monday
+    const sunday = new Date(monday)
+    sunday.setUTCDate(monday.getUTCDate() + 6) // Add 6 days to get Sunday
     return {
       start: monday.toISOString().slice(0, 10),
       end: sunday.toISOString().slice(0, 10),
-    };
+    }
   }
 
-  const activeWeekRange = getWeekRange(activeDate); // Calculate the active week range
+  const activeWeekRange = getWeekRange(activeDate) // Calculate the active week range
 
   if (habitsLoading || !isAuthenticated || !tokenReady) {
-    return <LoadingScreen />;
+    return <LoadingScreen />
   }
 
   return (
@@ -195,7 +195,7 @@ export default function DailyViewPage() {
                 color: theme.colors.text,
               }}
             >
-              {activeDate === new Date().toISOString().slice(0, 10)
+              {activeDate === new Date().toLocaleDateString("en-CA")
                 ? "Today"
                 : activeDate}
             </span>
@@ -229,7 +229,7 @@ export default function DailyViewPage() {
             </button>
             <button
               onClick={() =>
-                setActiveDate(new Date().toISOString().slice(0, 10))
+                setActiveDate(new Date().toLocaleDateString("en-CA"))
               }
               title="Go to Today"
               style={{
@@ -309,7 +309,7 @@ export default function DailyViewPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // Add Habit modal for Daily/Overview tabs (outside main return)

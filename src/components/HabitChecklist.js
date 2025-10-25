@@ -11,9 +11,9 @@ export default function HabitChecklist({
   date,
 }) {
   // Use date prop if provided, fallback to today
-  const selectedDate = date || new Date().toISOString().slice(0, 10);
+  const selectedDate = date || new Date().toLocaleDateString("en-CA")
   function handleEditClick(habit) {
-    onEdit(habit);
+    onEdit(habit)
   }
 
   return (
@@ -110,5 +110,5 @@ export default function HabitChecklist({
         </div>
       ))}
     </div>
-  );
+  )
 }
