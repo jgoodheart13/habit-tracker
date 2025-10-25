@@ -1,9 +1,10 @@
 import axios from "axios";
+import settings from "../config/settings"
 
 // Create an Axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-});
+  baseURL: settings.apiBaseUrl,
+})
 
 // Request interceptor to add token from localStorage
 api.interceptors.request.use(

@@ -5,10 +5,11 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { AuthenticationWrapper } from "./components/AuthenticationWrapper";
 
 import { Auth0Provider } from "@auth0/auth0-react";
+import settings from "./config/settings"
 
-const domain = process.env.REACT_APP_AUTH0_DOMAIN;
-const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
-const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+const domain = settings.authDomain
+const clientId = settings.authClientId
+const audience = settings.authAudience
 
 export default function App() {
   return (
