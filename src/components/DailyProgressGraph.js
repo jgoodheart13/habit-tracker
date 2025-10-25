@@ -51,12 +51,14 @@ export default function DailyProgressGraph({ habits, activeDate }) {
   const secondaryPercentage =
     combinedScore < 100 ? p2Points : 100 - combinedScore
 
+  // multiplier can ust be 1 + P1 completion ratio for max of 2x on P2
+
   return (
     <>
       <h2 style={{ fontWeight: 700, margin: 0 }}>Daily Progress</h2>
       <ProgressGraph
-        primaryPercentage={[totalPercent]}
-        secondaryPercentage={[secondaryPercentage]}
+        primaryPercentage={totalPercent}
+        secondaryPercentage={secondaryPercentage}
       />
     </>
   )
