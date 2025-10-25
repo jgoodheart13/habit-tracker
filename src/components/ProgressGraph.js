@@ -4,15 +4,21 @@ import {
   BarChart,
   Bar,
   XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  ReferenceLine,
-  LabelList,
-} from "recharts";
+} from "recharts"
 
-export default function ProgressGraph({ chartData,  maxPercent, totalPercent}) {
+export default function ProgressGraph({
+  primaryPercentage,
+  secondaryPercentage,
+}) {
+  const chartData = [
+    {
+      primary: primaryPercentage,
+      secondary: secondaryPercentage,
+    },
+  ]
 
   return (
     <div
@@ -30,90 +36,26 @@ export default function ProgressGraph({ chartData,  maxPercent, totalPercent}) {
           layout="vertical"
           data={chartData}
           margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
-          barCategoryGap={8}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={theme.colors.border} />
-          <YAxis
-            type="category"
-            dataKey="name"
-            width={0}
-            tick={null}
-            axisLine={false}
-            tickLine={false}
-          />
           <XAxis
             type="number"
-            domain={[0, maxPercent]}
+            domain={[0, 100]}
             tickFormatter={(tick) => `${tick}%`}
             tick={{ fontSize: 12 }}
           />
-          <ReferenceLine
-            x={100}
-            stroke={theme.colors.textSecondary}
-            strokeDasharray="6 3"
-            label={
-              totalPercent >= 100
-                ? null
-                : {
-                    position: "top",
-                    fontSize: 15,
-                    fill: theme.colors.textSecondary,
-                  }
-            }
+          <Bar
+            dataKey="primary"
+            fill={theme.colors.p1}
+            name="Primary Progress"
           />
           <Bar
-            dataKey="p1Bar"
-            stackId="a"
-            fill={theme.colors.p1}
-            name="P1 Progress"
-            style={(data) =>
-              data.isCurrentDay
-                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
-                : {}
-            }
-          >
-            <LabelList
-              dataKey="p1Bar"
-              position="top"
-              formatter={(v) => (v > 0 ? `${v.toFixed(1)}%` : "")}
-            />
-          </Bar>
-          <Bar
-            dataKey="p2Below100Bar"
-            stackId="a"
+            dataKey="secondary"
             fill={theme.colors.p2Below100}
-            name="P2 to Baseline"
-            style={(data) =>
-              data.isCurrentDay
-                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
-                : {}
-            }
-          >
-            <LabelList
-              dataKey="p2Below100Bar"
-              position="top"
-              formatter={(v) => (v > 0 ? `${v.toFixed(1)}%` : "")}
-            />
-          </Bar>
-          <Bar
-            dataKey="p2Above100Bar"
-            stackId="a"
-            fill={theme.colors.p2Above100}
-            name="P2 Above Baseline"
-            style={(data) =>
-              data.isCurrentDay
-                ? { boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }
-                : {}
-            }
-          >
-            <LabelList
-              dataKey="p2Above100Bar"
-              position="top"
-              formatter={(v) => (v > 0 ? `${v.toFixed(1)}%` : "")}
-            />
-          </Bar>
+            name="Secondary Progress"
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }
