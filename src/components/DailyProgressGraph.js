@@ -1,5 +1,4 @@
-import ProgressGraph from './ProgressGraph';
-import settings from "../config/settings"
+import ProgressGraph from "./ProgressGraph"
 
 export default function DailyProgressGraph({ habits, activeDate }) {
   function computeDailyScore(
@@ -10,16 +9,16 @@ export default function DailyProgressGraph({ habits, activeDate }) {
     referenceP1Goal = 4,
     k = 2
   ) {
-    if (P1_total === 0) return { completionPercent: 0, overflowPoints: 0 }
+    if (P1_total === 0) return { p1Percent: 0, p2Points: 0 }
 
     const P1_ratio = P1_done / P1_total
-    const completionPercent = Math.min(P1_ratio * 100, 100)
+    const p1Percent = Math.min(P1_ratio * 100, 100)
 
     const taper = P1_ratio < 1 ? 1 - Math.pow(P1_ratio, k) : 1
     const perP2Point = baseP2Point * (P1_total / referenceP1Goal)
-    const overflowPoints = Number((P2_done * perP2Point * taper).toFixed(2))
+    const p2Points = Number((P2_done * perP2Point).toFixed(2))
 
-    return { completionPercent, overflowPoints }
+    return { p1Percent, p2Points }
   }
 
   // Filter daily habits
@@ -36,15 +35,14 @@ export default function DailyProgressGraph({ habits, activeDate }) {
     h.completedDates.includes(activeDate)
   ).length
 
-  const { completionPercent: p1Percent, overflowPoints: p2Points } =
-    computeDailyScore(
-      p1Completed,
-      p1Total,
-      p2Completed,
-      settings.reachHabitBaseValue,
-      4,
-      2
-    )
+  const { p1Percent, p2Points } = computeDailyScore(
+    p1Completed,
+    p1Total,
+    p2Completed,
+    5,
+    4,
+    2
+  )
 
   // Combined scaled reach
   const combinedScore = p1Percent + p2Points
@@ -58,7 +56,7 @@ export default function DailyProgressGraph({ habits, activeDate }) {
       <h2 style={{ fontWeight: 700, margin: 0 }}>Daily Progress</h2>
       <ProgressGraph
         primaryPercentage={[totalPercent]}
-        secondaryPercentage={[overflowScore]}
+        secondaryPercentage={[secondaryPercentage]}
       />
     </>
   )
