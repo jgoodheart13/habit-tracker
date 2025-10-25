@@ -86,17 +86,17 @@ export default function WeeklyHabitRow({
       {/* 7 static-width day columns */}
       <div style={{ display: "flex", gap: 2, minWidth: 168 }}>
         {weekDays.map((day, idx) => {
-          const isRecorded = habit.completedDates.includes(day);
-          let color = theme.colors.incomplete;
+          const isRecorded = habit.completedDates.includes(day)
+          let color = theme.colors.incomplete
           if (isRecorded) {
             if (completed.length >= n) {
-              color = theme.colors.p2Above100;
+              color = theme.colors.p2Above100
             } else {
-              let filled = completed.slice(0, idx + 1).length;
-              color = filled <= n ? theme.colors.p1 : theme.colors.p2Above100;
+              let filled = completed.slice(0, idx + 1).length
+              color = filled <= n ? theme.colors.p1 : theme.colors.p2Above100
             }
           }
-          const isActive = day === activeDate;
+          const isActive = day === activeDate
           return (
             <div
               key={idx}
@@ -123,7 +123,7 @@ export default function WeeklyHabitRow({
             >
               {["M", "T", "W", "T", "F", "S", "S"][idx]}
             </div>
-          );
+          )
         })}
       </div>
       {/* Goal count and delete button (fixed width) */}
@@ -136,7 +136,7 @@ export default function WeeklyHabitRow({
       )}
       {/* Edit button */}
       <button
-        onClick={() => onEdit && onEdit(habit)}
+        onClick={() => onEdit(habit)}
         title="Edit habit"
         style={{
           background: "none",
@@ -200,5 +200,5 @@ export default function WeeklyHabitRow({
         </svg>
       </button>
     </div>
-  );
+  )
 }

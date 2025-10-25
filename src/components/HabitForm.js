@@ -3,125 +3,125 @@ import React, { useState } from 'react';
 import theme from "../styles/theme";
 import { getTags, saveTag } from "../services/habitService";
 
-export default function HabitForm({ onAdd, defaultHabit }) {
+export default function HabitForm({ onAdd, onEdit, existingHabit }) {
   const [habit, setHabit] = useState(
     () =>
-      defaultHabit || {
+      existingHabit || {
         name: "",
         type: "P1",
         frequency: { daily: true, timesPerWeek: 7 },
       }
-  );
+  )
   const [tags, setTags] = useState(() => {
-    if (defaultHabit && defaultHabit.tags) return defaultHabit.tags;
-    return { category: null, time: null };
-  });
-  const [tagInput, setTagInput] = useState({ label: "", type: "category" });
-  const [allTags, setAllTags] = useState([]);
-  const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
+    if (habit && habit.tags) return habit.tags
+    return { category: null, time: null }
+  })
+  const [tagInput, setTagInput] = useState({ label: "", type: "category" })
+  const [allTags, setAllTags] = useState([])
+  const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
 
-  const isEdit = !!(defaultHabit && defaultHabit.id);
+  const isEdit = habit && habit.id
 
-  // If defaultHabit changes (e.g. switching tabs), reset form
+  // If habit changes (e.g. switching tabs), reset form
   React.useEffect(() => {
     setHabit(
-      defaultHabit || {
+      habit || {
         name: "",
         type: "P1",
         frequency: { timesPerWeek: 7 },
       }
-    );
-  }, [defaultHabit]);
+    )
+  }, [habit])
 
   React.useEffect(() => {
     async function fetchTags() {
       try {
-        const tags = await getTags();
-        setAllTags(Array.isArray(tags) ? tags : []);
+        const tags = await getTags()
+        setAllTags(Array.isArray(tags) ? tags : [])
       } catch (err) {
-        setAllTags([]);
+        setAllTags([])
       }
     }
-    fetchTags();
-    if (defaultHabit && defaultHabit.tags) setTags(defaultHabit.tags);
-  }, [defaultHabit]);
+    fetchTags()
+    if (habit && habit.tags) setTags(habit.tags)
+  }, [habit])
 
   function handleChange(e) {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     if (name === "type") {
-      setHabit((h) => ({ ...h, type: value }));
+      setHabit((h) => ({ ...h, type: value }))
     } else if (name === "name") {
-      setHabit((h) => ({ ...h, name: value }));
+      setHabit((h) => ({ ...h, name: value }))
     } else if (name === "timesPerWeek") {
       setHabit((h) => ({
         ...h,
         frequency: { ...h.frequency, timesPerWeek: value },
-      }));
+      }))
     }
   }
 
   function handleTagInputChange(e) {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     if (name === "tagValue") {
-      setTagInput((t) => ({ ...t, label: value }));
-      setTagDropdownOpen(true);
+      setTagInput((t) => ({ ...t, label: value }))
+      setTagDropdownOpen(true)
     } else if (name === "tagType") {
-      setTagInput((t) => ({ ...t, type: value }));
+      setTagInput((t) => ({ ...t, type: value }))
     }
   }
 
   function handleTagSelect(selectedTag) {
-    setTags((prev) => ({ ...prev, [selectedTag.type]: selectedTag }));
-    setTagInput({ label: "", type: selectedTag.type });
-    setTagDropdownOpen(false);
+    setTags((prev) => ({ ...prev, [selectedTag.type]: selectedTag }))
+    setTagInput({ label: "", type: selectedTag.type })
+    setTagDropdownOpen(false)
   }
 
   function handleTagAdd() {
     if (tagInput.label) {
-      const newTag = { label: tagInput.label, type: tagInput.type };
-      setTags((prev) => ({ ...prev, [newTag.type]: newTag }));
+      const newTag = { label: tagInput.label, type: tagInput.type }
+      setTags((prev) => ({ ...prev, [newTag.type]: newTag }))
       saveTag(newTag).then(() => {
-        getTags().then((tags) => setAllTags(Array.isArray(tags) ? tags : []));
-      });
-      setTagInput({ label: "", type: tagInput.type });
-      setTagDropdownOpen(false);
+        getTags().then((tags) => setAllTags(Array.isArray(tags) ? tags : []))
+      })
+      setTagInput({ label: "", type: tagInput.type })
+      setTagDropdownOpen(false)
     }
   }
 
   function handleTagRemove(type) {
-    setTags((prev) => ({ ...prev, [type]: null }));
+    setTags((prev) => ({ ...prev, [type]: null }))
   }
 
   function handleSubmit(e) {
-    e.preventDefault();
-    if (!habit.name) return;
-    const habitWithTags = { ...habit, tags };
+    e.preventDefault()
+    if (!habit.name) return
+    const habitWithTags = { ...habit, tags }
     if (isEdit) {
-      onAdd(habitWithTags);
+      onEdit(habitWithTags)
     } else {
-      onAdd({ ...habitWithTags, completedDates: [] });
+      onAdd({ ...habitWithTags, completedDates: [] })
       setHabit(
-        defaultHabit || {
+        habit || {
           name: "",
           type: "P1",
           frequency: { timesPerWeek: 7 },
         }
-      );
-      setTags({ category: null, time: null });
+      )
+      setTags({ category: null, time: null })
     }
   }
 
   // Filter tags for dropdown (useMemo ensures UI updates when allTags or tagInput changes)
   const filteredTags = React.useMemo(() => {
-    if (!Array.isArray(allTags)) return [];
+    if (!Array.isArray(allTags)) return []
     return tagInput.label
       ? allTags.filter(
           (t) =>
             t.label.toLowerCase().includes(tagInput.label.toLowerCase()) &&
             t.type === tagInput.type
         )
-      : allTags.filter((t) => t.type === tagInput.type);
-  }, [allTags, tagInput]);
+      : allTags.filter((t) => t.type === tagInput.type)
+  }, [allTags, tagInput])
 
   return (
     <form
@@ -389,5 +389,5 @@ export default function HabitForm({ onAdd, defaultHabit }) {
         </button>
       </div>
     </form>
-  );
+  )
 }

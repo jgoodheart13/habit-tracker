@@ -11,6 +11,7 @@ export default function WeeklyHabitsList({
   handleDelete,
   activeDate,
   activeWeekRange,
+  onEdit,
 }) {
   const grouped = (() => {
     if (sortMode === "priority") {
@@ -25,33 +26,33 @@ export default function WeeklyHabitsList({
           color: theme.colors.accent,
           habits: habits.filter((h) => h.type === "P2"),
         },
-      ];
+      ]
     } else if (sortMode === "category" || sortMode === "time") {
       const withTag = habits.filter(
         (h) => h.tags && h.tags[sortMode] && h.tags[sortMode].label
-      );
-      const tagGroups = {};
+      )
+      const tagGroups = {}
       withTag.forEach((h) => {
-        const tag = h.tags[sortMode].label;
-        if (!tagGroups[tag]) tagGroups[tag] = [];
-        tagGroups[tag].push(h);
-      });
+        const tag = h.tags[sortMode].label
+        if (!tagGroups[tag]) tagGroups[tag] = []
+        tagGroups[tag].push(h)
+      })
       const grouped = Object.keys(tagGroups).map((tag) => ({
         label: tag,
         color: theme.colors.accent,
         habits: tagGroups[tag],
-      }));
+      }))
       const unspecified = habits.filter(
         (h) => !h.tags || !h.tags[sortMode] || !h.tags[sortMode].label
-      );
+      )
       if (unspecified.length) {
         grouped.push({
           label: "Unspecified",
           color: theme.colors.incomplete,
           habits: unspecified,
-        });
+        })
       }
-      return grouped;
+      return grouped
     } else {
       return [
         {
@@ -59,9 +60,9 @@ export default function WeeklyHabitsList({
           color: theme.colors.accent,
           habits,
         },
-      ];
+      ]
     }
-  })();
+  })()
 
   return (
     <div
@@ -76,16 +77,16 @@ export default function WeeklyHabitsList({
           <h3 style={{ margin: "8px 0", color: group.color }}>{group.label}</h3>
           {group.habits.map((habit) => (
             <WeeklyHabitRow
-              key={habit.id}
               habit={habit}
-              handleComplete={handleComplete}
-              handleDelete={handleDelete}
               activeDate={activeDate}
               activeWeekRange={activeWeekRange}
+              handleComplete={handleComplete}
+              handleDelete={handleDelete}
+              onEdit={onEdit} // Ensure onEdit is passed
             />
           ))}
         </div>
       ))}
     </div>
-  );
+  )
 }

@@ -14,18 +14,22 @@ import { useAuth0 } from "@auth0/auth0-react";
 import LoadingScreen from "../components/LoadingScreen";
 import WeeklyHabitsList from "../components/WeeklyHabitsList";
 import { AuthContext } from "../components/AuthenticationWrapper";
+import HabitModal from "../components/HabitModal"
+import { addHabit, updateHabit } from "../services/habitsApi"
 
 export default function DailyViewPage() {
   // Auth0 authentication status
-  const { isAuthenticated } = useAuth0();
-  const { tokenReady } = useContext(AuthContext);
+  const { isAuthenticated } = useAuth0()
+  const { tokenReady } = useContext(AuthContext)
 
-  const [sortMode, setSortMode] = useState("priority"); // 'priority', 'category', 'time', 'unspecified'
-  const [habits, setHabits] = useState([]);
-  const [habitsLoading, setHabitsLoading] = useState(true);
+  const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
+  const [habits, setHabits] = useState([])
+  const [habitsLoading, setHabitsLoading] = useState(true)
   const [activeDate, setActiveDate] = useState(() =>
     new Date().toLocaleDateString("en-CA")
   )
+  const [showHabitModal, setShowHabitModal] = useState(false)
+  const [editingHabit, setEditingHabit] = useState(null)
 
   useEffect(() => {
     // Fetch habits when authenticated and token is ready
@@ -124,6 +128,37 @@ export default function DailyViewPage() {
       start: monday.toISOString().slice(0, 10),
       end: sunday.toISOString().slice(0, 10),
     }
+  }
+
+  function handleOpenHabitModal(habit) {
+    setEditingHabit(habit)
+    setShowHabitModal(true)
+  }
+
+  function handleCloseHabitModal() {
+    setEditingHabit(null)
+    setShowHabitModal(false)
+  }
+
+  function handleAddHabit(newHabit) {
+    // Close modal
+    handleCloseHabitModal()
+    addHabit(newHabit).then(async () => {
+      const updated = await getHabits()
+      setHabits(updated)
+    })
+  }
+
+  function handleUpdateHabit(updatedHabit) {
+    // Close modal
+    handleCloseHabitModal()
+    // Update habit in backend and refresh list
+    ;(async () => {
+      // Assuming there's an updateHabit function in habitService
+      await updateHabit(updatedHabit.id, updatedHabit)
+      const updated = await getHabits()
+      setHabits(updated)
+    })()
   }
 
   const activeWeekRange = getWeekRange(activeDate) // Calculate the active week range
@@ -273,6 +308,7 @@ export default function DailyViewPage() {
             <label style={{ marginLeft: 24, marginRight: 8, fontWeight: 500 }}>
               Sort by:
             </label>
+
             <select
               value={sortMode}
               onChange={(e) => setSortMode(e.target.value)}
@@ -287,6 +323,21 @@ export default function DailyViewPage() {
               <option value="category">Category</option>
               <option value="time">Time</option>
             </select>
+            <button
+              onClick={() => handleOpenHabitModal()}
+              style={{
+                marginLeft: 12,
+                padding: "6px 12px",
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                background: theme.colors.accent,
+                color: theme.colors.text,
+                cursor: "pointer",
+                fontSize: 15,
+              }}
+            >
+              Add Habit
+            </button>
           </div>
 
           {/* Weekly Goals */}
@@ -304,80 +355,21 @@ export default function DailyViewPage() {
               handleComplete={handleComplete}
               handleDelete={handleDelete}
               activeDate={activeDate}
+              onEdit={handleOpenHabitModal}
             />
           </div>
         </div>
       </div>
+      {showHabitModal && (
+        <HabitModal
+          show={showHabitModal}
+          onClose={handleCloseHabitModal}
+          onAdd={handleAddHabit}
+          onEdit={handleUpdateHabit}
+          habit={editingHabit}
+          isEditing={!!editingHabit}
+        />
+      )}
     </div>
   )
-}
-
-// Add Habit modal for Daily/Overview tabs (outside main return)
-export function AddHabitModal({ show, onClose, onAdd, tab }) {
-  if (!show) return null;
-  const isWeeklyHabitsList = tab === "goals";
-  const defaultHabit = isWeeklyHabitsList
-    ? {
-        name: "",
-        type: undefined,
-        frequency: { timesPerWeek: 1 },
-      }
-    : {
-        name: "",
-        type: "P1",
-        frequency: { timesPerWeek: 7 },
-      };
-  // Only show 'Add Weekly Habit' for Weekly Goals tab
-  const modalTitle = isWeeklyHabitsList ? "Add Weekly Habit" : "Add Daily Habit";
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "rgba(0,0,0,0.18)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          background: theme.colors.background,
-          padding: 32,
-          borderRadius: 16,
-          minWidth: 340,
-          boxShadow: theme.colors.shadow,
-          border: `1px solid ${theme.colors.border}`,
-        }}
-      >
-        <h2
-          style={{
-            marginBottom: 18,
-            fontWeight: 700,
-            color: theme.colors.text,
-          }}
-        >
-          {modalTitle}
-        </h2>
-        <HabitForm onAdd={onAdd} defaultHabit={defaultHabit} />
-        <button
-          onClick={onClose}
-          style={{
-            marginTop: 18,
-            background: theme.colors.incomplete,
-            color: theme.colors.text,
-            border: `1px solid ${theme.colors.border}`,
-            padding: "8px 18px",
-            cursor: "pointer",
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
 }
