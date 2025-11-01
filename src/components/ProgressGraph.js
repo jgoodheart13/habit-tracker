@@ -1,11 +1,8 @@
 import React from "react";
 import theme from "../styles/theme"
 
-export default function ProgressGraph({
-  primaryPercentage,
-  secondaryPercentage,
-}) {
-  const totalPercentage = primaryPercentage + secondaryPercentage
+export default function ProgressGraph({ primaryPercentage }) {
+  const totalPercentage = primaryPercentage
 
   return (
     <div
@@ -36,12 +33,12 @@ export default function ProgressGraph({
             background: theme.colors.p1,
           }}
         ></div>
-        <div
+        {/* <div
           style={{
             width: `${secondaryPercentage}%`,
             background: theme.colors.p2Below100,
           }}
-        ></div>
+        ></div> */}
       </div>
       <span
         style={{

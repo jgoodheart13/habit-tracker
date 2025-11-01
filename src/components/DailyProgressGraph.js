@@ -1,65 +1,102 @@
 import ProgressGraph from "./ProgressGraph"
 
 export default function DailyProgressGraph({ habits, activeDate }) {
-  function computeDailyScore(
+  /**
+   * Computes total daily points based on:
+   * - P1 baseline (0–100 pts)
+   * - P2 scaling with P1 ratio (0.5–1.0x)
+   * - Boosts (streak + novelty)
+   */
+  function computeDailyTotals({
     P1_done,
     P1_total,
     P2_done,
     baseP2Point = 5,
-    referenceP1Goal = 4,
-    k = 2
-  ) {
-    if (P1_total === 0) return { p1Percent: 0, p2Points: 0 }
+    noveltyCount = 0,
+    streakBonus = false,
+  }) {
+    if (P1_total === 0) {
+      return {
+        P1_percent: 0,
+        P1_points: 0,
+        P2_points: 0,
+        totalBoost: 1.0,
+        totalPoints: 0,
+        overflowXP: 0,
+      }
+    }
 
+    // 1️⃣ P1 baseline (0–100)
     const P1_ratio = P1_done / P1_total
-    const p1Percent = Math.min(P1_ratio * 100, 100)
+    const P1_points = P1_ratio * 100
+    const P1_percent = Math.min(P1_points, 100)
 
-    const taper = P1_ratio < 1 ? 1 - Math.pow(P1_ratio, k) : 1
-    const perP2Point = baseP2Point * (P1_total / referenceP1Goal)
-    const p2Points = Number((P2_done * perP2Point).toFixed(2))
+    // 2️⃣ P2 scaling (0.5x → 1.0x)
+    const P2_scale = 0.5 + 0.5 * P1_ratio
+    const P2_points = P2_done * baseP2Point * P2_scale
 
-    return { p1Percent, p2Points }
+    // 3️⃣ Boosts (novelty + streak)
+    const noveltyBoost = 1 + 0.05 * noveltyCount // +5% per novel P1
+    const streakBoost = streakBonus ? 1.05 : 1.0 // +5% if streak achieved
+    const totalBoost = Math.max(1.0, noveltyBoost * streakBoost)
+
+    // 4️⃣ Total score + overflow
+    const totalPoints = (P1_points + P2_points) * totalBoost
+    const overflowXP = Math.max(0, totalPoints - 100)
+
+    return {
+      P1_percent,
+      P1_points,
+      P2_points,
+      totalBoost,
+      totalPoints,
+      overflowXP,
+    }
   }
 
-  // Filter daily habits
-  const baselineHabits = habits.filter((h) => h.type === "P1")
-  const reachHabits = habits.filter((h) => h.type === "P2")
+  // --- Split habits by type
+  const P1_habits = habits.filter((h) => h.type === "P1")
+  const P2_habits = habits.filter((h) => h.type === "P2")
 
-  const p1Total = baselineHabits.length
-  const p1Completed = baselineHabits.filter((h) =>
+  // --- Core stats
+  const P1_total = P1_habits.length
+  const P1_done = P1_habits.filter((h) =>
+    h.completedDates.includes(activeDate)
+  ).length
+  const P2_done = P2_habits.filter((h) =>
     h.completedDates.includes(activeDate)
   ).length
 
-  const p2Total = reachHabits.length
-  const p2Completed = reachHabits.filter((h) =>
-    h.completedDates.includes(activeDate)
-  ).length
+  // --- Optional metadata
+  const noveltyCount = P1_habits.filter((h) => h.isNovel).length
+  const streakBonus = habits.some((h) => h.weeklyStreakComplete)
 
-  const { p1Percent, p2Points } = computeDailyScore(
-    p1Completed,
-    p1Total,
-    p2Completed,
-    5,
-    4,
-    2
-  )
+  // --- Compute totals
+  const { P1_percent, P2_points, totalBoost, totalPoints, overflowXP } =
+    computeDailyTotals({
+      P1_done,
+      P1_total,
+      P2_done,
+      baseP2Point: 5,
+      noveltyCount,
+      streakBonus,
+    })
 
-  // Combined scaled reach
-  const combinedScore = p1Percent + p2Points
-  const totalPercent = Math.min(combinedScore, 100) // Ensure totalPercent is calculated correctly
-  const overflowScore = combinedScore > 100 ? combinedScore - 100 : 0
-  const secondaryPercentage =
-    combinedScore < 100 ? p2Points : 100 - combinedScore
-
-  // multiplier can ust be 1 + P1 completion ratio for max of 2x on P2
-
+  // --- Render
   return (
-    <>
+    <div>
       <h2 style={{ fontWeight: 700, margin: 0 }}>Daily Progress</h2>
-      <ProgressGraph
-        primaryPercentage={totalPercent}
-        secondaryPercentage={secondaryPercentage}
-      />
-    </>
+
+      <ProgressGraph primaryPercentage={P1_percent} />
+
+      <div style={{ marginTop: 12, fontSize: 14 }}>
+        <strong>P1s:</strong> {P1_done}/{P1_total} &nbsp;|&nbsp;
+        <strong>P2s:</strong> +{P2_points.toFixed(1)} XP &nbsp;|&nbsp;
+        <strong>Boost:</strong> ×{totalBoost.toFixed(2)} &nbsp;|&nbsp;
+        <strong>Total:</strong> {totalPoints.toFixed(1)} pts &nbsp;|&nbsp;
+        <strong>Overflow:</strong>{" "}
+        {overflowXP > 0 ? `+${overflowXP.toFixed(1)}` : 0}
+      </div>
+    </div>
   )
 }
