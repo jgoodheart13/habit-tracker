@@ -170,7 +170,7 @@ export default function DailyViewPage() {
     <div
       style={{
         display: "flex",
-        height: "100vh",
+        minHeight: "100vh", // Changed from `height` to `minHeight` to prevent internal scrollbars
         overflowX: "hidden", // Prevent horizontal scrolling
       }}
     >
