@@ -1,4 +1,5 @@
 import ProgressGraph from "./ProgressGraph"
+import RingProgressGraph from "./RingProgressGraph"
 
 export default function DailyProgressGraph({ habits, activeDate }) {
   /**
@@ -97,6 +98,11 @@ export default function DailyProgressGraph({ habits, activeDate }) {
         <strong>Overflow:</strong>{" "}
         {overflowXP > 0 ? `+${overflowXP.toFixed(1)}` : 0}
       </div>
+
+      <RingProgressGraph
+        P1Points={(P1_done / P1_total) * 100}
+        P2Points={P2_points}
+      />
     </div>
   )
 }
