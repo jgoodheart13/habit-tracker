@@ -2,18 +2,17 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import theme from "../styles/theme";
-import WeeklyProgressGraph from "../components/WeeklyProgressGraph";
-import HabitForm from "../components/HabitForm";
-import DailyProgressGraph from "../components/DailyProgressGraph";
+import WeeklyProgressGraph from "../components/WeeklyProgressGraph"
+import DailyProgressGraph from "../components/DailyProgressGraph"
 import {
   getHabits,
   markHabitComplete,
   deleteHabit,
-} from "../services/habitService";
-import { useAuth0 } from "@auth0/auth0-react";
-import LoadingScreen from "../components/LoadingScreen";
-import WeeklyHabitsList from "../components/WeeklyHabitsList";
-import { AuthContext } from "../components/AuthenticationWrapper";
+} from "../services/habitService"
+import { useAuth0 } from "@auth0/auth0-react"
+import LoadingScreen from "../components/LoadingScreen"
+import WeeklyHabitsList from "../components/WeeklyHabitsList"
+import { AuthContext } from "../components/AuthenticationWrapper"
 import HabitModal from "../components/HabitModal"
 import { addHabit, updateHabit } from "../services/habitsApi"
 
@@ -172,13 +171,14 @@ export default function DailyViewPage() {
       style={{
         display: "flex",
         height: "100vh",
+        overflowX: "hidden", // Prevent horizontal scrolling
       }}
     >
       <div
         style={{
           flexGrow: 1,
           padding: "16px",
-          maxWidth: 700,
+          maxWidth: "100%", // Ensure content fits within the viewport
           margin: "0 auto",
           background: theme.colors.background,
         }}
