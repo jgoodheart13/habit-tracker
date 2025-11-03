@@ -3,15 +3,17 @@
 import React from "react";
 import WeeklyHabitRow from "./WeeklyHabitRow";
 import theme from "../styles/theme";
+import PropTypes from "prop-types"
 
 export default function WeeklyHabitsList({
   habits,
+  activeWeekRange,
   sortMode,
   handleComplete,
   handleDelete,
   activeDate,
-  activeWeekRange,
   onEdit,
+  showWeekDays,
 }) {
   const grouped = (() => {
     if (sortMode === "priority") {
@@ -65,28 +67,49 @@ export default function WeeklyHabitsList({
   })()
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 24,
-      }}
-    >
-      {grouped.map((group) => (
-        <div key={group.label}>
-          <h3 style={{ margin: "8px 0", color: group.color }}>{group.label}</h3>
-          {group.habits.map((habit) => (
-            <WeeklyHabitRow
-              habit={habit}
-              activeDate={activeDate}
-              activeWeekRange={activeWeekRange}
-              handleComplete={handleComplete}
-              handleDelete={handleDelete}
-              onEdit={onEdit} // Ensure onEdit is passed
-            />
-          ))}
-        </div>
-      ))}
+    <div>
+      {/* Render week day tiles only if `showWeekDays` is true */}
+      {/* Render habits */}
+      <div>
+        {grouped.map((group) => (
+          <div key={group.label}>
+            <h3 style={{ margin: "8px 0", color: group.color }}>
+              {group.label}
+            </h3>
+            {group.habits.map((habit) => (
+              <WeeklyHabitRow
+                habit={habit}
+                activeDate={activeDate}
+                activeWeekRange={activeWeekRange}
+                handleComplete={handleComplete}
+                handleDelete={handleDelete}
+                onEdit={onEdit} // Ensure onEdit is passed
+                showWeekDays={showWeekDays} // Pass showWeekDays prop
+              />
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
+}
+
+WeeklyHabitsList.propTypes = {
+  habits: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      type: PropTypes.string.isRequired,
+      tags: PropTypes.object,
+    })
+  ).isRequired,
+  activeWeekRange: PropTypes.shape({
+    start: PropTypes.string.isRequired,
+    end: PropTypes.string.isRequired,
+  }).isRequired,
+  sortMode: PropTypes.string.isRequired,
+  handleComplete: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func.isRequired,
+  activeDate: PropTypes.string.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  showWeekDays: PropTypes.bool.isRequired,
 }
