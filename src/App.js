@@ -2,13 +2,13 @@ import React from "react";
 import AppRouter from "./AppRouter";
 import theme from "./styles/theme";
 import { useAuth0 } from "@auth0/auth0-react";
-import { AuthenticationWrapper } from "./components/AuthenticationWrapper";
+import { AuthenticationWrapper } from "./components/AuthenticationWrapper"
+import { Auth0Provider } from "@auth0/auth0-react"
+import { isMobile } from "react-device-detect"
 
-import { Auth0Provider } from "@auth0/auth0-react";
-
-const domain = process.env.REACT_APP_AUTH0_DOMAIN;
-const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
-const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+const domain = process.env.REACT_APP_AUTH0_DOMAIN
+const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID
+const audience = process.env.REACT_APP_AUTH0_AUDIENCE
 
 export default function App() {
   return (
@@ -23,11 +23,11 @@ export default function App() {
     >
       <AppContent />
     </Auth0Provider>
-  );
+  )
 }
 
 function LogoutButton() {
-  const { logout } = useAuth0();
+  const { logout } = useAuth0()
   return (
     <button
       onClick={() =>
@@ -53,24 +53,21 @@ function LogoutButton() {
     >
       Log Out
     </button>
-  );
+  )
 }
 
 function AppContent() {
-  const { user, isAuthenticated } = useAuth0();
-  const [showDropdown, setShowDropdown] = React.useState(false);
+  const { user, isAuthenticated } = useAuth0()
+  const [showDropdown, setShowDropdown] = React.useState(false)
+
   return (
     <AuthenticationWrapper>
       <div
+        className="App"
         style={{
-          maxWidth: 800,
-          margin: "0 auto",
-          fontFamily: "Inter, Arial, sans-serif",
-          background: "#f7f7f7",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          maxWidth: isMobile ? "100%" : 800, // Conditionally set maxWidth based on device
+          padding: isMobile ? "0 16px" : "0", // Add padding for mobile responsiveness
+          margin: isMobile ? "0" : "0 auto", // Center on desktop
         }}
       >
         <header
@@ -180,10 +177,10 @@ function AppContent() {
             )}
           </div>
         </header>
-        <main style={{ width: "100%" }}>
+        <main>
           <AppRouter />
         </main>
       </div>
     </AuthenticationWrapper>
-  );
+  )
 }
