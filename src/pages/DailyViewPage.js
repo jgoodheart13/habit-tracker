@@ -16,6 +16,7 @@ import { AuthContext } from "../components/AuthenticationWrapper"
 import HabitModal from "../components/HabitModal"
 import { addHabit, updateHabit } from "../services/habitsApi"
 import DateChanger from "../components/DateChanger"
+import ProgressTabs from "../components/ProgressTabs"
 
 export default function DailyViewPage() {
   // Auth0 authentication status
@@ -30,6 +31,7 @@ export default function DailyViewPage() {
   )
   const [showHabitModal, setShowHabitModal] = useState(false)
   const [editingHabit, setEditingHabit] = useState(null)
+  const [activeTab, setActiveTab] = useState("daily") // State for active tab
 
   useEffect(() => {
     // Fetch habits when authenticated and token is ready
@@ -184,21 +186,28 @@ export default function DailyViewPage() {
           background: theme.colors.background,
         }}
       >
-        <div>
-          <WeeklyProgressGraph
-            habits={habits}
-            activeWeekRange={activeWeekRange}
-            showHeader={false}
-          />
-        </div>
-        <div>
-          <DailyProgressGraph habits={habits} activeDate={activeDate} />
-        </div>
+        <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+
+        {activeTab === "weekly" ? (
+          <div>
+            <WeeklyProgressGraph
+              habits={habits}
+              activeWeekRange={activeWeekRange}
+              showHeader={false}
+            />
+          </div>
+        ) : (
+          <div>
+            <DailyProgressGraph habits={habits} activeDate={activeDate} />
+          </div>
+        )}
+
         <DateChanger
           activeDate={activeDate}
           changeDate={changeDate}
           setActiveDate={setActiveDate}
         />
+
         <div style={{ marginTop: 16 }}>
           <div
             style={{
