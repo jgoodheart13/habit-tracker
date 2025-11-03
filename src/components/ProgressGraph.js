@@ -4,6 +4,8 @@ import theme from "../styles/theme"
 export default function ProgressGraph({ primaryPercentage }) {
   const totalPercentage = primaryPercentage
 
+  const roundedPercentage = Math.round(totalPercentage)
+
   return (
     <div
       style={{
@@ -29,7 +31,7 @@ export default function ProgressGraph({ primaryPercentage }) {
       >
         <div
           style={{
-            width: `${primaryPercentage}%`,
+            width: `${roundedPercentage}%`,
             background: theme.colors.p1,
           }}
         ></div>
@@ -47,7 +49,7 @@ export default function ProgressGraph({ primaryPercentage }) {
           color: theme.colors.text,
         }}
       >
-        {totalPercentage}%
+        {roundedPercentage}%
       </span>
     </div>
   )

@@ -1,63 +1,77 @@
-// WeeklyProgressGraph.js
-import ProgressGraph from './ProgressGraph';
+import ProgressGraph from "./ProgressGraph"
+import RingProgressGraph from "./RingProgressGraph"
 
 export default function WeeklyProgressGraph({ habits, activeWeekRange }) {
-  const weeklyHabits = habits;
-  // Get all days in current week (Monday-Sunday)
+  // --- Build list of all week days
   const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(activeWeekRange.start);
-    d.setDate(d.getDate() + i);
-    return d.toISOString().slice(0, 10);
-  }); // Calculate week days based on activeWeekRange
+    const d = new Date(activeWeekRange.start)
+    d.setDate(d.getDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
 
-  // Calculate P1 and P2 segments
-  let totalP1 = 0;
-  let totalP2Possible = 0;
-  let p1Completed = 0;
-  let p2Completed = 0;
-  weeklyHabits.forEach((habit) => {
-    const n = habit.frequency.timesPerWeek;
-    totalP1 += n;
-    totalP2Possible += 7 - n;
+  // --- Split by type
+  const P1_habits = habits.filter((h) => h.type === "P1")
+  const P2_habits = habits.filter((h) => h.type === "P2")
+
+  // --- Compute totals for P1
+  let P1_total = 0
+  let P1_done = 0
+  P1_habits.forEach((habit) => {
+    const timesPerWeek = habit.frequency.timesPerWeek || 0
+    P1_total += timesPerWeek
     const completed = weekDays.filter((d) =>
       habit.completedDates.includes(d)
-    ).length;
-    p1Completed += Math.min(completed, n);
-    p2Completed += Math.max(completed - n, 0);
-  });
-  // Calculate percentages
-  const p1Percent = totalP1 === 0 ? 0 : (p1Completed / totalP1) * 100;
-  const p2Below100Raw =
-    totalP2Possible === 0 ? 0 : (p2Completed / totalP2Possible) * 100;
-  let p1Bar = p1Percent;
-  let p2Below100Bar = Math.max(0, Math.min(p2Below100Raw, 100 - p1Percent));
-  let p2Above100Bar = Math.max(0, p1Percent + p2Below100Raw - 100);
-  let totalPercent = p1Percent + p2Below100Raw;
-  if (totalPercent >= 100) {
-    p1Bar = 0;
-    p2Below100Bar = 0;
-    p2Above100Bar = totalPercent;
-  }
-  const weeklyData = {
-    name: "Current Week",
-    p1Bar: p1Percent, // Aggregate P1 progress for the week
-    p2Below100Bar: Math.max(0, Math.min(p2Below100Raw, 100 - p1Percent)),
-    p2Above100Bar: Math.max(0, p1Percent + p2Below100Raw - 100),
-    total: p1Percent + p2Below100Raw,
-  };
+    ).length
+    P1_done += Math.min(completed, timesPerWeek)
+  })
 
-  const chartData = [weeklyData]; // Single bar for the entire week
+  // --- Compute totals for P2
+  let P2_done = 0
+  P2_habits.forEach((habit) => {
+    const completed = weekDays.filter((d) =>
+      habit.completedDates.includes(d)
+    ).length
+    P2_done += completed
+  })
 
-  // Calculate dynamic axis domain
-  const maxPercent = Math.min(
-    Math.max(100, Math.ceil((p1Bar + p2Below100Bar + p2Above100Bar) / 10) * 10),
-    200
-  );
+  // --- Optional metadata
+  const noveltyCount = P1_habits.filter((h) => h.isNovel).length
+  const streakBonus = habits.some((h) => h.weeklyStreakComplete)
 
+  // --- Core weekly point logic (same philosophy as Daily)
+  const P1_ratio = P1_total === 0 ? 0 : P1_done / P1_total
+  const P1_points = P1_ratio * 100
+
+  const baseP2Point = 5
+  const P2_scale = 0.5 + 0.5 * P1_ratio
+  const P2_points = P2_done * baseP2Point * P2_scale
+
+  const noveltyBoost = 1 + 0.05 * noveltyCount
+  const streakBoost = streakBonus ? 1.05 : 1.0
+  const totalBoost = Math.max(1.0, noveltyBoost * streakBoost)
+
+  const totalPoints = (P1_points + P2_points) * totalBoost
+  const overflowXP = Math.max(0, totalPoints - 100)
+
+  // --- Render
   return (
-    <>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
       <h2 style={{ fontWeight: 700, margin: 0 }}>Weekly Progress</h2>
-      <ProgressGraph chartData={chartData} maxPercent={maxPercent} totalPercent={totalPercent} />
-    </>
-  );
+
+      <ProgressGraph primaryPercentage={P1_points} />
+
+      <div style={{ marginTop: 12, fontSize: 14, textAlign: "center" }}>
+        <strong>P1s:</strong> {P1_done}/{P1_total} &nbsp;|&nbsp;
+        <strong>P2s:</strong> +{P2_points.toFixed(1)} XP &nbsp;|&nbsp;
+        <strong>Boost:</strong> ×{totalBoost.toFixed(2)} &nbsp;|&nbsp;
+        <strong>Total:</strong> {totalPoints.toFixed(1)} pts &nbsp;|&nbsp;
+        <strong>Overflow:</strong>{" "}
+        {overflowXP > 0 ? `+${overflowXP.toFixed(1)}` : 0}
+      </div>
+
+      <RingProgressGraph P1Points={P1_points} P2Points={P2_points} size={200} />
+    </div>
+  )
 }
