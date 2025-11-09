@@ -93,7 +93,7 @@ export default function DailyProgressGraph({ habits, activeDate }) {
       <RingProgressGraph
         P1Points={(P1_done / P1_total) * 100}
         P2Points={P2_points}
-        size={200}
+        size={100}
       />
 
       <ProgressGraph primaryPercentage={P1_percent} />

@@ -66,26 +66,33 @@ function AppContent() {
         className="App"
         style={{
           maxWidth: isMobile ? "100%" : 800, // Conditionally set maxWidth based on device
-          padding: isMobile ? "0 16px" : "0", // Add padding for mobile responsiveness
           margin: isMobile ? "0" : "0 auto", // Center on desktop
         }}
       >
         <header
           style={{
             width: "100%",
-            maxWidth: 800,
+            maxWidth: "100%", // Ensure it doesn't exceed the viewport width
             margin: "0 auto",
             display: "flex",
             alignItems: "center",
-            padding: 24,
+            padding: "24px 0px", // Adjust padding to prevent overflow
             background: "#fff",
             borderBottom: "1px solid #eee",
             boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
             position: "relative",
+            overflow: "hidden", // Prevent content from causing horizontal scroll
           }}
         >
           {/* Left: Logo */}
-          <div style={{ display: "flex", alignItems: "center", minWidth: 48 }}>
+          <div
+            style={{
+              paddingLeft: 16,
+              display: "flex",
+              alignItems: "center",
+              minWidth: 48,
+            }}
+          >
             <img
               src={
                 process.env.PUBLIC_URL +
@@ -121,7 +128,14 @@ function AppContent() {
             </h1>
           </div>
           {/* Right: User Icon */}
-          <div style={{ position: "relative", marginLeft: "auto", zIndex: 2 }}>
+          <div
+            style={{
+              paddingRight: 16,
+              position: "relative",
+              marginLeft: "auto",
+              zIndex: 2,
+            }}
+          >
             {isAuthenticated && (
               <div style={{ position: "relative" }}>
                 <button

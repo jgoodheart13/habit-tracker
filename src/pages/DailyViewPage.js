@@ -180,7 +180,7 @@ export default function DailyViewPage() {
       <div
         style={{
           flexGrow: 1,
-          padding: "16px",
+          // padding: "16px",
           maxWidth: "100%", // Ensure content fits within the viewport
           margin: "0 auto",
           background: theme.colors.background,
@@ -189,7 +189,7 @@ export default function DailyViewPage() {
         <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {activeTab === "weekly" ? (
-          <div>
+          <div style={{ padding: "0px 16px" }}>
             <WeeklyProgressGraph
               habits={habits}
               activeWeekRange={activeWeekRange}
@@ -197,7 +197,7 @@ export default function DailyViewPage() {
             />
           </div>
         ) : (
-          <div>
+          <div style={{ padding: "0px 16px" }}>
             <DailyProgressGraph habits={habits} activeDate={activeDate} />
           </div>
         )}

@@ -59,7 +59,7 @@ export default function WeeklyProgressGraph({ habits, activeWeekRange }) {
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
       <h2 style={{ fontWeight: 700, margin: 0 }}>Weekly Progress</h2>
-      <RingProgressGraph P1Points={P1_points} P2Points={P2_points} size={200} />
+      <RingProgressGraph P1Points={P1_points} P2Points={P2_points} size={100} />
       <ProgressGraph primaryPercentage={P1_points} />
 
       <div style={{ marginTop: 12, fontSize: 14, textAlign: "center" }}>
