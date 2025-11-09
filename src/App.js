@@ -72,11 +72,11 @@ function AppContent() {
         <header
           style={{
             width: "100%",
-            maxWidth: "100%", // Ensure it doesn't exceed the viewport width
+            maxWidth: "100%",
             margin: "0 auto",
             display: "flex",
             alignItems: "center",
-            padding: "24px 0px", // Adjust padding to prevent overflow
+            padding: "12px 0px",
             background: "#fff",
             borderBottom: "1px solid #eee",
             boxShadow: "0 2px 8px rgba(0,0,0,0.03)",

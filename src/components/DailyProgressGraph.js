@@ -86,23 +86,34 @@ export default function DailyProgressGraph({ habits, activeDate }) {
   // --- Render
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "100%",
+      }}
     >
-      <RingProgressGraph
-        P1Points={(P1_done / P1_total) * 100}
-        P2Points={P2_points}
-      />
-
-      <ProgressGraph primaryPercentage={P1_percent} />
-
-      <div style={{ marginTop: 12, fontSize: 14, textAlign: "center" }}>
-        <strong>P1s:</strong> {P1_done}/{P1_total} &nbsp;|&nbsp;
-        <strong>P2s:</strong> +{P2_points.toFixed(1)} XP &nbsp;|&nbsp;
-        <strong>Boost:</strong> ×{totalBoost.toFixed(2)} &nbsp;|&nbsp;
-        <strong>Total:</strong> {totalPoints.toFixed(1)} pts &nbsp;|&nbsp;
+      {/* Left Column: Stats */}
+      <div style={{ flex: 1, textAlign: "left", fontSize: 14 }}>
+        <strong>P1s:</strong> {P1_done}/{P1_total} <br />
+        <strong>P2s:</strong> +{P2_points.toFixed(1)} XP <br />
+        <strong>Boost:</strong> ×{totalBoost.toFixed(2)} <br />
+        <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
         <strong>Overflow:</strong>{" "}
         {overflowXP > 0 ? `+${overflowXP.toFixed(1)}` : 0}
       </div>
+
+      {/* Center Column: RingProgressGraph */}
+      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+        <RingProgressGraph
+          P1Points={(P1_done / P1_total) * 100}
+          P2Points={P2_points}
+        />
+      </div>
+
+      {/* Right Column: Empty */}
+      <div style={{ flex: 1 }}></div>
     </div>
   )
 }
