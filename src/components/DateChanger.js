@@ -1,7 +1,14 @@
 import React from "react";
 import theme from "../styles/theme";
 
-export default function DateChanger({ activeDate, changeDate, setActiveDate }) {
+const { rowHeight } = theme // Destructure rowHeight for use
+
+export default function DateChanger({
+  activeDate,
+  changeDate,
+  setActiveDate,
+  activeTab,
+}) {
   return (
     <div
       style={{
@@ -11,37 +18,41 @@ export default function DateChanger({ activeDate, changeDate, setActiveDate }) {
         padding: "0", // Remove padding for full height
         background: theme.colors.background,
         borderBottom: `1px solid ${theme.colors.border}`,
-        height: "60px", // Full height for the row
+        height: rowHeight, // Use centralized row height
       }}
     >
-      <button
-        onClick={() => changeDate(-7)}
-        style={{
-          flex: 1, // Make buttons take equal width
-          height: "100%", // Full height for the button
-          fontSize: 18, // Larger font for better tap targets
-          border: "none", // Remove border for seamless look
-          background: theme.colors.background,
-          color: theme.colors.text,
-          cursor: "pointer",
-        }}
-      >
-        &#171;
-      </button>
-      <button
-        onClick={() => changeDate(-1)}
-        style={{
-          flex: 1,
-          height: "100%",
-          fontSize: 18,
-          border: "none",
-          background: theme.colors.background,
-          color: theme.colors.text,
-          cursor: "pointer",
-        }}
-      >
-        &larr;
-      </button>
+      {activeTab === "weekly" && (
+        <button
+          onClick={() => changeDate(-7)}
+          style={{
+            flex: 1, // Make buttons take equal width
+            height: "100%", // Full height for the button
+            fontSize: 18, // Larger font for better tap targets
+            border: "none", // Remove border for seamless look
+            background: theme.colors.background,
+            color: theme.colors.text,
+            cursor: "pointer",
+          }}
+        >
+          &#171;
+        </button>
+      )}
+      {activeTab === "daily" && (
+        <button
+          onClick={() => changeDate(-1)}
+          style={{
+            flex: 1,
+            height: "100%",
+            fontSize: 18,
+            border: "none",
+            background: theme.colors.background,
+            color: theme.colors.text,
+            cursor: "pointer",
+          }}
+        >
+          &larr;
+        </button>
+      )}
       <span
         style={{
           flex: 2, // Make the date span larger for emphasis
@@ -55,34 +66,38 @@ export default function DateChanger({ activeDate, changeDate, setActiveDate }) {
           ? "Today"
           : activeDate}
       </span>
-      <button
-        onClick={() => changeDate(1)}
-        style={{
-          flex: 1,
-          height: "100%",
-          fontSize: 18,
-          border: "none",
-          background: theme.colors.background,
-          color: theme.colors.text,
-          cursor: "pointer",
-        }}
-      >
-        &rarr;
-      </button>
-      <button
-        onClick={() => changeDate(7)}
-        style={{
-          flex: 1,
-          height: "100%",
-          fontSize: 18,
-          border: "none",
-          background: theme.colors.background,
-          color: theme.colors.text,
-          cursor: "pointer",
-        }}
-      >
-        &#187;
-      </button>
+      {activeTab === "daily" && (
+        <button
+          onClick={() => changeDate(1)}
+          style={{
+            flex: 1,
+            height: "100%",
+            fontSize: 18,
+            border: "none",
+            background: theme.colors.background,
+            color: theme.colors.text,
+            cursor: "pointer",
+          }}
+        >
+          &rarr;
+        </button>
+      )}
+      {activeTab === "weekly" && (
+        <button
+          onClick={() => changeDate(7)}
+          style={{
+            flex: 1,
+            height: "100%",
+            fontSize: 18,
+            border: "none",
+            background: theme.colors.background,
+            color: theme.colors.text,
+            cursor: "pointer",
+          }}
+        >
+          &#187;
+        </button>
+      )}
       <button
         onClick={() => setActiveDate(new Date().toLocaleDateString("en-CA"))}
         title="Go to Today"

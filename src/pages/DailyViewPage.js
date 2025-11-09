@@ -180,7 +180,6 @@ export default function DailyViewPage() {
       <div
         style={{
           flexGrow: 1,
-          // padding: "16px",
           maxWidth: "100%", // Ensure content fits within the viewport
           margin: "0 auto",
           background: theme.colors.background,
@@ -188,8 +187,20 @@ export default function DailyViewPage() {
       >
         <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
+        <DateChanger
+          activeDate={activeDate}
+          changeDate={changeDate}
+          setActiveDate={setActiveDate}
+          activeTab={activeTab}
+        />
+
         {activeTab === "weekly" ? (
-          <div style={{ padding: "0px 16px" }}>
+          <div
+            style={{
+              padding: `0px ${theme.defaultHorizontalPadding}`,
+              paddingTop: 8,
+            }}
+          >
             <WeeklyProgressGraph
               habits={habits}
               activeWeekRange={activeWeekRange}
@@ -197,16 +208,15 @@ export default function DailyViewPage() {
             />
           </div>
         ) : (
-          <div style={{ padding: "0px 16px" }}>
+          <div
+            style={{
+              padding: `0px ${theme.defaultHorizontalPadding}`,
+              paddingTop: 8,
+            }}
+          >
             <DailyProgressGraph habits={habits} activeDate={activeDate} />
           </div>
         )}
-
-        <DateChanger
-          activeDate={activeDate}
-          changeDate={changeDate}
-          setActiveDate={setActiveDate}
-        />
 
         <div style={{ marginTop: 16 }}>
           <div
@@ -251,7 +261,6 @@ export default function DailyViewPage() {
             </button>
           </div>
 
-          {/* Weekly Goals */}
           <div
             style={{
               display: "flex",

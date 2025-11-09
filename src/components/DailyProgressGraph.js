@@ -88,12 +88,9 @@ export default function DailyProgressGraph({ habits, activeDate }) {
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
-      <h2 style={{ fontWeight: 700, margin: 0 }}>Daily Progress</h2>
-
       <RingProgressGraph
         P1Points={(P1_done / P1_total) * 100}
         P2Points={P2_points}
-        size={100}
       />
 
       <ProgressGraph primaryPercentage={P1_percent} />

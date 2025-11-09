@@ -7,7 +7,7 @@ import theme from "../styles/theme"
 export default function RingProgressGraph({
   P1Points = 0,
   P2Points = 0,
-  size = 140,
+  size = 120,
   stroke = 12,
   showNumbers = true,
 }) {

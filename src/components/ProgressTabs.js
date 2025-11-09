@@ -11,7 +11,7 @@ export default function ProgressTabs({ activeTab, setActiveTab }) {
         padding: "0", // Remove padding for full height
         background: theme.colors.background,
         borderBottom: `1px solid ${theme.colors.border}`,
-        height: "60px", // Full height for the row
+        height: "40px", // Full height for the row
       }}
     >
       <button
@@ -21,7 +21,10 @@ export default function ProgressTabs({ activeTab, setActiveTab }) {
           height: "100%", // Full height for the tab
           fontSize: 16,
           border: "none", // Remove border for seamless look
-          background: activeTab === "weekly" ? theme.colors.accent : theme.colors.background,
+          background:
+            activeTab === "weekly"
+              ? theme.colors.accent
+              : theme.colors.background,
           color: theme.colors.text,
           cursor: "pointer",
         }}
@@ -35,7 +38,10 @@ export default function ProgressTabs({ activeTab, setActiveTab }) {
           height: "100%", // Full height for the tab
           fontSize: 16,
           border: "none", // Remove border for seamless look
-          background: activeTab === "daily" ? theme.colors.accent : theme.colors.background,
+          background:
+            activeTab === "daily"
+              ? theme.colors.accent
+              : theme.colors.background,
           color: theme.colors.text,
           cursor: "pointer",
         }}
@@ -43,5 +49,5 @@ export default function ProgressTabs({ activeTab, setActiveTab }) {
         Daily Progress
       </button>
     </div>
-  );
+  )
 }
