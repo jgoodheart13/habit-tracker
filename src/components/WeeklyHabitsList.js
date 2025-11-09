@@ -73,7 +73,13 @@ export default function WeeklyHabitsList({
       <div>
         {grouped.map((group) => (
           <div key={group.label}>
-            <h3 style={{ margin: "8px 0", color: group.color }}>
+            <h3
+              style={{
+                paddingLeft: theme.defaultHorizontalPadding,
+                margin: "8px 0",
+                color: group.color,
+              }}
+            >
               {group.label}
             </h3>
             {group.habits.map((habit) => (

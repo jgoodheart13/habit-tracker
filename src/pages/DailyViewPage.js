@@ -223,32 +223,34 @@ export default function DailyViewPage() {
             style={{
               display: "flex",
               alignItems: "center",
-              marginBottom: 16,
+              marginBottom: 4,
+              justifyContent: "space-between", // Push elements to opposite ends
             }}
           >
-            <label style={{ marginLeft: 24, marginRight: 8, fontWeight: 500 }}>
-              Sort by:
-            </label>
-
-            <select
-              value={sortMode}
-              onChange={(e) => setSortMode(e.target.value)}
-              style={{
-                padding: "6px 12px",
-                borderRadius: 6,
-                border: `1px solid ${theme.colors.border}`,
-                fontSize: 15,
-              }}
+            <div
+              style={{ display: "flex", alignItems: "center", marginLeft: 8 }}
             >
-              <option value="priority">Priority</option>
-              <option value="category">Category</option>
-              <option value="time">Time</option>
-            </select>
+              <select
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 6,
+                  border: `1px solid ${theme.colors.border}`,
+                  fontSize: 15,
+                }}
+              >
+                <option value="priority">Priority</option>
+                <option value="category">Category</option>
+                <option value="time">Time</option>
+              </select>
+            </div>
+
             <button
               onClick={() => handleOpenHabitModal()}
               style={{
-                marginLeft: 12,
                 padding: "6px 12px",
+                marginRight: 8,
                 borderRadius: 6,
                 border: `1px solid ${theme.colors.border}`,
                 background: theme.colors.accent,
