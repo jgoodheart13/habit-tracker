@@ -43,29 +43,19 @@ export default function HabitModal({ show, onClose, onAdd, onEdit, habit }) {
         </h2>
         <HabitForm
           onAdd={(updatedHabit) => {
-            onAdd(updatedHabit);
-            onClose();
+            onAdd(updatedHabit)
+            onClose()
           }}
-        onEdit={(updatedHabit) => {
-            onEdit(updatedHabit);
-            onClose();
+          onEdit={(updatedHabit) => {
+            onEdit(updatedHabit)
+            onClose()
           }}
-          existingHabit={habit || { name: "", type: "P1", frequency: { timesPerWeek: 7 } }}
+          onClose={onClose}
+          existingHabit={
+            habit || { name: "", type: "P1", frequency: { timesPerWeek: 7 } }
+          }
         />
-        <button
-          onClick={onClose}
-          style={{
-            marginTop: 18,
-            background: theme.colors.incomplete,
-            color: theme.colors.text,
-            border: `1px solid ${theme.colors.border}`,
-            padding: "8px 18px",
-            cursor: "pointer",
-          }}
-        >
-          Cancel
-        </button>
       </div>
     </div>
-  );
+  )
 }

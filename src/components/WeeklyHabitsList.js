@@ -142,7 +142,7 @@ export default function WeeklyHabitsList({
       },
       {
         label: "Reach",
-        color: theme.colors.accent,
+        color: theme.colors.p2Below100,
         groups: groupByCategoryTree(p2),
       },
     ]

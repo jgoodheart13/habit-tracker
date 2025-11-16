@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import theme from "../styles/theme";
 import { getTags, saveTag } from "../services/habitService";
 
-export default function HabitForm({ onAdd, onEdit, existingHabit }) {
+export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
     () =>
       existingHabit || {
@@ -92,7 +92,19 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
   function handleTagAdd() {
     if (tagInput.label) {
       const newTag = { label: tagInput.label, type: tagInput.type }
-      setTags((prev) => ({ ...prev, [newTag.type]: newTag }))
+      setTags((prev) => {
+        const updatedTags = { ...prev }
+        if (!Array.isArray(updatedTags[newTag.type])) {
+          updatedTags[newTag.type] = []
+        }
+        // Add the new tag to the array if it doesn't already exist
+        if (
+          !updatedTags[newTag.type].some((tag) => tag.label === newTag.label)
+        ) {
+          updatedTags[newTag.type].push(newTag)
+        }
+        return updatedTags
+      })
       saveTag(newTag).then(() => {
         getTags().then((tags) => setAllTags(Array.isArray(tags) ? tags : []))
       })
@@ -398,6 +410,18 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
       >
         {/* Cancel button will be rendered by parent modal, so only Save here */}
         <button
+          onClick={onClose}
+          style={{
+            background: theme.colors.incomplete,
+            color: theme.colors.text,
+            border: `1px solid ${theme.colors.border}`,
+            padding: "8px 18px",
+            cursor: "pointer",
+          }}
+        >
+          Cancel
+        </button>
+        <button
           type="submit"
           style={{
             padding: 10,
@@ -406,10 +430,10 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
             color: theme.colors.background,
             border: "none",
             fontWeight: 600,
-            minWidth: 110,
+            // minWidth: 110,
           }}
         >
-          {isEdit ? "Save Changes" : "Add Habit"}
+          {"Save"}
         </button>
       </div>
     </form>

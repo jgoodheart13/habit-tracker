@@ -64,7 +64,9 @@ export default function WeeklyHabitRow({
             accentColor:
               completed.length >= n
                 ? theme.colors.p2Above100
-                : theme.colors.accent,
+                : habit.type === "P1"
+                ? theme.colors.p1
+                : theme.colors.p2Below100,
             width: 20,
             height: 20,
             flexShrink: 0,
@@ -104,70 +106,74 @@ export default function WeeklyHabitRow({
         </span>
       )}
       {/* Edit button */}
-      <button
-        onClick={() => onEdit(habit)}
-        title="Edit habit"
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          marginLeft: 8,
-          padding: 4,
-          color: theme.colors.text,
-          display: "flex",
-          alignItems: "center",
-          borderRadius: 4,
-          transition: "background 0.2s",
-          flexShrink: 0,
-        }}
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+      {!showWeekDays && (
+        <button
+          onClick={() => onEdit(habit)}
+          title="Edit habit"
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            marginLeft: 8,
+            padding: 4,
+            color: theme.colors.text,
+            display: "flex",
+            alignItems: "center",
+            borderRadius: 4,
+            transition: "background 0.2s",
+            flexShrink: 0,
+          }}
         >
-          <path
-            d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z"
-            fill="currentColor"
-          />
-          <path
-            d="M17.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.13 1.13 3.75 3.75 1.13-1.13z"
-            fill="currentColor"
-          />
-        </svg>
-      </button>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5z"
+              fill="currentColor"
+            />
+            <path
+              d="M17.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.13 1.13 3.75 3.75 1.13-1.13z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      )}
       {/* Delete button */}
-      <button
-        onClick={() => handleDelete(habit.id)}
-        title="Delete habit"
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          marginLeft: 4,
-          padding: 4,
-          color: theme.colors.accent,
-          display: "flex",
-          alignItems: "center",
-          borderRadius: 4,
-          transition: "background 0.2s",
-          flexShrink: 0,
-        }}
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
+      {!showWeekDays && (
+        <button
+          onClick={() => handleDelete(habit.id)}
+          title="Delete habit"
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            marginLeft: 4,
+            padding: 4,
+            color: theme.colors.accent,
+            display: "flex",
+            alignItems: "center",
+            borderRadius: 4,
+            transition: "background 0.2s",
+            flexShrink: 0,
+          }}
         >
-          <rect x="6" y="8" width="8" height="8" rx="2" />
-          <rect x="8" y="4" width="4" height="2" rx="1" />
-          <rect x="5" y="6" width="10" height="2" rx="1" />
-        </svg>
-      </button>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect x="6" y="8" width="8" height="8" rx="2" />
+            <rect x="8" y="4" width="4" height="2" rx="1" />
+            <rect x="5" y="6" width="10" height="2" rx="1" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
