@@ -15,78 +15,49 @@ export default function WeeklyHabitsList({
   onEdit,
   showWeekDays,
 }) {
-const grouped = () => {
-  if (sortMode === "priority") {
-    return [
-      {
-        label: "Baseline",
-        color: theme.colors.p1,
-        groups: [
-          {
-            label: "General",
-            habits: habits.filter((h) => h.type === "P1"),
-          },
-        ],
-      },
-      {
-        label: "Reach",
-        color: theme.colors.accent,
-        groups: [
-          {
-            label: "General",
-            habits: habits.filter((h) => h.type === "P2"),
-          },
-        ],
-      },
-    ]
-  }
+  // Extract tags safely
+  const getTags = (habit, sortMode) =>
+    Array.isArray(habit.tags?.[sortMode])
+      ? habit.tags[sortMode].filter((t) => t?.label)
+      : []
 
-  if (sortMode === "category" || sortMode === "time") {
-    const getTags = (habit) =>
-      Array.isArray(habit.tags?.[sortMode])
-        ? habit.tags[sortMode].filter((t) => t?.label)
-        : []
-
-    // ------------------------------
-    // Step 1 — global frequency
-    // ------------------------------
+  // Compute frequency of tag usage globally
+  const computeTagFrequency = (habits, sortMode) => {
     const freq = {}
     habits.forEach((h) => {
-      getTags(h).forEach((t) => {
+      getTags(h, sortMode).forEach((t) => {
         freq[t.label] = (freq[t.label] || 0) + 1
       })
     })
+    return freq
+  }
 
-    // ------------------------------
-    // Step 2 — infer parent tag
-    // ------------------------------
-    const inferParentTag = (habit) => {
-      const tags = getTags(habit)
-      if (tags.length === 0) return null
+  // Determine the parent tag based on frequency (stable tie breaker)
+  const inferParentTag = (habit, sortMode, freq) => {
+    const tags = getTags(habit, sortMode)
+    if (tags.length === 0) return null
 
-      return tags.reduce((best, curr) => {
-        const fb = freq[best.label]
-        const fc = freq[curr.label]
+    return tags.reduce((best, curr) => {
+      const fb = freq[best.label]
+      const fc = freq[curr.label]
 
-        if (fc > fb) return curr
-        if (fc === fb && curr.label < best.label) return curr // stable
-        return best
-      })
-    }
+      if (fc > fb) return curr
+      if (fc === fb && curr.label < best.label) return curr
+      return best
+    })
+  }
 
-    // ------------------------------
-    // Step 3 — parent → child grouping
-    // ------------------------------
+  // Parent + child grouping (shared logic)
+  const groupByParentAndChildren = (habits, sortMode, freq) => {
     const parents = {}
 
     habits.forEach((habit) => {
-      const tags = getTags(habit)
-      const parent = inferParentTag(habit)
-
+      const tags = getTags(habit, sortMode)
+      const parent = inferParentTag(habit, sortMode, freq)
       const parentLabel = parent?.label || "Unspecified"
+
       if (!parents[parentLabel]) parents[parentLabel] = {}
 
-      // If only 1 tag, place under General
       if (tags.length <= 1) {
         if (!parents[parentLabel]["General"])
           parents[parentLabel]["General"] = []
@@ -94,13 +65,11 @@ const grouped = () => {
         return
       }
 
-      // Multiple tags → children = all non-parent tags
       const childTags = tags
         .filter((t) => t.label !== parentLabel)
         .map((t) => t.label)
 
       if (childTags.length === 0) {
-        // no children — treat like General
         if (!parents[parentLabel]["General"])
           parents[parentLabel]["General"] = []
         parents[parentLabel]["General"].push(habit)
@@ -112,100 +81,181 @@ const grouped = () => {
       }
     })
 
-    // ------------------------------
-    // Step 4 — build UI structure
-    // ------------------------------
-    const sortedParents = Object.keys(parents).sort((a, b) => {
-      if (a === "Unspecified") return 1
-      if (b === "Unspecified") return -1
-      return a.localeCompare(b)
-    })
+    // turn into sorted UI-friendly arrays
+    return Object.keys(parents)
+      .sort((a, b) =>
+        a === "Unspecified" ? 1 : b === "Unspecified" ? -1 : a.localeCompare(b)
+      )
+      .map((parentLabel) => ({
+        label: parentLabel,
+        groups: Object.keys(parents[parentLabel])
+          .sort((a, b) =>
+            a === "General" ? -1 : b === "General" ? 1 : a.localeCompare(b)
+          )
+          .map((childLabel) => ({
+            label: childLabel,
+            habits: parents[parentLabel][childLabel],
+          })),
+      }))
+  }
 
-    return sortedParents.map((parentLabel) => ({
-      label: parentLabel,
-      color:
-        parentLabel === "Unspecified"
-          ? theme.colors.incomplete
-          : theme.colors.accent,
-      groups: Object.keys(parents[parentLabel])
-        .sort((a, b) =>
-          a === "General" ? -1 : b === "General" ? 1 : a.localeCompare(b)
-        )
-        .map((childLabel) => ({
-          label: childLabel,
-          habits: parents[parentLabel][childLabel],
-        })),
+  // CATEGORY-only tree (can be nested later)
+  const groupByCategoryTree = (habits) => {
+    const sortMode = "category"
+    const freq = computeTagFrequency(habits, sortMode)
+    const tree = groupByParentAndChildren(habits, sortMode, freq)
+    return tree.map((parent) => ({
+      label: parent.label,
+      groups: parent.groups,
     }))
   }
 
-  return [
-    {
-      label: "All Habits",
-      color: theme.colors.accent,
-      groups: [
-        {
-          label: "General",
-          habits,
-        },
-      ],
-    },
-  ]
-}
+  const groupByPriority = (habits) => {
+    const p1 = habits.filter((h) => h.type === "P1")
+    const p2 = habits.filter((h) => h.type === "P2")
 
-return (
-  <div>
-    <div>
-      {grouped().map((group) => (
+    return [
+      {
+        label: "Baseline",
+        color: theme.colors.p1,
+        groups: groupByCategoryTree(p1),
+      },
+      {
+        label: "Reach",
+        color: theme.colors.accent,
+        groups: groupByCategoryTree(p2),
+      },
+    ]
+  }
+
+  const groupByCategoryMode = (habits) => {
+    return groupByCategoryTree(habits).map((parent) => ({
+      label: parent.label,
+      color:
+        parent.label === "Unspecified"
+          ? theme.colors.incomplete
+          : theme.colors.accent,
+      groups: parent.groups,
+    }))
+  }
+
+  const groupByTime = (habits) => {
+    const buckets = {}
+
+    habits.forEach((h) => {
+      const times = getTags(h, "time")
+      const labels = times.length ? times.map((t) => t.label) : ["Unspecified"]
+
+      labels.forEach((label) => {
+        if (!buckets[label]) buckets[label] = []
+        buckets[label].push(h)
+      })
+    })
+
+    return Object.keys(buckets).map((label) => ({
+      label,
+      color:
+        label === "Unspecified" ? theme.colors.incomplete : theme.colors.accent,
+      groups: groupByCategoryTree(buckets[label]),
+    }))
+  }
+
+  const grouped = () => {
+    var groupedHabits = []
+    switch (sortMode) {
+      case "priority":
+        groupedHabits = groupByPriority(habits)
+        break
+      case "time":
+        groupedHabits = groupByTime(habits)
+        break
+      case "category":
+        groupedHabits = groupByCategoryMode(habits)
+        break
+      default:
+        groupedHabits = [
+          {
+            label: "All Habits",
+            color: theme.colors.accent,
+            groups: groupByCategoryTree(habits),
+          },
+        ]
+        break
+    }
+    return groupedHabits
+  }
+
+  // ---------------------------------------------------------
+  // ⭐ RECURSIVE RENDERER ⭐
+  // ---------------------------------------------------------
+  const renderGroup = (group, level = 1) => {
+    const indent = theme.defaultHorizontalPadding * level
+
+    // CASE 1: "General" = habits-only leaf node
+    if (group.label === "General") {
+      return (
         <div key={group.label}>
-          {/* Parent heading */}
-          <h3
-            style={{
-              paddingLeft: theme.defaultHorizontalPadding,
-              margin: "8px 0",
-              color: group.color,
-            }}
-          >
-            {group.label}
-          </h3>
-
-          {/* Child groups inside the parent */}
-          {group.groups?.map((child) => (
-            <div key={child.label}>
-              {/* Show h4 only for NON-General child categories */}
-              {child.label !== "General" && (
-                <h4
-                  style={{
-                    paddingLeft: theme.defaultHorizontalPadding * 2,
-                    margin: "4px 0",
-                    color: theme.colors.textSecondary,
-                    fontWeight: 500,
-                  }}
-                >
-                  {child.label}
-                </h4>
-              )}
-
-              {/* Habits inside this child group */}
-              {child.habits.map((habit) => (
-                <WeeklyHabitRow
-                  key={habit._id}
-                  habit={habit}
-                  activeDate={activeDate}
-                  activeWeekRange={activeWeekRange}
-                  handleComplete={handleComplete}
-                  handleDelete={handleDelete}
-                  onEdit={onEdit}
-                  showWeekDays={showWeekDays}
-                />
-              ))}
-            </div>
+          {group.habits?.map((habit) => (
+            <WeeklyHabitRow
+              key={habit._id || habit.id}
+              habit={habit}
+              activeDate={activeDate}
+              activeWeekRange={activeWeekRange}
+              handleComplete={handleComplete}
+              handleDelete={handleDelete}
+              onEdit={onEdit}
+              showWeekDays={showWeekDays}
+            />
           ))}
         </div>
-      ))}
-    </div>
-  </div>
-)
+      )
+    }
 
+    // CASE 2: non-General group → show header (h3 or h4)
+    const HeadingTag = level === 1 ? "h3" : "h4"
+    const headingStyle =
+      level === 1
+        ? {
+            paddingLeft: indent,
+            margin: "8px 0",
+            color: group.color ?? theme.colors.accent,
+          }
+        : {
+            paddingLeft: indent,
+            margin: "4px 0",
+            color: theme.colors.textSecondary,
+            fontWeight: 500,
+          }
+
+    return (
+      <div key={group.label}>
+        <HeadingTag style={headingStyle}>{group.label}</HeadingTag>
+
+        {/* IMPORTANT FIX: Render habits when leaf node has habits */}
+        {Array.isArray(group.habits) &&
+          group.habits.map((habit) => (
+            <WeeklyHabitRow
+              key={habit._id || habit.id}
+              habit={habit}
+              activeDate={activeDate}
+              activeWeekRange={activeWeekRange}
+              handleComplete={handleComplete}
+              handleDelete={handleDelete}
+              onEdit={onEdit}
+              showWeekDays={showWeekDays}
+            />
+          ))}
+
+        {/* Recurse into child groups if present */}
+        {Array.isArray(group.groups) &&
+          group.groups.map((child) => renderGroup(child, level + 1))}
+      </div>
+    )
+  }
+
+  // ---------------------------------------------------------
+
+  return <div>{grouped().map((g) => renderGroup(g))}</div>
 }
 
 WeeklyHabitsList.propTypes = {
