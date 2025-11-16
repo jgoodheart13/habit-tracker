@@ -32,6 +32,21 @@ export default function WeeklyHabitsList({
     return freq
   }
 
+  const [collapsed, setCollapsed] = React.useState(new Set())
+  const [initialized, setInitialized] = React.useState(new Set())
+
+  const toggleCollapse = (key) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }
+
   // Determine the parent tag based on frequency (stable tie breaker)
   const inferParentTag = (habit, sortMode, freq) => {
     const tags = getTags(habit, sortMode)
@@ -185,11 +200,32 @@ export default function WeeklyHabitsList({
     return groupedHabits
   }
 
-  // ---------------------------------------------------------
-  // ⭐ RECURSIVE RENDERER ⭐
-  // ---------------------------------------------------------
-  const renderGroup = (group, level = 1) => {
-    const indent = theme.defaultHorizontalPadding * level
+  const renderGroup = (group, level = 1, path = "") => {
+    const thisPath = path ? `${path} > ${group.label}` : group.label
+    const collapseKey = thisPath
+
+    const isMobile = window.innerWidth < 600
+    const defaultCollapsed = isMobile && level >= 2
+
+    // Initialize collapse state for this group ONCE
+    if (!initialized.has(collapseKey)) {
+      setInitialized((prev) => {
+        const next = new Set(prev)
+        next.add(collapseKey)
+        return next
+      })
+
+      // Apply defaultCollapsed into collapsed state ONCE
+      if (defaultCollapsed) {
+        setCollapsed((prev) => {
+          const next = new Set(prev)
+          next.add(collapseKey)
+          return next
+        })
+      }
+    }
+
+    const isCollapsed = collapsed.has(collapseKey)
 
     // CASE 1: "General" = habits-only leaf node
     if (group.label === "General") {
@@ -213,47 +249,66 @@ export default function WeeklyHabitsList({
 
     // CASE 2: non-General group → show header (h3 or h4)
     const HeadingTag = level === 1 ? "h3" : "h4"
-    const headingStyle =
-      level === 1
-        ? {
-            marginLeft: indent,
-            margin: "0 4px",
-            color: group.color ?? theme.colors.accent,
-          }
-        : {
-            marginLeft: indent,
-            margin: "0 8px",
-            color: theme.colors.textSecondary,
-            fontWeight: 500,
-          }
+    const headingStyle = {
+      margin: level === 1 ? "0px 0px" : `0px ${level * 4}px`,
+      color:
+        level === 1
+          ? group.color ?? theme.colors.accent
+          : theme.colors.textSecondary,
+      fontWeight: level === 1 ? 700 : 600,
+      display: "flex",
+      alignItems: "center",
+      gap: "6px", // arrow sits to the left of label
+    }
 
     return (
       <div key={group.label}>
-        <HeadingTag style={headingStyle}>{group.label}</HeadingTag>
+        <HeadingTag style={headingStyle}>
+          {/* Left-side arrow */}
+          <span
+            style={{
+              cursor: "pointer",
+              padding: "4px",
+              lineHeight: 1,
+            }}
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleCollapse(collapseKey)
+            }}
+          >
+            {isCollapsed ? "▶" : "▼"}
+          </span>
+
+          {group.label}
+        </HeadingTag>
 
         {/* IMPORTANT FIX: Render habits when leaf node has habits */}
-        {Array.isArray(group.habits) &&
-          group.habits.map((habit) => (
-            <WeeklyHabitRow
-              key={habit._id || habit.id}
-              habit={habit}
-              activeDate={activeDate}
-              activeWeekRange={activeWeekRange}
-              handleComplete={handleComplete}
-              handleDelete={handleDelete}
-              onEdit={onEdit}
-              showWeekDays={showWeekDays}
-            />
-          ))}
+        {!isCollapsed && (
+          <>
+            {Array.isArray(group.habits) &&
+              group.habits.map((habit) => (
+                <WeeklyHabitRow
+                  key={habit._id || habit.id}
+                  habit={habit}
+                  activeDate={activeDate}
+                  activeWeekRange={activeWeekRange}
+                  handleComplete={handleComplete}
+                  handleDelete={handleDelete}
+                  onEdit={onEdit}
+                  showWeekDays={showWeekDays}
+                />
+              ))}
 
-        {/* Recurse into child groups if present */}
-        {Array.isArray(group.groups) &&
-          group.groups.map((child) => renderGroup(child, level + 1))}
+            {/* Recurse into child groups if present */}
+            {Array.isArray(group.groups) &&
+              group.groups.map((child) =>
+                renderGroup(child, level + 1, thisPath)
+              )}
+          </>
+        )}
       </div>
     )
   }
-
-  // ---------------------------------------------------------
 
   return <div>{grouped().map((g) => renderGroup(g))}</div>
 }
