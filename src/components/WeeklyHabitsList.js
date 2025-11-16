@@ -133,7 +133,12 @@ export default function WeeklyHabitsList({
       {
         label: "Baseline",
         color: theme.colors.p1,
-        groups: groupByCategoryTree(p1),
+        groups: [
+          {
+            label: "General",
+            habits: p1,
+          },
+        ],
       },
       {
         label: "Reach",
@@ -202,10 +207,11 @@ export default function WeeklyHabitsList({
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
+    const isP1 = thisPath.startsWith("Baseline")
     const collapseKey = thisPath
 
     const isMobile = window.innerWidth < 600
-    const defaultCollapsed = isMobile && level >= 2
+    const defaultCollapsed = isP1 ? false : isMobile && level >= 2
 
     // Initialize collapse state for this group ONCE
     if (!initialized.has(collapseKey)) {
