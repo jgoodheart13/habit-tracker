@@ -15,18 +15,28 @@ export default function WeeklyHabitsList({
   onEdit,
   showWeekDays,
 }) {
-const grouped = (() => {
+const grouped = () => {
   if (sortMode === "priority") {
     return [
       {
         label: "Baseline",
         color: theme.colors.p1,
-        habits: habits.filter((h) => h.type === "P1"),
+        groups: [
+          {
+            label: "General",
+            habits: habits.filter((h) => h.type === "P1"),
+          },
+        ],
       },
       {
         label: "Reach",
         color: theme.colors.accent,
-        habits: habits.filter((h) => h.type === "P2"),
+        groups: [
+          {
+            label: "General",
+            habits: habits.filter((h) => h.type === "P2"),
+          },
+        ],
       },
     ]
   }
@@ -132,15 +142,20 @@ const grouped = (() => {
     {
       label: "All Habits",
       color: theme.colors.accent,
-      habits,
+      groups: [
+        {
+          label: "General",
+          habits,
+        },
+      ],
     },
   ]
-})()
+}
 
 return (
   <div>
     <div>
-      {grouped.map((group) => (
+      {grouped().map((group) => (
         <div key={group.label}>
           {/* Parent heading */}
           <h3
