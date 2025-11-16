@@ -71,7 +71,20 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
   }
 
   function handleTagSelect(selectedTag) {
-    setTags((prev) => ({ ...prev, [selectedTag.type]: selectedTag }))
+    setTags((prev) => {
+      const updatedTags = { ...prev }
+      if (!Array.isArray(updatedTags[selectedTag.type])) {
+        updatedTags[selectedTag.type] = []
+      }
+      if (
+        !updatedTags[selectedTag.type].some(
+          (tag) => tag.label === selectedTag.label
+        )
+      ) {
+        updatedTags[selectedTag.type].push(selectedTag)
+      }
+      return updatedTags
+    })
     setTagInput({ label: "", type: selectedTag.type })
     setTagDropdownOpen(false)
   }
@@ -88,8 +101,19 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
     }
   }
 
-  function handleTagRemove(type) {
-    setTags((prev) => ({ ...prev, [type]: null }))
+  function handleTagRemove(type, label) {
+    setTags((prev) => {
+      const updatedTags = { ...prev }
+      if (updatedTags[type]) {
+        updatedTags[type] = updatedTags[type].filter(
+          (tag) => tag.label !== label
+        )
+        if (updatedTags[type].length === 0) {
+          delete updatedTags[type]
+        }
+      }
+      return updatedTags
+    })
   }
 
   function handleSubmit(e) {
@@ -302,7 +326,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
                 overflowY: "auto",
               }}
             >
-              {filteredTags.map((t, idx) => (
+              {filteredTags?.map((t, idx) => (
                 <div
                   key={t.label + t.type + idx}
                   onMouseDown={() => handleTagSelect(t)}
@@ -327,10 +351,10 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
         </div>
         {/* Show assigned tags as labels with remove option */}
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-          {["category", "time"].map((type) =>
-            tags[type] ? (
+          {Object.keys(tags).map((type) =>
+            tags[type]?.map((tag) => (
               <span
-                key={type}
+                key={`${type}-${tag.label}`}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -342,10 +366,10 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
                   fontWeight: 500,
                 }}
               >
-                <span style={{ marginRight: 6 }}>{tags[type].label}</span>
+                <span style={{ marginRight: 6 }}>{tag.label}</span>
                 <button
                   type="button"
-                  onClick={() => handleTagRemove(type)}
+                  onClick={() => handleTagRemove(type, tag.label)}
                   style={{
                     background: "none",
                     border: "none",
@@ -359,7 +383,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit }) {
                   ×
                 </button>
               </span>
-            ) : null
+            ))
           )}
         </div>
       </div>
