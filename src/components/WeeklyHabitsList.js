@@ -216,13 +216,13 @@ export default function WeeklyHabitsList({
     const headingStyle =
       level === 1
         ? {
-            paddingLeft: indent,
-            margin: "8px 0",
+            marginLeft: indent,
+            margin: "0 4px",
             color: group.color ?? theme.colors.accent,
           }
         : {
-            paddingLeft: indent,
-            margin: "4px 0",
+            marginLeft: indent,
+            margin: "0 8px",
             color: theme.colors.textSecondary,
             fontWeight: 500,
           }
