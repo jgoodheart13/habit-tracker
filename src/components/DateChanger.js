@@ -1,7 +1,7 @@
 import React from "react";
 import theme from "../styles/theme";
 
-const { rowHeight } = theme // Destructure rowHeight for use
+const { rowHeight } = theme
 
 export default function DateChanger({
   activeDate,
@@ -9,110 +9,79 @@ export default function DateChanger({
   setActiveDate,
   activeTab,
 }) {
+  const isWeekly = activeTab === "weekly"
+
   return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "space-between", // Spread buttons across the row
-        alignItems: "center",
-        padding: "0", // Remove padding for full height
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr 2fr 1fr 1fr",
+        height: rowHeight,
         background: theme.colors.background,
         borderBottom: `1px solid ${theme.colors.border}`,
-        height: rowHeight, // Use centralized row height
+        alignItems: "center",
       }}
     >
-      {activeTab === "weekly" && (
-        <button
-          onClick={() => changeDate(-7)}
-          style={{
-            flex: 1, // Make buttons take equal width
-            height: "100%", // Full height for the button
-            fontSize: 18, // Larger font for better tap targets
-            border: "none", // Remove border for seamless look
-            background: theme.colors.background,
-            color: theme.colors.text,
-            cursor: "pointer",
-          }}
-        >
-          &#171;
-        </button>
-      )}
-      {activeTab === "daily" && (
-        <button
-          onClick={() => changeDate(-1)}
-          style={{
-            flex: 1,
-            height: "100%",
-            fontSize: 18,
-            border: "none",
-            background: theme.colors.background,
-            color: theme.colors.text,
-            cursor: "pointer",
-          }}
-        >
+      {/* SLOT 1 — empty placeholder (reserve symmetry for Today button) */}
+      <div />
+
+      {/* SLOT 2 — left arrow cluster */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+        {isWeekly && (
+          <button style={buttonStyle} onClick={() => changeDate(-7)}>
+            &#171;
+          </button>
+        )}
+        <button style={buttonStyle} onClick={() => changeDate(-1)}>
           &larr;
         </button>
-      )}
-      <span
+      </div>
+
+      {/* SLOT 3 — centered date */}
+      <div
         style={{
-          flex: 2, // Make the date span larger for emphasis
           textAlign: "center",
           fontWeight: 700,
-          fontSize: 18,
-          color: theme.colors.text,
+          fontSize: 20,
         }}
       >
         {activeDate === new Date().toLocaleDateString("en-CA")
           ? "Today"
           : activeDate}
-      </span>
-      {activeTab === "daily" && (
-        <button
-          onClick={() => changeDate(1)}
-          style={{
-            flex: 1,
-            height: "100%",
-            fontSize: 18,
-            border: "none",
-            background: theme.colors.background,
-            color: theme.colors.text,
-            cursor: "pointer",
-          }}
-        >
+      </div>
+
+      {/* SLOT 4 — right arrow cluster */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+        <button style={buttonStyle} onClick={() => changeDate(1)}>
           &rarr;
         </button>
-      )}
-      {activeTab === "weekly" && (
+        {isWeekly && (
+          <button style={buttonStyle} onClick={() => changeDate(7)}>
+            &#187;
+          </button>
+        )}
+      </div>
+
+      {/* SLOT 5 — Today button */}
+      <div style={{ textAlign: "center" }}>
         <button
-          onClick={() => changeDate(7)}
-          style={{
-            flex: 1,
-            height: "100%",
-            fontSize: 18,
-            border: "none",
-            background: theme.colors.background,
-            color: theme.colors.text,
-            cursor: "pointer",
-          }}
+          onClick={() => setActiveDate(new Date().toLocaleDateString("en-CA"))}
+          title="Go to Today"
+          style={buttonStyle}
         >
-          &#187;
+          &#128337;
         </button>
-      )}
-      <button
-        onClick={() => setActiveDate(new Date().toLocaleDateString("en-CA"))}
-        title="Go to Today"
-        style={{
-          flex: 1,
-          height: "100%",
-          fontSize: 18,
-          border: "none",
-          background: theme.colors.background,
-          color: theme.colors.text,
-          cursor: "pointer",
-        }}
-      >
-        &#128337;
-      </button>
+      </div>
     </div>
   )
+}
+
+const buttonStyle = {
+  fontSize: 18,
+  border: "none",
+  background: theme.colors.background,
+  color: theme.colors.text,
+  cursor: "pointer",
+  height: "100%",
+  width: "100%",
 }

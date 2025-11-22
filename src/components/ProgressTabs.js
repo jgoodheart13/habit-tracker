@@ -15,23 +15,6 @@ export default function ProgressTabs({ activeTab, setActiveTab }) {
       }}
     >
       <button
-        onClick={() => setActiveTab("weekly")}
-        style={{
-          flex: 1, // Make tabs take equal width
-          height: "100%", // Full height for the tab
-          fontSize: 16,
-          border: "none", // Remove border for seamless look
-          background:
-            activeTab === "weekly"
-              ? theme.colors.accent
-              : theme.colors.background,
-          color: theme.colors.text,
-          cursor: "pointer",
-        }}
-      >
-        Weekly Progress
-      </button>
-      <button
         onClick={() => setActiveTab("daily")}
         style={{
           flex: 1, // Make tabs take equal width
@@ -47,6 +30,23 @@ export default function ProgressTabs({ activeTab, setActiveTab }) {
         }}
       >
         Daily Progress
+      </button>
+      <button
+        onClick={() => setActiveTab("weekly")}
+        style={{
+          flex: 1, // Make tabs take equal width
+          height: "100%", // Full height for the tab
+          fontSize: 16,
+          border: "none", // Remove border for seamless look
+          background:
+            activeTab === "weekly"
+              ? theme.colors.accent
+              : theme.colors.background,
+          color: theme.colors.text,
+          cursor: "pointer",
+        }}
+      >
+        Weekly Progress
       </button>
     </div>
   )
