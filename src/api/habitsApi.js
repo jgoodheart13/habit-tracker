@@ -1,5 +1,5 @@
 
-import api from "./axios";
+import api from "../services/axios";
 // Tag API calls
 export async function fetchTags() {
   const response = await api.get(`/tags`);

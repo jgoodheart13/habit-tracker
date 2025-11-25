@@ -6,7 +6,7 @@ import {
   markHabitComplete as apiMarkHabitComplete,
   fetchTags,
   addTag as apiAddTag,
-} from "./habitsApi";
+} from "../api/habitsApi"
 
 export function getTags() {
   // API call

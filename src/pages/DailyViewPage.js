@@ -14,7 +14,7 @@ import LoadingScreen from "../components/LoadingScreen"
 import WeeklyHabitsList from "../components/WeeklyHabitsList"
 import { AuthContext } from "../components/AuthenticationWrapper"
 import HabitModal from "../components/HabitModal"
-import { addHabit, updateHabit } from "../services/habitsApi"
+import { addHabit, updateHabit } from "../services/habitService"
 import DateChanger from "../components/DateChanger"
 import ProgressTabs from "../components/ProgressTabs"
 
