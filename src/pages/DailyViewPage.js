@@ -32,12 +32,17 @@ export default function DailyViewPage() {
   const [showHabitModal, setShowHabitModal] = useState(false)
   const [editingHabit, setEditingHabit] = useState(null)
   const [activeTab, setActiveTab] = useState("daily") // State for active tab
+  const [activeWeekRange, setActiveWeekRange] = useState(null)
+
+  useEffect(() => {
+    setActiveWeekRange(getWeekRange(activeDate))
+  }, [activeDate])
 
   useEffect(() => {
     // Fetch habits when authenticated and token is ready
     async function fetchHabits() {
       try {
-        const habitsFromApi = await getHabits()
+        const habitsFromApi = await getHabits(activeWeekRange.end)
         setHabits(habitsFromApi)
       } catch (err) {
         console.error("Error fetching habits:", err)
@@ -46,12 +51,12 @@ export default function DailyViewPage() {
       }
     }
 
-    if (isAuthenticated && tokenReady) {
+    if (isAuthenticated && tokenReady && activeWeekRange?.end) {
       setHabitsLoading(true)
       fetchHabits()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, tokenReady])
+  }, [isAuthenticated, tokenReady, activeWeekRange])
   // Track the most recent completion request
   const latestRequestRef = React.useRef(0)
 
@@ -82,7 +87,7 @@ export default function DailyViewPage() {
         // only act if this is still the latest request
         if (requestId === latestRequestRef.current) {
           try {
-            const updated = await getHabits()
+            const updated = await getHabits(activeWeekRange.end)
             setHabits((current) => {
               // don’t overwrite if the user changed something else since
               if (current.some((h) => h.pending)) {
@@ -107,7 +112,7 @@ export default function DailyViewPage() {
   function handleDelete(id) {
     ;(async () => {
       await deleteHabit(id)
-      const updated = await getHabits()
+      const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
     })()
   }
@@ -145,8 +150,9 @@ export default function DailyViewPage() {
   function handleAddHabit(newHabit) {
     // Close modal
     handleCloseHabitModal()
+    newHabit.startDate = new Date().toISOString().slice(0, 10)
     addHabit(newHabit).then(async () => {
-      const updated = await getHabits()
+      const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
     })
   }
@@ -158,12 +164,11 @@ export default function DailyViewPage() {
     ;(async () => {
       // Assuming there's an updateHabit function in habitService
       await updateHabit(updatedHabit.id, updatedHabit)
-      const updated = await getHabits()
+      const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
     })()
   }
 
-  const activeWeekRange = getWeekRange(activeDate) // Calculate the active week range
 
   if (habitsLoading || !isAuthenticated || !tokenReady) {
     return <LoadingScreen />

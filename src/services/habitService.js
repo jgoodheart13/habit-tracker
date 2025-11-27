@@ -18,9 +18,9 @@ export function saveTag(tag) {
   return apiAddTag(tag);
 }
 
-export function getHabits() {
+export function getHabits(weekEndDate) {
   // API call
-  return fetchHabits();
+  return fetchHabits(weekEndDate)
 }
 
 export function addHabit(habit) {

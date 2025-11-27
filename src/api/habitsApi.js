@@ -11,9 +11,11 @@ export async function addTag(tag) {
   return response.data;
 }
 
-export async function fetchHabits() {
-  const response = await api.get(`/habits`);
-  return response.data;
+export async function fetchHabits(weekEndDate) {
+  const response = await api.get(`/habits`, {
+    params: { weekEndDate },
+  })
+  return response.data
 }
 
 export async function addHabit(habit) {

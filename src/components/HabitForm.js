@@ -1,7 +1,7 @@
 // HabitForm.js
-import React, { useState } from 'react';
-import theme from "../styles/theme";
-import { getTags, saveTag } from "../services/habitService";
+import React, { useEffect, useState } from "react"
+import theme from "../styles/theme"
+import { getTags, saveTag } from "../services/habitService"
 
 export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
@@ -33,7 +33,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     )
   }, [habit])
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchTags() {
       try {
         const tags = await getTags()
@@ -43,6 +43,9 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       }
     }
     fetchTags()
+  }, [])
+
+  React.useEffect(() => {
     if (habit && habit.tags) setTags(habit.tags)
   }, [habit])
 
