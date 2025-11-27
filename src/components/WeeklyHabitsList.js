@@ -133,12 +133,13 @@ export default function WeeklyHabitsList({
       {
         label: "Baseline",
         color: theme.colors.p1,
-        groups: [
-          {
-            label: "General",
-            habits: p1,
-          },
-        ],
+        // groups: [
+        //   {
+        //     label: "General",
+        //     habits: p1,
+        //   },
+        // ],
+        groups: groupByCategoryTree(p1),
       },
       {
         label: "Reach",
@@ -237,7 +238,7 @@ export default function WeeklyHabitsList({
     // CASE 1: "General" = habits-only leaf node
     if (group.label === "General") {
       return (
-        <div key={group.label}>
+        <div key={group.label} className="group-level" data-level={level}>
           {group.habits?.map((habit) => (
             <WeeklyHabitRow
               key={habit._id || habit.id}
@@ -269,13 +270,13 @@ export default function WeeklyHabitsList({
     }
 
     return (
-      <div key={group.label}>
+      <div key={group.label} className="group-level" data-level={level}>
         <HeadingTag style={headingStyle}>
           {/* Left-side arrow */}
           <span
             style={{
               cursor: "pointer",
-              padding: "4px",
+              // padding: "16px",
               lineHeight: 1,
             }}
             onClick={(e) => {
