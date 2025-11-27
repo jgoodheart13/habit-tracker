@@ -35,8 +35,20 @@ export default function DailyViewPage() {
   const [activeWeekRange, setActiveWeekRange] = useState(null)
 
   useEffect(() => {
-    setActiveWeekRange(getWeekRange(activeDate))
+    const newRange = getWeekRange(activeDate)
+
+    // Only update if values are actually different
+    setActiveWeekRange((prev) => {
+      // If no previous range, or start/end changed → update
+      if (!prev || prev.start !== newRange.start || prev.end !== newRange.end) {
+        return newRange
+      }
+
+      // Otherwise return previous (React won't re-render)
+      return prev
+    })
   }, [activeDate])
+
 
   useEffect(() => {
     // Fetch habits when authenticated and token is ready

@@ -45,9 +45,6 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     fetchTags()
   }, [])
 
-  React.useEffect(() => {
-    if (habit && habit.tags) setTags(habit.tags)
-  }, [habit])
 
   function handleChange(e) {
     const { name, value } = e.target
