@@ -38,7 +38,7 @@ export function markHabitComplete(id, date, isChecked) {
   return apiMarkHabitComplete(id, date, isChecked);
 }
 
-export function deleteHabit(id) {
+export function deleteHabit(id, activeDate) {
   // API call
-  return apiDeleteHabit(id);
+  return apiDeleteHabit(id, activeDate)
 }

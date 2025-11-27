@@ -123,7 +123,7 @@ export default function DailyViewPage() {
 
   function handleDelete(id) {
     ;(async () => {
-      await deleteHabit(id)
+      await deleteHabit(id, activeDate)
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
     })()
@@ -162,7 +162,7 @@ export default function DailyViewPage() {
   function handleAddHabit(newHabit) {
     // Close modal
     handleCloseHabitModal()
-    newHabit.startDate = new Date().toISOString().slice(0, 10)
+    newHabit.startDate = activeDate
     addHabit(newHabit).then(async () => {
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)

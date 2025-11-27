@@ -28,9 +28,11 @@ export async function updateHabit(id, updates) {
   return response.data;
 }
 
-export async function deleteHabit(id) {
-  const response = await api.delete(`/habits/${id}`);
-  return response.data;
+export async function deleteHabit(id, archiveDate) {
+  const response = await api.delete(`/habits/${id}`, {
+    params: { archiveDate },
+  })
+  return response.data
 }
 
 export async function markHabitComplete(id, date, isChecked) {
