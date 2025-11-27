@@ -52,6 +52,8 @@ export default function WeeklyHabitRow({
           flex: 1,
           gap: 8,
           overflow: "hidden",
+          textShadow:
+            habit.type === "P1" ? "0 0 4px rgb(255, 213, 79, 1)" : "none",
         }}
       >
         <input
