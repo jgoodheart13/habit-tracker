@@ -1,8 +1,8 @@
 // WeeklyHabitsList.js
 
-import React from "react";
-import WeeklyHabitRow from "./WeeklyHabitRow";
-import theme from "../styles/theme";
+import React, { useEffect } from "react"
+import WeeklyHabitRow from "./WeeklyHabitRow"
+import theme from "../styles/theme"
 import PropTypes from "prop-types"
 
 export default function WeeklyHabitsList({
@@ -15,12 +15,11 @@ export default function WeeklyHabitsList({
   onEdit,
   showWeekDays,
 }) {
-
-
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
 
   const [weekDays, setWeekDays] = React.useState([])
+  const [groupedHabits, setGroupedHabits] = React.useState([])
 
   React.useEffect(() => {
     if (activeWeekRange) {
@@ -123,7 +122,7 @@ export default function WeeklyHabitsList({
           )
           const remainingA = a.frequency.timesPerWeek - completedA.length
           const remainingB = b.frequency.timesPerWeek - completedB.length
-          return remainingA - remainingB // Ascending order
+          return remainingB - remainingA // Desc order
         })
       })
     })
@@ -213,7 +212,7 @@ export default function WeeklyHabitsList({
     }))
   }
 
-  const grouped = () => {
+  useEffect(() => {
     var groupedHabits = []
     switch (sortMode) {
       case "priority":
@@ -235,8 +234,8 @@ export default function WeeklyHabitsList({
         ]
         break
     }
-    return groupedHabits
-  }
+    setGroupedHabits(groupedHabits)
+  }, [sortMode, habits])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
@@ -351,9 +350,7 @@ export default function WeeklyHabitsList({
     )
   }
 
-  return (
-    <div>{weekDays.length > 0 && grouped().map((g) => renderGroup(g))}</div>
-  )
+  return <div>{groupedHabits.map((g) => renderGroup(g))}</div>
 }
 
 WeeklyHabitsList.propTypes = {
