@@ -15,6 +15,24 @@ export default function WeeklyHabitsList({
   onEdit,
   showWeekDays,
 }) {
+
+
+  const [collapsed, setCollapsed] = React.useState(new Set())
+  const [initialized, setInitialized] = React.useState(new Set())
+
+  const [weekDays, setWeekDays] = React.useState([])
+
+  React.useEffect(() => {
+    if (activeWeekRange) {
+      const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(activeWeekRange.start)
+        d.setDate(d.getDate() + i)
+        return d.toISOString().slice(0, 10)
+      })
+      setWeekDays(days)
+    }
+  }, [activeWeekRange]) // Update weekDays when activeWeekRange changes
+
   // Extract tags safely
   const getTags = (habit, sortMode) =>
     Array.isArray(habit.tags?.[sortMode])
@@ -31,9 +49,6 @@ export default function WeeklyHabitsList({
     })
     return freq
   }
-
-  const [collapsed, setCollapsed] = React.useState(new Set())
-  const [initialized, setInitialized] = React.useState(new Set())
 
   const toggleCollapse = (key) => {
     setCollapsed((prev) => {
@@ -94,6 +109,23 @@ export default function WeeklyHabitsList({
           parents[parentLabel][child].push(habit)
         })
       }
+    })
+
+    // Sort habits within each group by remaining habit days
+    Object.keys(parents).forEach((parentLabel) => {
+      Object.keys(parents[parentLabel]).forEach((childLabel) => {
+        parents[parentLabel][childLabel].sort((a, b) => {
+          const completedA = weekDays.filter((d) =>
+            a.completedDates.includes(d)
+          )
+          const completedB = weekDays.filter((d) =>
+            b.completedDates.includes(d)
+          )
+          const remainingA = a.frequency.timesPerWeek - completedA.length
+          const remainingB = b.frequency.timesPerWeek - completedB.length
+          return remainingA - remainingB // Ascending order
+        })
+      })
     })
 
     // turn into sorted UI-friendly arrays
@@ -249,6 +281,7 @@ export default function WeeklyHabitsList({
               handleDelete={handleDelete}
               onEdit={onEdit}
               showWeekDays={showWeekDays}
+              weekDays={weekDays}
             />
           ))}
         </div>
@@ -318,7 +351,9 @@ export default function WeeklyHabitsList({
     )
   }
 
-  return <div>{grouped().map((g) => renderGroup(g))}</div>
+  return (
+    <div>{weekDays.length > 0 && grouped().map((g) => renderGroup(g))}</div>
+  )
 }
 
 WeeklyHabitsList.propTypes = {
