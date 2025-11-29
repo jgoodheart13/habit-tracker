@@ -16,6 +16,7 @@ export default function WeeklyHabitRow({
   weekDays,
 }) {
   const [completed, setCompleted] = useState([])
+  const [completedToday, setCompletedToday] = useState(false)
 
   useEffect(() => {
     if (weekDays && habit) {
@@ -23,6 +24,10 @@ export default function WeeklyHabitRow({
       setCompleted(days)
     }
   }, [habit, weekDays])
+
+  useEffect(() => {
+    setCompletedToday(habit.completedDates.includes(activeDate))
+  }, [habit, activeDate])
 
   const n = habit.frequency.timesPerWeek
   // Color logic: if habit is 100% or more complete, all segments are p2Above100; else, first N completions are p1, extras are p2Above100, incomplete is 'incomplete'
@@ -40,12 +45,13 @@ export default function WeeklyHabitRow({
           style={{
             display: "flex",
             alignItems: "center",
-            background: "#fff",
+            background: completedToday ? "#e6e6e6" : "#fff", // darker grey, not too light
             padding: 10,
             borderRadius: 8,
             boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
             marginBottom: 8,
             minWidth: 0,
+            opacity: completedToday ? 0.55 : 1,
           }}
         >
           {/* Habit name and info column (flexible) */}
@@ -63,7 +69,7 @@ export default function WeeklyHabitRow({
           >
             <input
               type="checkbox"
-              checked={habit.completedDates.includes(activeDate)}
+              checked={completedToday}
               onChange={(e) =>
                 handleComplete(habit.id, activeDate, e.target.checked)
               }
@@ -86,6 +92,8 @@ export default function WeeklyHabitRow({
                 textOverflow: "ellipsis",
                 overflow: "hidden",
                 minWidth: 0,
+                textDecoration: completedToday ? "line-through" : "none",
+                color: completedToday ? "#999" : theme.colors.text,
               }}
             >
               {habit.name}
