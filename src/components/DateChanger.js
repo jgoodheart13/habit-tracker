@@ -1,5 +1,7 @@
 import React from "react";
 import theme from "../styles/theme";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faClock } from "@fortawesome/free-regular-svg-icons"
 
 const { rowHeight } = theme
 
@@ -69,7 +71,7 @@ export default function DateChanger({
           title="Go to Today"
           style={buttonStyle}
         >
-          &#128337;
+          <FontAwesomeIcon icon={faClock} size="lg" />
         </button>
       </div>
     </div>

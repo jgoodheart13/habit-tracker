@@ -17,6 +17,8 @@ import HabitModal from "../components/HabitModal"
 import { addHabit, updateHabit } from "../services/habitService"
 import DateChanger from "../components/DateChanger"
 import ProgressTabs from "../components/ProgressTabs"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEyeSlash, faEye } from "@fortawesome/free-solid-svg-icons"
 
 export default function DailyViewPage() {
   // Auth0 authentication status
@@ -33,6 +35,7 @@ export default function DailyViewPage() {
   const [editingHabit, setEditingHabit] = useState(null)
   const [activeTab, setActiveTab] = useState("daily") // State for active tab
   const [activeWeekRange, setActiveWeekRange] = useState(null)
+  const [completedVisibility, setCompletedVisibility] = useState(true) // State for visibility toggle
 
   useEffect(() => {
     const newRange = getWeekRange(activeDate)
@@ -48,7 +51,6 @@ export default function DailyViewPage() {
       return prev
     })
   }, [activeDate])
-
 
   useEffect(() => {
     // Fetch habits when authenticated and token is ready
@@ -181,6 +183,9 @@ export default function DailyViewPage() {
     })()
   }
 
+  const toggleCompletedVisibility = () => {
+    setCompletedVisibility((prev) => !prev)
+  }
 
   if (habitsLoading || !isAuthenticated || !tokenReady) {
     return <LoadingScreen />
@@ -244,9 +249,10 @@ export default function DailyViewPage() {
               justifyContent: "space-between", // Push elements to opposite ends
             }}
           >
-            <div
-              style={{ display: "flex", alignItems: "center", marginLeft: 8 }}
-            >
+            {/* Sort */}
+            {/* LEFT SIDE: Sort + Eye */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {/* Sort */}
               <select
                 value={sortMode}
                 onChange={(e) => setSortMode(e.target.value)}
@@ -261,8 +267,31 @@ export default function DailyViewPage() {
                 <option value="category">Category</option>
                 <option value="time">Time</option>
               </select>
+
+              {/* Eye icon */}
+              <button
+                onClick={toggleCompletedVisibility}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                title={
+                  completedVisibility ? "Hide Completed" : "Show Completed"
+                }
+              >
+                <FontAwesomeIcon
+                  icon={completedVisibility ? faEye : faEyeSlash}
+                  size="lg"
+                  color="#555"
+                />
+              </button>
             </div>
 
+            {/* Add button */}
             <button
               onClick={() => handleOpenHabitModal()}
               style={{
@@ -296,6 +325,7 @@ export default function DailyViewPage() {
               activeDate={activeDate}
               onEdit={handleOpenHabitModal}
               showWeekDays={activeTab === "weekly"}
+              completedVisibility={completedVisibility}
             />
           </div>
         </div>

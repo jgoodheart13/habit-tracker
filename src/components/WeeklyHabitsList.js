@@ -15,6 +15,7 @@ export default function WeeklyHabitsList({
   activeDate,
   onEdit,
   showWeekDays,
+  completedVisibility,
 }) {
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
@@ -82,6 +83,12 @@ export default function WeeklyHabitsList({
     const parents = {}
 
     habits.forEach((habit) => {
+      // Filter out completed habits if completedVisibility is false
+      const isCompleted = habit.completedDates.includes(activeDate)
+      if (!completedVisibility && isCompleted) {
+        return // Skip this habit
+      }
+
       const tags = getTags(habit, sortMode)
       const parent = inferParentTag(habit, sortMode, freq)
       const parentLabel = parent?.label || "Unspecified"
@@ -236,10 +243,11 @@ export default function WeeklyHabitsList({
           ]
           break
       }
+
       setGroupedHabits(groupedHabits)
     }
     if (weekDays.length > 0 && habits) sortHabits()
-  }, [sortMode, habits, weekDays])
+  }, [sortMode, habits, weekDays, completedVisibility])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
