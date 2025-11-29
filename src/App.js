@@ -81,7 +81,6 @@ function AppContent() {
             borderBottom: "1px solid #eee",
             boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
             position: "relative",
-            overflow: "hidden", // Prevent content from causing horizontal scroll
           }}
         >
           {/* Left: Logo */}
@@ -181,7 +180,13 @@ function AppContent() {
                       zIndex: 100,
                     }}
                   >
-                    <div style={{ marginBottom: 8, fontWeight: 600 }}>
+                    <div
+                      style={{
+                        marginBottom: 8,
+                        fontWeight: 600,
+                        textAlign: "center",
+                      }}
+                    >
                       {user?.name || user?.email || "Account"}
                     </div>
                     <LogoutButton />
