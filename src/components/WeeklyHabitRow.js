@@ -15,13 +15,13 @@ export default function WeeklyHabitRow({
   showWeekDays, // New prop to control display of week days
   weekDays,
 }) {
-  const [completed, setCompleted] = useState([])
+  const [completedWeeklyHabits, setCompletedWeeklyHabits] = useState([])
   const [completedToday, setCompletedToday] = useState(false)
 
   useEffect(() => {
     if (weekDays && habit) {
       const days = weekDays?.filter((d) => habit.completedDates.includes(d))
-      setCompleted(days)
+      setCompletedWeeklyHabits(days)
     }
   }, [habit, weekDays])
 
@@ -63,8 +63,8 @@ export default function WeeklyHabitRow({
               flex: 1,
               gap: 8,
               overflow: "hidden",
-              textShadow:
-                habit.type === "P1" ? "0 0 4px rgb(255, 213, 79, 1)" : "none",
+              // textShadow:
+              //   habit.type === "P1" ? "0 0 4px rgb(255, 213, 79, 1)" : "none",
             }}
           >
             <input
@@ -75,7 +75,7 @@ export default function WeeklyHabitRow({
               }
               style={{
                 accentColor:
-                  completed?.length >= n
+                  completedWeeklyHabits?.length >= n
                     ? theme.colors.p2Above100
                     : habit.type === "P1"
                     ? theme.colors.p1
@@ -85,29 +85,55 @@ export default function WeeklyHabitRow({
                 flexShrink: 0,
               }}
             />
-            <span
-              style={{
-                fontWeight: 500,
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                minWidth: 0,
-                textDecoration: completedToday ? "line-through" : "none",
-                color: completedToday ? "#999" : theme.colors.text,
-              }}
-            >
-              {habit.name}
-            </span>
-            {/* <span style={{ fontSize: 12, color: "#888", flexShrink: 0 }}>
-          ({habit.frequency.timesPerWeek}x/week)
-        </span> */}
+            {habit.type === "P1" ? (
+              // Underline Option
+              // <div style={{ position: "relative", display: "inline-block" }}>
+              //   <span style={{ fontWeight: 700, color: "#111" }}>
+              //     {habit.name}
+              //   </span>
+
+              //   <motion.div
+              //     style={{
+              //       position: "absolute",
+              //       bottom: -2,
+              //       left: 0,
+              //       height: 3,
+              //       width: "100%",
+              //       background:
+              //         "linear-gradient(90deg, #1A4BFF, #4FA2FF, #1A4BFF)", // dark→light blue sweep
+              //       backgroundSize: "200% 100%",
+              //       borderRadius: 2,
+              //     }}
+              //     animate={{
+              //       backgroundPosition: ["0% 0%", "200% 0%"],
+              //     }}
+              //     transition={{
+              //       duration: 1.6,
+              //       ease: "linear",
+              //       repeat: Infinity,
+              //     }}
+              //   />
+              // </div>
+              // Glow effect
+              <span
+                style={{
+                  color: "#111",
+                  textShadow: `0 0 6px ${theme.colors.p2Above100}, 0 0 12px ${theme.colors.p2Above100}`,
+                  fontWeight: 500,
+                }}
+              >
+                {habit.name}
+              </span>
+            ) : (
+              <span style={{ color: "#111" }}>{habit.name}</span>
+            )}
           </div>
           {/* 7 static-width day columns */}
           {showWeekDays && weekDays && (
             <WeekDayRow
               weekDays={weekDays}
               habit={habit}
-              completed={completed}
+              completed={completedWeeklyHabits}
               n={n}
               activeDate={activeDate}
             />
@@ -122,7 +148,7 @@ export default function WeeklyHabitRow({
                 flexShrink: 0,
               }}
             >
-              {completed?.length} / {n}
+              {completedWeeklyHabits?.length} / {n}
             </span>
           )}
           {/* Edit button */}

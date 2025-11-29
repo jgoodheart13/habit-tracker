@@ -35,7 +35,9 @@ export default function DailyViewPage() {
   const [editingHabit, setEditingHabit] = useState(null)
   const [activeTab, setActiveTab] = useState("daily") // State for active tab
   const [activeWeekRange, setActiveWeekRange] = useState(null)
-  const [completedVisibility, setCompletedVisibility] = useState(true) // State for visibility toggle
+  const [completedVisibility, setCompletedVisibility] = useState(
+    localStorage.getItem("completedVisibility") === "true"
+  )
 
   useEffect(() => {
     const newRange = getWeekRange(activeDate)
@@ -184,7 +186,11 @@ export default function DailyViewPage() {
   }
 
   const toggleCompletedVisibility = () => {
-    setCompletedVisibility((prev) => !prev)
+    setCompletedVisibility((prev) => {
+      const newValue = !prev
+      localStorage.setItem("completedVisibility", newValue)
+      return newValue
+    })
   }
 
   if (habitsLoading || !isAuthenticated || !tokenReady) {
