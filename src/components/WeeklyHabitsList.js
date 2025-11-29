@@ -4,6 +4,7 @@ import React, { useEffect } from "react"
 import WeeklyHabitRow from "./WeeklyHabitRow"
 import theme from "../styles/theme"
 import PropTypes from "prop-types"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function WeeklyHabitsList({
   habits,
@@ -213,29 +214,32 @@ export default function WeeklyHabitsList({
   }
 
   useEffect(() => {
-    var groupedHabits = []
-    switch (sortMode) {
-      case "priority":
-        groupedHabits = groupByPriority(habits)
-        break
-      case "time":
-        groupedHabits = groupByTime(habits)
-        break
-      case "category":
-        groupedHabits = groupByCategoryMode(habits)
-        break
-      default:
-        groupedHabits = [
-          {
-            label: "All Habits",
-            color: theme.colors.accent,
-            groups: groupByCategoryTree(habits),
-          },
-        ]
-        break
+    const sortHabits = () => {
+      var groupedHabits = []
+      switch (sortMode) {
+        case "priority":
+          groupedHabits = groupByPriority(habits)
+          break
+        case "time":
+          groupedHabits = groupByTime(habits)
+          break
+        case "category":
+          groupedHabits = groupByCategoryMode(habits)
+          break
+        default:
+          groupedHabits = [
+            {
+              label: "All Habits",
+              color: theme.colors.accent,
+              groups: groupByCategoryTree(habits),
+            },
+          ]
+          break
+      }
+      setGroupedHabits(groupedHabits)
     }
-    setGroupedHabits(groupedHabits)
-  }, [sortMode, habits])
+    if (weekDays.length > 0 && habits) sortHabits()
+  }, [sortMode, habits, weekDays])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
@@ -275,7 +279,6 @@ export default function WeeklyHabitsList({
               key={habit._id || habit.id}
               habit={habit}
               activeDate={activeDate}
-              activeWeekRange={activeWeekRange}
               handleComplete={handleComplete}
               handleDelete={handleDelete}
               onEdit={onEdit}
@@ -331,11 +334,11 @@ export default function WeeklyHabitsList({
                   key={habit._id || habit.id}
                   habit={habit}
                   activeDate={activeDate}
-                  activeWeekRange={activeWeekRange}
                   handleComplete={handleComplete}
                   handleDelete={handleDelete}
                   onEdit={onEdit}
                   showWeekDays={showWeekDays}
+                  weekDays={weekDays}
                 />
               ))}
 
@@ -350,7 +353,9 @@ export default function WeeklyHabitsList({
     )
   }
 
-  return <div>{groupedHabits.map((g) => renderGroup(g))}</div>
+  return (
+    <div>{weekDays.length > 0 && groupedHabits.map((h) => renderGroup(h))}</div>
+  )
 }
 
 WeeklyHabitsList.propTypes = {
