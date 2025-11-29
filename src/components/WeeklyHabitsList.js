@@ -354,7 +354,11 @@ export default function WeeklyHabitsList({
   }
 
   return (
-    <div>{weekDays.length > 0 && groupedHabits.map((h) => renderGroup(h))}</div>
+    <AnimatePresence>
+      <div>
+        {weekDays.length > 0 && groupedHabits.map((h) => renderGroup(h))}
+      </div>
+    </AnimatePresence>
   )
 }
 
