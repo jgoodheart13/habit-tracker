@@ -84,8 +84,11 @@ export default function WeeklyHabitsList({
 
     habits.forEach((habit) => {
       // Filter out completed habits if completedVisibility is false
-      const isCompleted = habit.completedDates.includes(activeDate)
-      if (!completedVisibility && isCompleted) {
+      const isHidden =
+        habit.completedDates.includes(activeDate) ||
+        weekDays?.filter((d) => habit.completedDates.includes(d)).length >=
+          habit.frequency.timesPerWeek
+      if (!completedVisibility && isHidden) {
         return // Skip this habit
       }
 

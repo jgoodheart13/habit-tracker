@@ -45,13 +45,19 @@ export default function WeeklyHabitRow({
           style={{
             display: "flex",
             alignItems: "center",
-            background: completedToday ? "#e6e6e6" : "#fff", // darker grey, not too light
+            background:
+              completedWeeklyHabits.length >= habit.frequency.timesPerWeek
+                ? "#e6e6e6"
+                : "#fff", // darker grey, not too light
             padding: 10,
             borderRadius: 8,
             boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
             marginBottom: 8,
             minWidth: 0,
-            opacity: completedToday ? 0.55 : 1,
+            opacity:
+              completedWeeklyHabits.length >= habit.frequency.timesPerWeek
+                ? 0.55
+                : 1,
           }}
         >
           {/* Habit name and info column (flexible) */}
@@ -86,40 +92,16 @@ export default function WeeklyHabitRow({
               }}
             />
             {habit.type === "P1" ? (
-              // Underline Option
-              // <div style={{ position: "relative", display: "inline-block" }}>
-              //   <span style={{ fontWeight: 700, color: "#111" }}>
-              //     {habit.name}
-              //   </span>
-
-              //   <motion.div
-              //     style={{
-              //       position: "absolute",
-              //       bottom: -2,
-              //       left: 0,
-              //       height: 3,
-              //       width: "100%",
-              //       background:
-              //         "linear-gradient(90deg, #1A4BFF, #4FA2FF, #1A4BFF)", // dark→light blue sweep
-              //       backgroundSize: "200% 100%",
-              //       borderRadius: 2,
-              //     }}
-              //     animate={{
-              //       backgroundPosition: ["0% 0%", "200% 0%"],
-              //     }}
-              //     transition={{
-              //       duration: 1.6,
-              //       ease: "linear",
-              //       repeat: Infinity,
-              //     }}
-              //   />
-              // </div>
               // Glow effect
               <span
                 style={{
                   color: "#111",
                   textShadow: `0 0 6px ${theme.colors.p2Above100}, 0 0 12px ${theme.colors.p2Above100}`,
                   fontWeight: 500,
+                  textDecoration:
+                    completedWeeklyHabits.length >= habit.frequency.timesPerWeek
+                      ? "line-through"
+                      : "none",
                 }}
               >
                 {habit.name}
