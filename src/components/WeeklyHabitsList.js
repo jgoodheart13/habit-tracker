@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion"
 
 export default function WeeklyHabitsList({
   habits,
-  activeWeekRange,
   sortMode,
   handleComplete,
   handleDelete,
@@ -16,23 +15,12 @@ export default function WeeklyHabitsList({
   onEdit,
   showWeekDays,
   completedVisibility,
+  weekDays,
 }) {
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
 
-  const [weekDays, setWeekDays] = React.useState([])
   const [groupedHabits, setGroupedHabits] = React.useState([])
-
-  React.useEffect(() => {
-    if (activeWeekRange) {
-      const days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(activeWeekRange.start)
-        d.setDate(d.getDate() + i)
-        return d.toISOString().slice(0, 10)
-      })
-      setWeekDays(days)
-    }
-  }, [activeWeekRange]) // Update weekDays when activeWeekRange changes
 
   // Extract tags safely
   const getTags = (habit, sortMode) =>

@@ -38,6 +38,18 @@ export default function DailyViewPage() {
   const [completedVisibility, setCompletedVisibility] = useState(
     localStorage.getItem("completedVisibility") === "true"
   )
+  const [weekDays, setWeekDays] = useState([])
+
+  useEffect(() => {
+    if (activeWeekRange) {
+      const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(activeWeekRange.start)
+        d.setDate(d.getDate() + i)
+        return d.toISOString().slice(0, 10)
+      })
+      setWeekDays(days)
+    }
+  }, [activeWeekRange]) // Update weekDays when activeWeekRange changes
 
   useEffect(() => {
     const newRange = getWeekRange(activeDate)
@@ -203,6 +215,7 @@ export default function DailyViewPage() {
         display: "flex",
         minHeight: "100vh", // Changed from `height` to `minHeight` to prevent internal scrollbars
         overflowX: "hidden", // Prevent horizontal scrolling
+        overflowY: "hidden", // Prevent vertical scrolling
       }}
     >
       <div
@@ -242,7 +255,11 @@ export default function DailyViewPage() {
               paddingTop: 8,
             }}
           >
-            <DailyProgressGraph habits={habits} activeDate={activeDate} />
+            <DailyProgressGraph
+              habits={habits}
+              activeDate={activeDate}
+              weekDays={weekDays}
+            />
           </div>
         )}
 
@@ -324,7 +341,6 @@ export default function DailyViewPage() {
           >
             <WeeklyHabitsList
               habits={habits}
-              activeWeekRange={activeWeekRange}
               sortMode={sortMode}
               handleComplete={handleComplete}
               handleDelete={handleDelete}
@@ -332,6 +348,7 @@ export default function DailyViewPage() {
               onEdit={handleOpenHabitModal}
               showWeekDays={activeTab === "weekly"}
               completedVisibility={completedVisibility}
+              weekDays={weekDays}
             />
           </div>
         </div>

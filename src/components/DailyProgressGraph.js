@@ -1,7 +1,8 @@
+import { act } from "react"
 import ProgressGraph from "./ProgressGraph"
 import RingProgressGraph from "./RingProgressGraph"
 
-export default function DailyProgressGraph({ habits, activeDate }) {
+export default function DailyProgressGraph({ habits, activeDate, weekDays }) {
   /**
    * Computes total daily points based on:
    * - P1 baseline (0–100 pts)
@@ -56,8 +57,40 @@ export default function DailyProgressGraph({ habits, activeDate }) {
   }
 
   // --- Split habits by type
-  const P1_habits = habits.filter((h) => h.type === "P1")
-  const P2_habits = habits.filter((h) => h.type === "P2")
+  // p1s that are completed above frequency count as P2s
+  // completed date for current day updated when we get here
+
+  const P1_habits = habits.filter((h) => {
+    if (h.type !== "P1") return false
+
+    const weeklyCount = weekDays.filter((d) =>
+      h.completedDates.includes(d)
+    ).length
+
+    const completedToday = h.completedDates.includes(activeDate)
+
+    // P1 if completed today AND still within weekly limit
+    return completedToday && weeklyCount <= h.frequency.timesPerWeek
+  })
+
+  const P2_habits = habits.filter((h) => {
+    if (h.type === "P2") return true
+
+    if (h.type === "P1") {
+      const weeklyCount = weekDays.filter((d) =>
+        h.completedDates.includes(d)
+      ).length
+
+      const completedToday = h.completedDates.includes(activeDate)
+
+      // P2 if:
+      //  - not completed today OR
+      //  - exceeded weekly limit
+      return !completedToday || weeklyCount > h.frequency.timesPerWeek
+    }
+
+    return false
+  })
 
   // --- Core stats
   const P1_total = P1_habits.length
