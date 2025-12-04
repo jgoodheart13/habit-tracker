@@ -245,8 +245,6 @@ export default function WeeklyHabitsList({
     const isP1 = thisPath.startsWith("Baseline")
     const collapseKey = thisPath
 
-    const isMobile = window.innerWidth < 600
-    // const defaultCollapsed = isP1 ? false : isMobile && level >= 2
     const defaultCollapsed = false
 
     // Initialize collapse state for this group ONCE

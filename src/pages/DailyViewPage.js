@@ -33,7 +33,7 @@ export default function DailyViewPage() {
   )
   const [showHabitModal, setShowHabitModal] = useState(false)
   const [editingHabit, setEditingHabit] = useState(null)
-  const [activeTab, setActiveTab] = useState("daily") // State for active tab
+  const [activeTab, setActiveTab] = useState("weekly") // State for active tab
   const [activeWeekRange, setActiveWeekRange] = useState(null)
   const [completedVisibility, setCompletedVisibility] = useState(
     localStorage.getItem("completedVisibility") === "true"
@@ -226,7 +226,7 @@ export default function DailyViewPage() {
           background: theme.colors.background,
         }}
       >
-        <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        {/* <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} /> */}
 
         <DateChanger
           activeDate={activeDate}
