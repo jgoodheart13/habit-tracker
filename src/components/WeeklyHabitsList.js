@@ -13,7 +13,6 @@ export default function WeeklyHabitsList({
   handleDelete,
   activeDate,
   onEdit,
-  showWeekDays,
   completedVisibility,
   weekDays,
 }) {
@@ -279,7 +278,6 @@ export default function WeeklyHabitsList({
               handleComplete={handleComplete}
               handleDelete={handleDelete}
               onEdit={onEdit}
-              showWeekDays={showWeekDays}
               weekDays={weekDays}
             />
           ))}
@@ -334,7 +332,6 @@ export default function WeeklyHabitsList({
                   handleComplete={handleComplete}
                   handleDelete={handleDelete}
                   onEdit={onEdit}
-                  showWeekDays={showWeekDays}
                   weekDays={weekDays}
                 />
               ))}

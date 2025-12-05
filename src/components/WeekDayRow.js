@@ -12,7 +12,12 @@ export default function WeekDayRow({ weekDays, habit, completed, n, activeDate }
             color = theme.colors.p2Above100;
           } else {
             let filled = completed.slice(0, idx + 1).length;
-            color = filled <= n ? theme.colors.p1 : theme.colors.p2Above100;
+            color =
+              filled <= n
+                ? habit.type === "P1"
+                  ? theme.colors.p1
+                  : theme.colors.p2Below100
+                : theme.colors.p2Above100
           }
         }
         const isActive = day === activeDate;

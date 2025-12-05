@@ -346,7 +346,6 @@ export default function DailyViewPage() {
               handleDelete={handleDelete}
               activeDate={activeDate}
               onEdit={handleOpenHabitModal}
-              showWeekDays={activeTab === "weekly"}
               completedVisibility={completedVisibility}
               weekDays={weekDays}
             />

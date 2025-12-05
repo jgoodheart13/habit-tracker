@@ -173,7 +173,7 @@ export const Layouts = {
         <div style={{ width: 50, display: "flex", justifyContent: "center" }}>
           <div
             style={{
-              width: 32, // or 28, or whatever you want
+              width: 28, // or 28, or whatever you want
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -184,7 +184,13 @@ export const Layouts = {
           </div>
         </div>
 
-        <div style={{ flex: 1 }}>
+        <div
+          style={{
+            flex: 1,
+            borderLeft: `4px solid ${theme.colors.p1}` /* P1 color */,
+            paddingLeft: 8,
+          }}
+        >
           <div style={{ marginBottom: 4 }}>{HabitName}</div>
 
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -218,6 +224,8 @@ export const Layouts = {
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
             marginRight: 12,
+            borderLeft: `4px solid ${theme.colors.p1}` /* P1 color */,
+            paddingLeft: 8,
           }}
         >
           {HabitName}
@@ -261,7 +269,7 @@ export const Layouts = {
         <div style={{ width: 50, display: "flex", justifyContent: "center" }}>
           <div
             style={{
-              width: 32, // or 28, or whatever you want
+              width: 28, // or 28, or whatever you want
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -272,8 +280,23 @@ export const Layouts = {
           </div>
         </div>
 
-        <div style={{ flex: 1 }}>
-          <div style={{ marginBottom: 4 }}>{HabitName}</div>
+        <div
+          style={{
+            flex: 1,
+            borderLeft: `4px solid ${theme.colors.p2Below100}` /* P1 color */,
+            paddingLeft: 8,
+          }}
+        >
+          <div
+            style={{
+              marginBottom: 4,
+              height: 28,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            {HabitName}
+          </div>
 
           <div style={{ display: "flex", alignItems: "center" }}>
             {WeekRow}

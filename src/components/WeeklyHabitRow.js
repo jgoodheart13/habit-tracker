@@ -11,11 +11,11 @@ export default function WeeklyHabitRow({
   handleComplete,
   handleDelete,
   onEdit,
-  showWeekDays,
   weekDays,
 }) {
   const [completedWeeklyHabits, setCompletedWeeklyHabits] = useState([])
   const [completedToday, setCompletedToday] = useState(false)
+  const [showWeekDays, setShowWeekDays] = useState(false)
 
   useEffect(() => {
     if (weekDays && habit) {
@@ -28,8 +28,13 @@ export default function WeeklyHabitRow({
     setCompletedToday(habit.completedDates.includes(activeDate))
   }, [habit, activeDate])
 
-  const n = habit.frequency.timesPerWeek
-  const isComplete = completedWeeklyHabits.length >= n
+  useEffect(() => {
+    if (habit.type === "P1") {
+      setShowWeekDays(true)
+    } else {
+      setShowWeekDays(completedWeeklyHabits.length >= 1)
+    }
+  }, [habit, completedWeeklyHabits])
 
   const parts = buildViewParts({
     habit,
@@ -59,7 +64,7 @@ export default function WeeklyHabitRow({
           display: "flex",
           alignItems: "center",
           background: completedToday ? "#e6e6e6" : "#fff",
-          padding: 10,
+          padding: 5,
           borderRadius: 8,
           boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
           marginBottom: 8,
