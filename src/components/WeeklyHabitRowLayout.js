@@ -170,18 +170,18 @@ export const Layouts = {
   P1: {
     mobile: ({ CheckBox, HabitName, WeekRow, Fraction, HabitMenuButton }) => (
       <div style={{ display: "flex", width: "100%" }}>
-        <div style={{width: 70 , display: "flex", justifyContent: "center"}}>
-        <div
-          style={{
-            width: 32, // or 28, or whatever you want
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 15,
-          }}
-        >
-          {CheckBox}
-        </div>
+        <div style={{ width: 50, display: "flex", justifyContent: "center" }}>
+          <div
+            style={{
+              width: 32, // or 28, or whatever you want
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 15,
+            }}
+          >
+            {CheckBox}
+          </div>
         </div>
 
         <div style={{ flex: 1 }}>
@@ -256,37 +256,32 @@ export const Layouts = {
   },
 
   P2: {
-    mobile: ({ CheckBox, HabitName, HabitMenuButton }) => (
- <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-        {/* Column 1: Checkbox */}
-        <div style={{ width: 20, height: 20, marginRight: 15 }}>{CheckBox}</div>
-
-        {/* Column 2: Name (fixed min width so weekdays line up) */}
-        <div
-          style={{
-            minWidth: 210,
-            flexShrink: 1,
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
-            marginRight: 12,
-          }}
-        >
-          {HabitName}
+    mobile: ({ CheckBox, HabitName, HabitMenuButton, WeekRow }) => (
+      <div style={{ display: "flex", width: "100%" }}>
+        <div style={{ width: 50, display: "flex", justifyContent: "center" }}>
+          <div
+            style={{
+              width: 32, // or 28, or whatever you want
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 15,
+            }}
+          >
+            {CheckBox}
+          </div>
         </div>
 
-        {/* Column 4: actions (auto spacing) */}
-        <div
-          style={{
-            marginLeft: "auto",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            flexShrink: 0,
-          }}
-        >
-          {HabitMenuButton}
+        <div style={{ flex: 1 }}>
+          <div style={{ marginBottom: 4 }}>{HabitName}</div>
+
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {WeekRow}
+            {/* {Fraction} */}
+          </div>
         </div>
+
+        {HabitMenuButton}
       </div>
     ),
 
