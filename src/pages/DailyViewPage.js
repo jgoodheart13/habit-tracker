@@ -54,7 +54,7 @@ export default function DailyViewPage() {
           setSheetOpen(false)
         }}
         onDelete={() => {
-          deleteHabit(habit.id)
+          handleDelete(habit.id)
           setSheetOpen(false)
         }}
       />
