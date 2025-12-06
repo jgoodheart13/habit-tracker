@@ -17,6 +17,7 @@ export function buildViewParts({
   weekDays,
   completedWeeklyHabits,
   completedToday,
+  openSheet,
 }) {
   const n = habit.frequency.timesPerWeek
 
@@ -24,9 +25,7 @@ export function buildViewParts({
     <input
       type="checkbox"
       checked={completedToday}
-      onChange={(e) =>
-        handleComplete(habit.id, activeDate, e.target.checked)
-      }
+      onChange={(e) => handleComplete(habit.id, activeDate, e.target.checked)}
       style={{
         accentColor:
           completedWeeklyHabits?.length >= n
@@ -49,9 +48,7 @@ export function buildViewParts({
           textShadow: `0 0 6px ${theme.colors.p2Above100}, 0 0 12px ${theme.colors.p2Above100}`,
           fontWeight: 500,
           textDecoration:
-            completedWeeklyHabits.length >= n
-              ? "line-through"
-              : "none",
+            completedWeeklyHabits.length >= n ? "line-through" : "none",
         }}
       >
         {habit.name}
@@ -85,58 +82,11 @@ export function buildViewParts({
       </span>
     ) : null
 
-  const EditButton =
-    true ? (
-      <button
-        onClick={() => onEdit(habit)}
-        title="Edit habit"
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          marginLeft: 8,
-          padding: 4,
-          color: theme.colors.text,
-          display: "flex",
-          alignItems: "center",
-          borderRadius: 4,
-          transition: "background 0.2s",
-          flexShrink: 0,
-        }}
-      >
-        <FontAwesomeIcon icon={faEdit} size="lg" />
-      </button>
-    ) : null
-
-  const DeleteButton =
-    true ? (
-      <button
-        onClick={() => handleDelete(habit.id)}
-        title="Delete habit"
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          marginLeft: 4,
-          padding: 4,
-          color: theme.colors.accent,
-          display: "flex",
-          alignItems: "center",
-          borderRadius: 4,
-          transition: "background 0.2s",
-          flexShrink: 0,
-        }}
-      >
-        <FontAwesomeIcon icon={faTrash} size="lg" />
-      </button>
-    ) : null
-
-
-    const HabitMenuButton = (
+  const EditButton = true ? (
     <button
-        // onClick={() => onEdit(habit)}
-        title="Habit Menu"
-        style={{
+      onClick={() => onEdit(habit)}
+      title="Edit habit"
+      style={{
         background: "none",
         border: "none",
         cursor: "pointer",
@@ -148,11 +98,55 @@ export function buildViewParts({
         borderRadius: 4,
         transition: "background 0.2s",
         flexShrink: 0,
-        }}
+      }}
     >
-        <FontAwesomeIcon icon={faEllipsis} size="lg" />
+      <FontAwesomeIcon icon={faEdit} size="lg" />
     </button>
-    )
+  ) : null
+
+  const DeleteButton = true ? (
+    <button
+      onClick={() => handleDelete(habit.id)}
+      title="Delete habit"
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        marginLeft: 4,
+        padding: 4,
+        color: theme.colors.accent,
+        display: "flex",
+        alignItems: "center",
+        borderRadius: 4,
+        transition: "background 0.2s",
+        flexShrink: 0,
+      }}
+    >
+      <FontAwesomeIcon icon={faTrash} size="lg" />
+    </button>
+  ) : null
+
+  const HabitMenuButton = (
+    <button
+      onClick={() => openSheet(habit)}
+      title="Habit Menu"
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        marginLeft: 8,
+        padding: 4,
+        color: theme.colors.text,
+        display: "flex",
+        alignItems: "center",
+        borderRadius: 4,
+        transition: "background 0.2s",
+        flexShrink: 0,
+      }}
+    >
+      <FontAwesomeIcon icon={faEllipsis} size="lg" />
+    </button>
+  )
 
   return {
     CheckBox,

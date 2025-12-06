@@ -15,6 +15,7 @@ export default function WeeklyHabitsList({
   onEdit,
   completedVisibility,
   weekDays,
+  openSheet,
 }) {
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
@@ -279,6 +280,7 @@ export default function WeeklyHabitsList({
               handleDelete={handleDelete}
               onEdit={onEdit}
               weekDays={weekDays}
+              openSheet={openSheet}
             />
           ))}
         </div>
@@ -333,6 +335,7 @@ export default function WeeklyHabitsList({
                   handleDelete={handleDelete}
                   onEdit={onEdit}
                   weekDays={weekDays}
+                  openSheet={openSheet}
                 />
               ))}
 

@@ -19,6 +19,8 @@ import DateChanger from "../components/DateChanger"
 import ProgressTabs from "../components/ProgressTabs"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faEye } from "@fortawesome/free-solid-svg-icons"
+import BottomSheet from "../components/BottomSheet"
+import HabitActionsMenu from "../components/HabitActionsMenu"
 
 export default function DailyViewPage() {
   // Auth0 authentication status
@@ -39,6 +41,26 @@ export default function DailyViewPage() {
     localStorage.getItem("completedVisibility") === "true"
   )
   const [weekDays, setWeekDays] = useState([])
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [sheetContent, setSheetContent] = useState(null)
+
+  function openSheet(habit) {
+    setSheetContent(
+      <HabitActionsMenu
+        habit={habit}
+        onClose={() => setSheetOpen(false)}
+        onEdit={() => {
+          handleOpenHabitModal(habit)
+          setSheetOpen(false)
+        }}
+        onDelete={() => {
+          deleteHabit(habit.id)
+          setSheetOpen(false)
+        }}
+      />
+    )
+    setSheetOpen(true)
+  }
 
   useEffect(() => {
     if (activeWeekRange) {
@@ -348,10 +370,14 @@ export default function DailyViewPage() {
               onEdit={handleOpenHabitModal}
               completedVisibility={completedVisibility}
               weekDays={weekDays}
+              openSheet={openSheet}
             />
           </div>
         </div>
       </div>
+      <BottomSheet isOpen={sheetOpen} onClose={() => setSheetOpen(false)}>
+        {sheetContent}
+      </BottomSheet>
       {showHabitModal && (
         <HabitModal
           show={showHabitModal}
