@@ -285,7 +285,7 @@ export default function DailyViewPage() {
           </div>
         )}
 
-        <div style={{ marginTop: 16 }}>
+        <div>
           <div
             style={{
               display: "flex",

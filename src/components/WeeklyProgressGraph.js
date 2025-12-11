@@ -1,6 +1,6 @@
 import ProgressGraph from "./ProgressGraph"
 import RingProgressGraph from "./RingProgressGraph"
-
+import theme from "../styles/theme"
 
 // NEW PROPS:
 // - dailyP1Percent must be passed from parent
@@ -70,8 +70,7 @@ export default function WeeklyProgressGraph({ habits, activeWeekRange }) {
   // WEEKLY P1 % FOR OUTER RING
   // -------------------------
 
-  const weeklyP1Percent =
-    P1_total === 0 ? 0 : (P1_done / P1_total) * 100
+  const weeklyP1Percent = P1_total === 0 ? 0 : (P1_done / P1_total) * 100
 
   // -------------------------
   // XP Logic (unchanged)
@@ -89,7 +88,7 @@ export default function WeeklyProgressGraph({ habits, activeWeekRange }) {
   const P2_scale = 0.5 + 0.5 * (weeklyP1Percent / 100)
   const P2_points = P2_done * baseP2Point * P2_scale
 
-  const totalPoints = (weeklyP1Percent + P2_points)
+  const totalPoints = weeklyP1Percent + P2_points
   const overflowXP = Math.max(0, totalPoints - 100)
 
   return (
@@ -108,13 +107,34 @@ export default function WeeklyProgressGraph({ habits, activeWeekRange }) {
         <strong>P1 Today:</strong> {P1_done_today}/{idealP1ForToday} <br />
         <strong>P2s:</strong> +{P2_points.toFixed(1)} XP <br />
         <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
+        {/* PREMIUM LEGEND */}
+        <div
+          style={{
+            // marginTop: 10,
+            fontSize: 14,
+            display: "flex",
+            // justifyContent: "center",
+            gap: 20,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ color: theme.colors.p1, fontSize: 22 }}>●</span>
+            <span style={{ opacity: 0.8 }}>Today</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ color: theme.colors.p2Below100, fontSize: 22 }}>
+              ●
+            </span>
+            <span style={{ opacity: 0.8 }}>Week</span>
+          </div>
+        </div>
       </div>
 
       {/* Center Column: Ring */}
       <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
         <RingProgressGraph
-          dailyP1={dailyP1Percent}       // INNER RING
-          weeklyP1={weeklyP1Percent}     // OUTER RING
+          dailyP1={dailyP1Percent} // INNER RING
+          weeklyP1={weeklyP1Percent} // OUTER RING
         />
       </div>
 
