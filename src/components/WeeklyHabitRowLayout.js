@@ -4,7 +4,6 @@ import theme from "../styles/theme"
 import WeekDayRow from "./WeekDayRow"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTrash, faEdit, faEllipsis } from "@fortawesome/free-solid-svg-icons"
-import { width } from "@fortawesome/free-regular-svg-icons/faAddressBook"
 
 // Reusable view parts (these receive props from WeeklyHabitRow.js)
 export function buildViewParts({
