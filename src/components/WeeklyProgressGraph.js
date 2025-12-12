@@ -4,15 +4,17 @@ import theme from "../styles/theme"
 
 // NEW PROPS:
 // - dailyP1Percent must be passed from parent
-export default function WeeklyProgressGraph({ habits, activeWeekRange }) {
+export default function WeeklyProgressGraph({
+  habits,
+  activeWeekRange,
+  activeDate,
+}) {
   // --- Build list of all week days
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(activeWeekRange.start)
     d.setDate(d.getDate() + i)
     return d.toISOString().slice(0, 10)
   })
-
-  const activeDate = weekDays[0] // start-of-week date, or pass real activeDate from parent
 
   // --- Split by type
   const P1_habits = habits.filter((h) => h.type === "P1")

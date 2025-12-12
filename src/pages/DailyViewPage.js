@@ -268,6 +268,7 @@ export default function DailyViewPage() {
               habits={habits}
               activeWeekRange={activeWeekRange}
               showHeader={false}
+              activeDate={activeDate}
             />
           </div>
         ) : (
