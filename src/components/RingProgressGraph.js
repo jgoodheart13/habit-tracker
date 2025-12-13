@@ -1,6 +1,12 @@
 import React from "react"
 import theme from "../styles/theme"
-import { motion, useAnimation } from "framer-motion"
+import {
+  motion,
+  useAnimation,
+  useMotionValue,
+  useTransform,
+  animate,
+} from "framer-motion"
 import { useEffect, useRef } from "react"
 
 export default function RingProgressGraph({
@@ -14,6 +20,7 @@ export default function RingProgressGraph({
   const clamp = (v) => Math.max(0, Math.min(100, v))
 
   const daily = clamp(dailyP1)
+  const rawDaily = dailyP1 // unclamped for animation
   const weekly = clamp(weeklyP1)
 
   const center = size / 2
@@ -29,6 +36,12 @@ export default function RingProgressGraph({
 
   const controls = useAnimation()
   const prevDailyRef = useRef(daily)
+  const dashProgress = useMotionValue(daily)
+
+  const dashArray = useTransform(dashProgress, (v) => {
+    const filled = arcInner(v)
+    return `${filled} ${C_inner - filled}`
+  })
 
   // Pulse animation on daily progress increase
   useEffect(() => {
@@ -41,9 +54,35 @@ export default function RingProgressGraph({
         },
       })
     }
+  }, [daily, controls])
+
+  // Animate dash progress changes
+  // overshoot on increase feature
+  useEffect(() => {
+    const prev = prevDailyRef.current
+    const delta = daily - prev
+
+    if (delta > 0) {
+      const overshootTarget = daily + delta * 0.3
+
+      animate(dashProgress, overshootTarget, {
+        duration: 0.45,
+        ease: [0.22, 1, 0.36, 1],
+      }).then(() => {
+        animate(dashProgress, daily, {
+          duration: 0.14,
+          ease: "easeOut",
+        })
+      })
+    } else {
+      animate(dashProgress, daily, {
+        duration: 0.4,
+        ease: "easeOut",
+      })
+    }
 
     prevDailyRef.current = daily
-  }, [daily, controls])
+  }, [daily, dashProgress])
 
   return (
     <div style={{ textAlign: "center" }}>
@@ -125,18 +164,17 @@ export default function RingProgressGraph({
 
           {/* INNER DAILY PROGRESS (gradient) */}
           {daily > 0 && (
-            <circle
+            <motion.circle
               cx={center}
               cy={center}
               r={innerR}
               fill="none"
-              stroke={`url(#dailyGrad)`}
+              stroke="url(#dailyGrad)"
               strokeWidth={strokeInner}
-              strokeDasharray={`${arcInner(daily)} ${
-                C_inner - arcInner(daily)
-              }`}
               strokeLinecap="round"
-              style={{ transition: "stroke-dasharray 0.4s ease" }}
+              style={{
+                strokeDasharray: dashArray,
+              }}
             />
           )}
 
