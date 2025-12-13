@@ -67,6 +67,7 @@ function AppContent() {
         style={{
           maxWidth: isMobile ? "100%" : 800, // Conditionally set maxWidth based on device
           margin: isMobile ? "0" : "0 auto", // Center on desktop
+          overflow: "hidden", // ⬅️ stop page scrolling
         }}
       >
         <header
@@ -196,7 +197,13 @@ function AppContent() {
             )}
           </div>
         </header>
-        <main>
+        <main
+          style={{
+            flex: 1,
+            overflowY: "auto", // ⬅️ main scrolls
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
           <AppRouter />
         </main>
       </div>

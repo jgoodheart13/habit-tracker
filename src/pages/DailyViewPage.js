@@ -235,9 +235,8 @@ export default function DailyViewPage() {
     <div
       style={{
         display: "flex",
-        minHeight: "100vh", // Changed from `height` to `minHeight` to prevent internal scrollbars
-        overflowX: "hidden", // Prevent horizontal scrolling
-        overflowY: "hidden", // Prevent vertical scrolling
+        height: "100vh", // Changed from `height` to `minHeight` to prevent internal scrollbars
+        overflow: "hidden",
       }}
     >
       <div
@@ -246,47 +245,57 @@ export default function DailyViewPage() {
           maxWidth: "100%", // Ensure content fits within the viewport
           margin: "0 auto",
           background: theme.colors.background,
+          overflowY: "auto", // ✅ THIS enables scrolling
+          WebkitOverflowScrolling: "touch",
         }}
       >
-        {/* <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} /> */}
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            background: theme.colors.background,
+            paddingBottom: 8,
+          }}
+        >
+          {/* <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} /> */}
 
-        <DateChanger
-          activeDate={activeDate}
-          changeDate={changeDate}
-          setActiveDate={setActiveDate}
-          activeTab={activeTab}
-        />
+          <DateChanger
+            activeDate={activeDate}
+            changeDate={changeDate}
+            setActiveDate={setActiveDate}
+            activeTab={activeTab}
+          />
 
-        {activeTab === "weekly" ? (
-          <div
-            style={{
-              padding: `0px ${theme.defaultHorizontalPadding}`,
-              paddingTop: 8,
-            }}
-          >
-            <WeeklyProgressGraph
-              habits={habits}
-              activeWeekRange={activeWeekRange}
-              showHeader={false}
-              activeDate={activeDate}
-            />
-          </div>
-        ) : (
-          <div
-            style={{
-              padding: `0px ${theme.defaultHorizontalPadding}`,
-              paddingTop: 8,
-            }}
-          >
-            <DailyProgressGraph
-              habits={habits}
-              activeDate={activeDate}
-              weekDays={weekDays}
-            />
-          </div>
-        )}
+          {activeTab === "weekly" ? (
+            <div
+              style={{
+                padding: `0px ${theme.defaultHorizontalPadding}`,
+                paddingTop: 8,
+              }}
+            >
+              <WeeklyProgressGraph
+                habits={habits}
+                activeWeekRange={activeWeekRange}
+                showHeader={false}
+                activeDate={activeDate}
+              />
+            </div>
+          ) : (
+            <div
+              style={{
+                padding: `0px ${theme.defaultHorizontalPadding}`,
+                paddingTop: 8,
+              }}
+            >
+              <DailyProgressGraph
+                habits={habits}
+                activeDate={activeDate}
+                weekDays={weekDays}
+              />
+            </div>
+          )}
 
-        <div>
           <div
             style={{
               display: "flex",
@@ -354,7 +363,9 @@ export default function DailyViewPage() {
               Add Habit
             </button>
           </div>
-
+        </div>
+        <div>
+          {/* HABITS LIST */}
           <div
             style={{
               display: "flex",
