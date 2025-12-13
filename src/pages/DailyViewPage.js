@@ -21,6 +21,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faEye } from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
+import Header from "../components/Header"
 
 export default function DailyViewPage() {
   // Auth0 authentication status
@@ -249,6 +250,7 @@ export default function DailyViewPage() {
           WebkitOverflowScrolling: "touch",
         }}
       >
+        <Header />
         <div
           style={{
             position: "sticky",
