@@ -1,5 +1,7 @@
 import React from "react"
 import theme from "../styles/theme"
+import { motion, useAnimation } from "framer-motion"
+import { useEffect, useRef } from "react"
 
 export default function RingProgressGraph({
   dailyP1 = 0,
@@ -25,9 +27,28 @@ export default function RingProgressGraph({
   const arcOuter = (pct) => (pct / 100) * C_outer
   const arcInner = (pct) => (pct / 100) * C_inner
 
+  const controls = useAnimation()
+  const prevDailyRef = useRef(daily)
+
+  // Pulse animation on daily progress increase
+  useEffect(() => {
+    if (daily > prevDailyRef.current) {
+      controls.start({
+        scale: [1, 1.04, 1],
+        transition: {
+          duration: 0.18,
+          ease: ["easeOut", "easeIn"],
+        },
+      })
+    }
+
+    prevDailyRef.current = daily
+  }, [daily, controls])
+
   return (
     <div style={{ textAlign: "center" }}>
-      <div
+      <motion.div
+        animate={controls}
         style={{
           width: size,
           height: size,
@@ -72,7 +93,7 @@ export default function RingProgressGraph({
               r={outerR}
               fill="none"
               stroke={`url(#weeklyGrad)`}
-              strokeWidth={strokeOuter}
+              strokeWidth={strokeOuter - 3}
               strokeDasharray={`${arcOuter(weekly)} ${
                 C_outer - arcOuter(weekly)
               }`}
@@ -127,8 +148,16 @@ export default function RingProgressGraph({
             </linearGradient>
 
             <linearGradient id="weeklyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={theme.colors.p2Below100} />
-              <stop offset="100%" stopColor="#b4d3ff" />
+              <stop
+                offset="0%"
+                stopColor={theme.colors.p1}
+                stopOpacity={0.35}
+              />
+              <stop
+                offset="100%"
+                stopColor={theme.colors.p1}
+                stopOpacity={0.35}
+              />
             </linearGradient>
           </defs>
         </svg>
@@ -151,7 +180,7 @@ export default function RingProgressGraph({
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }
