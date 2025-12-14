@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import theme from "../styles/theme";
 import WeeklyProgressGraph from "../components/WeeklyProgressGraph"
-import DailyProgressGraph from "../components/DailyProgressGraph"
 import {
   getHabits,
   markHabitComplete,
@@ -269,34 +268,19 @@ export default function DailyViewPage() {
             activeTab={activeTab}
           />
 
-          {activeTab === "weekly" ? (
-            <div
-              style={{
-                padding: `0px ${theme.defaultHorizontalPadding}`,
-                paddingTop: 8,
-              }}
-            >
-              <WeeklyProgressGraph
-                habits={habits}
-                activeWeekRange={activeWeekRange}
-                showHeader={false}
-                activeDate={activeDate}
-              />
-            </div>
-          ) : (
-            <div
-              style={{
-                padding: `0px ${theme.defaultHorizontalPadding}`,
-                paddingTop: 8,
-              }}
-            >
-              <DailyProgressGraph
-                habits={habits}
-                activeDate={activeDate}
-                weekDays={weekDays}
-              />
-            </div>
-          )}
+          <div
+            style={{
+              padding: `0px ${theme.defaultHorizontalPadding}`,
+              paddingTop: 8,
+            }}
+          >
+            <WeeklyProgressGraph
+              habits={habits}
+              activeWeekRange={activeWeekRange}
+              showHeader={false}
+              activeDate={activeDate}
+            />
+          </div>
 
           <div
             style={{

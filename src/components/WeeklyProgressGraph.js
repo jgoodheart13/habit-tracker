@@ -61,9 +61,20 @@ export default function WeeklyProgressGraph({
     daysRemaining > 0 ? Math.ceil(P1_remaining / daysRemaining) : P1_remaining
 
   // 4) How many P1s were actually done today?
-  const P1_done_today = P1_habits.filter((h) =>
-    h.completedDates.includes(activeDate)
-  ).length
+  // Only count P1s that have NOT already completed their required frequency for the week
+  const P1_done_today = P1_habits.filter((h) => {
+    const timesPerWeek = h.frequency?.timesPerWeek || 0
+    const completedThisWeek = weekDays.filter((d) =>
+      h.completedDates.includes(d)
+    ).length
+    // Only count if not already completed for the week
+    return (
+      h.completedDates.includes(activeDate) && completedThisWeek < timesPerWeek
+    )
+  }).length
+  // const P1_done_today = P1_habits.filter((h) =>
+  //   h.completedDates.includes(activeDate)
+  // ).length
 
   const dailyP1Percent =
     idealP1ForToday === 0 ? 100 : (P1_done_today / idealP1ForToday) * 100
@@ -85,6 +96,20 @@ export default function WeeklyProgressGraph({
     ).length
     P2_done += completed
   })
+
+  // P1s done above frequency also count towards P2 XP
+  const P1s_counted_as_p2 = P1_habits.filter((h) => {
+    const timesPerWeek = h.frequency?.timesPerWeek || 0
+    const completedThisWeek = weekDays.filter((d) =>
+      h.completedDates.includes(d)
+    ).length
+    // Only count if not already completed for the week
+    return (
+      h.completedDates.includes(activeDate) && completedThisWeek >= timesPerWeek
+    )
+  }).length
+
+  P2_done += P1s_counted_as_p2
 
   const baseP2Point = 5
   const P2_scale = 0.5 + 0.5 * (weeklyP1Percent / 100)
@@ -110,7 +135,7 @@ export default function WeeklyProgressGraph({
         <strong>P2s:</strong> +{P2_points.toFixed(1)} XP <br />
         <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
         {/* PREMIUM LEGEND */}
-        <div
+        {/* <div
           style={{
             // marginTop: 10,
             fontSize: 14,
@@ -129,7 +154,7 @@ export default function WeeklyProgressGraph({
             </span>
             <span style={{ opacity: 0.8 }}>Week</span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Center Column: Ring */}
