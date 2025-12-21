@@ -1,6 +1,7 @@
 import ProgressGraph from "./ProgressGraph"
 import RingProgressGraph from "./RingProgressGraph"
 import theme from "../styles/theme"
+import ReachStarsField from "./ReachStarsField"
 
 // NEW PROPS:
 // - dailyP1Percent must be passed from parent
@@ -8,6 +9,7 @@ export default function WeeklyProgressGraph({
   habits,
   activeWeekRange,
   activeDate,
+  spawnKey,
 }) {
   // --- Build list of all week days
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -119,53 +121,34 @@ export default function WeeklyProgressGraph({
   const overflowXP = Math.max(0, totalPoints - 100)
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-      }}
-    >
-      {/* Left Column: Stats */}
-      <div style={{ flex: 1, textAlign: "left", fontSize: 14 }}>
-        <strong>P1s:</strong> {P1_done}/{P1_total} <br />
-        <strong>P1 Today:</strong> {P1_done_today}/{idealP1ForToday} <br />
-        <strong>P2s:</strong> +{P2_points.toFixed(1)} XP <br />
-        <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
-        {/* PREMIUM LEGEND */}
-        {/* <div
-          style={{
-            // marginTop: 10,
-            fontSize: 14,
-            display: "flex",
-            // justifyContent: "center",
-            gap: 20,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: theme.colors.p1, fontSize: 22 }}>●</span>
-            <span style={{ opacity: 0.8 }}>Today</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: theme.colors.p2Below100, fontSize: 22 }}>
-              ●
-            </span>
-            <span style={{ opacity: 0.8 }}>Week</span>
-          </div>
-        </div> */}
-      </div>
+    <ReachStarsField spawnKey={spawnKey}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        {/* Left Column: Stats */}
+        <div style={{ flex: 1, textAlign: "left", fontSize: 14 }}>
+          <strong>P1s:</strong> {P1_done}/{P1_total} <br />
+          <strong>P1 Today:</strong> {P1_done_today}/{idealP1ForToday} <br />
+          <strong>P2s:</strong> +{P2_points.toFixed(1)} XP <br />
+          <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
+        </div>
 
-      {/* Center Column: Ring */}
-      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-        <RingProgressGraph
-          dailyP1={dailyP1Percent} // INNER RING
-          weeklyP1={weeklyP1Percent} // OUTER RING
-        />
-      </div>
+        {/* Center Column: Ring */}
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <RingProgressGraph
+            dailyP1={dailyP1Percent} // INNER RING
+            weeklyP1={weeklyP1Percent} // OUTER RING
+          />
+        </div>
 
-      <div style={{ flex: 1 }}></div>
-    </div>
+        <div style={{ flex: 1 }}></div>
+      </div>
+    </ReachStarsField>
   )
 }

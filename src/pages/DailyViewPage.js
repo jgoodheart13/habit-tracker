@@ -21,6 +21,7 @@ import { faEyeSlash, faEye } from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
+import useReachStars from "../components/useReachStars"
 
 export default function DailyViewPage() {
   // Auth0 authentication status
@@ -43,6 +44,8 @@ export default function DailyViewPage() {
   const [weekDays, setWeekDays] = useState([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sheetContent, setSheetContent] = useState(null)
+
+  const { spawnKey, spawnStar } = useReachStars()
 
   function openSheet(habit) {
     setSheetContent(
@@ -112,6 +115,9 @@ export default function DailyViewPage() {
 
   function handleComplete(id, date, isChecked) {
     const prevHabits = habits
+    const prevHabit = habits.find((h) => h.id === id)
+    const wasCompleted = prevHabit?.completedDates?.includes(date)
+    const isP2 = prevHabit?.type === "P2"
 
     // 1️⃣ Optimistic UI update
     setHabits((prev) =>
@@ -127,6 +133,10 @@ export default function DailyViewPage() {
           : h
       )
     )
+
+    if (isP2 && isChecked && !wasCompleted) {
+      spawnStar()
+    }
 
     // 2️⃣ Increment request ID
     const requestId = ++latestRequestRef.current
@@ -279,6 +289,7 @@ export default function DailyViewPage() {
               activeWeekRange={activeWeekRange}
               showHeader={false}
               activeDate={activeDate}
+              spawnKey={spawnKey}
             />
           </div>
 
