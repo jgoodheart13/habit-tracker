@@ -113,16 +113,22 @@ export default function DailyViewPage() {
   function handleComplete(id, date, isChecked) {
     const prevHabits = habits
 
-    // 1️⃣ Optimistic UI update
+    // 1️⃣ Optimistic UI update - immediately update the UI before API confirms
     setHabits((prev) =>
       prev.map((h) =>
         h.id === id
           ? {
               ...h,
+              // Update completedDates immediately for instant UI feedback
               completedDates: isChecked
                 ? [...(h.completedDates || []), date]
                 : (h.completedDates || []).filter((d) => d !== date),
-              pending: true, // optional flag for UI feedback
+              // Track this change as "pending" in case API response comes back
+              // with stale data (e.g., if user clicks multiple times rapidly)
+              pendingUpdates: {
+                ...(h.pendingUpdates || {}),
+                [date]: isChecked,
+              },
             }
           : h
       )
@@ -138,13 +144,58 @@ export default function DailyViewPage() {
         if (requestId === latestRequestRef.current) {
           try {
             const updated = await getHabits(activeWeekRange.end)
+
+            // Merge server data with any pending updates that haven't been confirmed yet
+            // This prevents race conditions where rapid clicks get overwritten by slower API responses
             setHabits((current) => {
-              // don’t overwrite if the user changed something else since
-              if (current.some((h) => h.pending)) {
-                return current.map((h) => ({ ...h, pending: false }))
-              }
-              return updated
+              return updated.map((serverHabit) => {
+                // Find the corresponding local habit to check for pending updates
+                const localHabit = current.find((h) => h.id === serverHabit.id)
+
+                // If no pending updates, just use the server data as-is
+                if (!localHabit?.pendingUpdates) {
+                  return serverHabit
+                }
+
+                // Apply any pending updates on top of the server's completedDates
+                // This ensures clicks that happened after this API call was sent are preserved
+                let completedDates = [...serverHabit.completedDates]
+                Object.entries(localHabit.pendingUpdates).forEach(
+                  ([pendingDate, isChecked]) => {
+                    if (isChecked && !completedDates.includes(pendingDate)) {
+                      // Add the pending completion
+                      completedDates.push(pendingDate)
+                    } else if (!isChecked) {
+                      // Remove the pending un-completion
+                      completedDates = completedDates.filter(
+                        (d) => d !== pendingDate
+                      )
+                    }
+                  }
+                )
+
+                return {
+                  ...serverHabit,
+                  completedDates,
+                  pendingUpdates: localHabit.pendingUpdates,
+                }
+              })
             })
+
+            // Clear the pending update for this specific habit/date now that it's confirmed
+            // We use object destructuring to remove just this date from pendingUpdates
+            setHabits((current) =>
+              current.map((h) => {
+                if (h.id === id && h.pendingUpdates?.[date] !== undefined) {
+                  const { [date]: _, ...remainingUpdates } = h.pendingUpdates
+                  return {
+                    ...h,
+                    pendingUpdates: remainingUpdates,
+                  }
+                }
+                return h
+              })
+            )
           } catch (err) {
             console.error("Refresh failed:", err)
           }
