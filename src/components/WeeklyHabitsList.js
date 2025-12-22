@@ -113,11 +113,12 @@ export default function WeeklyHabitsList({
     Object.keys(parents).forEach((parentLabel) => {
       Object.keys(parents[parentLabel]).forEach((childLabel) => {
         parents[parentLabel][childLabel].sort((a, b) => {
-          const completedA = weekDays.filter((d) =>
-            a.completedDates.includes(d)
+          // Count completions BEFORE the active date (not including today)
+          const completedA = weekDays.filter(
+            (d) => a.completedDates.includes(d) && d < activeDate
           )
-          const completedB = weekDays.filter((d) =>
-            b.completedDates.includes(d)
+          const completedB = weekDays.filter(
+            (d) => b.completedDates.includes(d) && d < activeDate
           )
           const remainingA = a.frequency.timesPerWeek - completedA.length
           const remainingB = b.frequency.timesPerWeek - completedB.length
