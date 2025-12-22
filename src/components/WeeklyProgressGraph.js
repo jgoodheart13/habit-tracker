@@ -69,7 +69,7 @@ export default function WeeklyProgressGraph({
     ).length
     // Only count if not already completed for the week
     return (
-      h.completedDates.includes(activeDate) && completedThisWeek < timesPerWeek
+      h.completedDates.includes(activeDate) && completedThisWeek <= timesPerWeek
     )
   }).length
   // const P1_done_today = P1_habits.filter((h) =>
@@ -105,7 +105,7 @@ export default function WeeklyProgressGraph({
     ).length
     // Only count if not already completed for the week
     return (
-      h.completedDates.includes(activeDate) && completedThisWeek >= timesPerWeek
+      h.completedDates.includes(activeDate) && completedThisWeek > timesPerWeek
     )
   }).length
 
