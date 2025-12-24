@@ -180,12 +180,12 @@ export default function RingProgressGraph({
           {/* PACE MARKER ON OUTER RING */}
           {paceMarker > 0 && (
             <>
-              {/* Red gauge tick extending outward from outer ring */}
+              {/* Red gauge tick extending from inner edge of outer ring */}
               <line
                 x1={expandedCenter}
-                y1={expandedCenter - outerR - strokeOuter / 2}
+                y1={expandedCenter - outerR + strokeOuter / 2 - 1}
                 x2={expandedCenter}
-                y2={expandedCenter - outerR - strokeOuter / 2 - 10}
+                y2={expandedCenter - outerR - strokeOuter / 2 + 1}
                 stroke="red"
                 strokeWidth={2.5}
                 strokeLinecap="round"
