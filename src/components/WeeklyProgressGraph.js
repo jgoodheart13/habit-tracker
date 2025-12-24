@@ -56,6 +56,11 @@ export default function WeeklyProgressGraph({
   const idealP1ForToday =
     daysRemaining > 0 ? Math.ceil(P1_remaining / daysRemaining) : P1_remaining
 
+  // Pace marker: 1/7th should be done for each day of the week (Mon=1/7, Tue=2/7, etc.)
+  const idealP1ByToday = Math.ceil((P1_total / 7) * (todayIndex + 1))
+  const idealP1PercentByToday =
+    P1_total === 0 ? 100 : (idealP1ByToday / P1_total) * 100
+
   // How many P1s were actually done today?
   // Only count P1s that have NOT already completed their required frequency for the week
   const P1_done_today = P1_habits.filter((h) => {
@@ -131,6 +136,7 @@ export default function WeeklyProgressGraph({
           dailyP1={dailyP1Percent} // INNER RING
           weeklyP1={weeklyP1Percent} // OUTER RING
           p2Count={P2_done} // P2 diamonds
+          weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
         />
       </div>
 

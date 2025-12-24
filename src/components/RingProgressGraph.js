@@ -17,10 +17,12 @@ export default function RingProgressGraph({
   strokeInner = 10,
   strokeOuter = 10,
   showNumbers = true,
+  weeklyPaceMarker = 0,
 }) {
   // Allow values above 100% to show full progress
   const daily = Math.max(0, dailyP1)
   const weekly = Math.max(0, weeklyP1)
+  const paceMarker = Math.max(0, Math.min(100, weeklyPaceMarker)) // Clamp pace marker to 0-100
 
   const center = size / 2
 
@@ -173,6 +175,25 @@ export default function RingProgressGraph({
               strokeLinecap="round"
               style={{ transition: "stroke-dasharray 0.4s ease" }}
             />
+          )}
+
+          {/* PACE MARKER ON OUTER RING */}
+          {paceMarker > 0 && (
+            <>
+              {/* Red gauge tick extending outward from outer ring */}
+              <line
+                x1={expandedCenter}
+                y1={expandedCenter - outerR - strokeOuter / 2}
+                x2={expandedCenter}
+                y2={expandedCenter - outerR - strokeOuter / 2 - 10}
+                stroke="red"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                transform={`rotate(${
+                  90 + (paceMarker / 100) * 360
+                } ${expandedCenter} ${expandedCenter})`}
+              />
+            </>
           )}
 
           {/* INNER SHADOW */}
