@@ -34,7 +34,9 @@ export default function RingProgressGraph({
   const arcInner = (pct) => (Math.min(pct, 100) / 100) * C_inner
 
   const controls = useAnimation()
+  const glowControls = useAnimation()
   const prevDailyRef = useRef(daily)
+  const prevWasBelow100 = useRef(daily < 100)
   const dashProgress = useMotionValue(daily)
 
   const dashArray = useTransform(dashProgress, (v) => {
@@ -54,6 +56,33 @@ export default function RingProgressGraph({
       })
     }
   }, [daily, controls])
+
+  // Glow animation when crossing 100%
+  useEffect(() => {
+    if (daily >= 100 && prevWasBelow100.current) {
+      // Big burst glow when first hitting 100%, then smooth fade to no glow
+      glowControls.start({
+        filter: [
+          `drop-shadow(0 0 8px ${theme.colors.p2Above100}) drop-shadow(0 0 16px ${theme.colors.p2Above100})`,
+          `drop-shadow(0 0 20px ${theme.colors.p2Above100}) drop-shadow(0 0 40px ${theme.colors.p2Above100})`,
+          `drop-shadow(0 0 4px ${theme.colors.p2Above100}) drop-shadow(0 0 8px ${theme.colors.p2Above100})`,
+          "drop-shadow(0 0 0px transparent)",
+        ],
+        transition: {
+          duration: 1.2,
+          times: [0, 0.25, 0.5, 1],
+          ease: ["easeOut", "easeInOut", "easeInOut"],
+        },
+      })
+    } else if (daily < 100) {
+      // No glow below 100%
+      glowControls.start({
+        filter: "drop-shadow(0 0 0px transparent)",
+        transition: { duration: 0.3 },
+      })
+    }
+    prevWasBelow100.current = daily < 100
+  }, [daily, glowControls])
 
   // Animate dash progress changes
   // overshoot on increase feature
@@ -96,7 +125,8 @@ export default function RingProgressGraph({
           justifyContent: "center",
         }}
       >
-        <svg
+        <motion.svg
+          animate={glowControls}
           width={size}
           height={size}
           viewBox={`0 0 ${size} ${size}`}
@@ -207,7 +237,7 @@ export default function RingProgressGraph({
               />
             </linearGradient>
           </defs>
-        </svg>
+        </motion.svg>
 
         {showNumbers && (
           <div
