@@ -84,7 +84,6 @@ export default function WeeklyProgressGraph({
   // -------------------------
 
   const weeklyP1Percent = P1_total === 0 ? 0 : (P1_done / P1_total) * 100
-
   // -------------------------
   // XP Logic (unchanged)
   // -------------------------
@@ -162,6 +161,7 @@ export default function WeeklyProgressGraph({
         <RingProgressGraph
           dailyP1={dailyP1Percent} // INNER RING
           weeklyP1={weeklyP1Percent} // OUTER RING
+          p2Count={P2_done} // P2 diamonds
         />
       </div>
 

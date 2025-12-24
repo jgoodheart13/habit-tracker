@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react"
 export default function RingProgressGraph({
   dailyP1 = 0,
   weeklyP1 = 0,
+  p2Count = 0,
   size = 140,
   strokeInner = 10,
   strokeOuter = 10,
@@ -25,6 +26,10 @@ export default function RingProgressGraph({
 
   const outerR = center - strokeOuter / 2 - 6
   const innerR = center - strokeOuter - strokeInner / 2 - 10
+  const diamondOrbitR = outerR + strokeOuter / 2 + 12 // Orbit outside the rings
+  const diamondSize = 6
+  const expandedSize = size + diamondSize * 4 // Extra space for diamonds
+  const expandedCenter = expandedSize / 2
 
   const C_outer = 2 * Math.PI * outerR
   const C_inner = 2 * Math.PI * innerR
@@ -117,8 +122,8 @@ export default function RingProgressGraph({
       <motion.div
         animate={controls}
         style={{
-          width: size,
-          height: size,
+          width: expandedSize,
+          height: expandedSize,
           position: "relative",
           display: "inline-flex",
           alignItems: "center",
@@ -127,15 +132,15 @@ export default function RingProgressGraph({
       >
         <motion.svg
           animate={glowControls}
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          style={{ transform: "rotate(-90deg)" }}
+          width={expandedSize}
+          height={expandedSize}
+          viewBox={`0 0 ${expandedSize} ${expandedSize}`}
+          style={{ transform: "rotate(-90deg)", overflow: "visible" }}
         >
           {/* OUTER SHADOW */}
           <circle
-            cx={center}
-            cy={center}
+            cx={expandedCenter}
+            cy={expandedCenter}
             r={outerR}
             fill="none"
             stroke="rgba(0,0,0,0.06)"
@@ -144,8 +149,8 @@ export default function RingProgressGraph({
 
           {/* OUTER TRACK */}
           <circle
-            cx={center}
-            cy={center}
+            cx={expandedCenter}
+            cy={expandedCenter}
             r={outerR}
             fill="none"
             stroke={theme.colors.border}
@@ -156,8 +161,8 @@ export default function RingProgressGraph({
           {/* OUTER WEEKLY PROGRESS (gradient) */}
           {weekly > 0 && (
             <circle
-              cx={center}
-              cy={center}
+              cx={expandedCenter}
+              cy={expandedCenter}
               r={outerR}
               fill="none"
               stroke={`url(#weeklyGrad)`}
@@ -172,8 +177,8 @@ export default function RingProgressGraph({
 
           {/* INNER SHADOW */}
           <circle
-            cx={center}
-            cy={center}
+            cx={expandedCenter}
+            cy={expandedCenter}
             r={innerR}
             fill="none"
             stroke="rgba(0,0,0,0.03)"
@@ -182,8 +187,8 @@ export default function RingProgressGraph({
 
           {/* INNER TRACK */}
           <circle
-            cx={center}
-            cy={center}
+            cx={expandedCenter}
+            cy={expandedCenter}
             r={innerR}
             fill="none"
             stroke={theme.colors.border}
@@ -194,8 +199,8 @@ export default function RingProgressGraph({
           {/* INNER DAILY PROGRESS (gradient) */}
           {daily > 0 && (
             <motion.circle
-              cx={center}
-              cy={center}
+              cx={expandedCenter}
+              cy={expandedCenter}
               r={innerR}
               fill="none"
               stroke="url(#dailyGrad)"
@@ -237,6 +242,36 @@ export default function RingProgressGraph({
               />
             </linearGradient>
           </defs>
+
+          {/* P2 DIAMONDS ORBITING THE RINGS */}
+          {Array.from({ length: p2Count }).map((_, i) => {
+            const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
+            const rad = (angle * Math.PI) / 180
+            const x = expandedCenter + diamondOrbitR * Math.cos(rad)
+            const y = expandedCenter + diamondOrbitR * Math.sin(rad)
+
+            return (
+              <motion.g
+                key={i}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: i * 0.05, duration: 0.3, ease: "backOut" }}
+              >
+                <polygon
+                  points={`${x},${y - diamondSize} ${
+                    x + diamondSize
+                  },${y} ${x},${y + diamondSize} ${x - diamondSize},${y}`}
+                  fill={theme.colors.p2Below100}
+                  stroke={theme.colors.background}
+                  strokeWidth="1.5"
+                  style={{
+                    transform: "rotate(90deg)",
+                    transformOrigin: `${x}px ${y}px`,
+                  }}
+                />
+              </motion.g>
+            )
+          })}
         </motion.svg>
 
         {showNumbers && (
