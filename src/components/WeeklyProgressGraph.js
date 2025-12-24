@@ -35,11 +35,7 @@ export default function WeeklyProgressGraph({
     P1_done += Math.min(completed, timesPerWeek)
   })
 
-  // -------------------------
-  // DAILY P1 PACE CALCULATION
-  // -------------------------
-
-  // 1) How many P1 completions were done before today?
+  // How many P1 completions were done before today?
   const P1_done_before_today = P1_habits.reduce((acc, habit) => {
     const timesPerWeek = habit.frequency?.timesPerWeek || 0
 
@@ -52,15 +48,15 @@ export default function WeeklyProgressGraph({
 
   const P1_remaining = Math.max(0, P1_total - P1_done_before_today)
 
-  // 2) Days remaining (including today)
+  // Days remaining (including today)
   const todayIndex = weekDays.indexOf(activeDate)
   const daysRemaining = weekDays.length - todayIndex
 
-  // 3) Ideal target for today
+  // Ideal target for today
   const idealP1ForToday =
     daysRemaining > 0 ? Math.ceil(P1_remaining / daysRemaining) : P1_remaining
 
-  // 4) How many P1s were actually done today?
+  // How many P1s were actually done today?
   // Only count P1s that have NOT already completed their required frequency for the week
   const P1_done_today = P1_habits.filter((h) => {
     const timesPerWeek = h.frequency?.timesPerWeek || 0
@@ -72,21 +68,10 @@ export default function WeeklyProgressGraph({
       h.completedDates.includes(activeDate) && completedThisWeek <= timesPerWeek
     )
   }).length
-  // const P1_done_today = P1_habits.filter((h) =>
-  //   h.completedDates.includes(activeDate)
-  // ).length
 
   const dailyP1Percent =
     idealP1ForToday === 0 ? 100 : (P1_done_today / idealP1ForToday) * 100
-
-  // -------------------------
-  // WEEKLY P1 % FOR OUTER RING
-  // -------------------------
-
   const weeklyP1Percent = P1_total === 0 ? 0 : (P1_done / P1_total) * 100
-  // -------------------------
-  // XP Logic (unchanged)
-  // -------------------------
 
   let P2_done = 0
   P2_habits.forEach((habit) => {
@@ -110,11 +95,12 @@ export default function WeeklyProgressGraph({
 
   P2_done += P1s_counted_as_p2
 
-  const baseP2Point = 5
+  const basePoints = 5
   const P2_scale = 0.5 + 0.5 * (weeklyP1Percent / 100)
-  const P2_points = P2_done * baseP2Point * P2_scale
+  const P2_points = P2_done * basePoints * P2_scale
 
-  const totalPoints = weeklyP1Percent + P2_points
+  const P1_points = weeklyP1Percent * basePoints
+  const totalPoints = P1_points + P2_points
   const overflowXP = Math.max(0, totalPoints - 100)
 
   return (
@@ -131,29 +117,12 @@ export default function WeeklyProgressGraph({
       <div style={{ flex: 1, textAlign: "left", fontSize: 14 }}>
         <strong>P1s:</strong> {P1_done}/{P1_total} <br />
         <strong>P1 Today:</strong> {P1_done_today}/{idealP1ForToday} <br />
-        <strong>P2s:</strong> +{P2_points.toFixed(1)} XP <br />
+        <strong>P2s:</strong> {P2_done} <br />
+        <strong>P1 Points:</strong> +{P1_points.toFixed(1)}
+        <br />
+        <strong>P2 Points:</strong> +{P2_points.toFixed(1)}
+        <br />
         <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
-        {/* PREMIUM LEGEND */}
-        {/* <div
-          style={{
-            // marginTop: 10,
-            fontSize: 14,
-            display: "flex",
-            // justifyContent: "center",
-            gap: 20,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: theme.colors.p1, fontSize: 22 }}>●</span>
-            <span style={{ opacity: 0.8 }}>Today</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: theme.colors.p2Below100, fontSize: 22 }}>
-              ●
-            </span>
-            <span style={{ opacity: 0.8 }}>Week</span>
-          </div>
-        </div> */}
       </div>
 
       {/* Center Column: Ring */}
