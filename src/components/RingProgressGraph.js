@@ -17,11 +17,9 @@ export default function RingProgressGraph({
   strokeOuter = 10,
   showNumbers = true,
 }) {
-  const clamp = (v) => Math.max(0, Math.min(100, v))
-
-  const daily = clamp(dailyP1)
-  const rawDaily = dailyP1 // unclamped for animation
-  const weekly = clamp(weeklyP1)
+  // Allow values above 100% to show full progress
+  const daily = Math.max(0, dailyP1)
+  const weekly = Math.max(0, weeklyP1)
 
   const center = size / 2
 
@@ -31,8 +29,9 @@ export default function RingProgressGraph({
   const C_outer = 2 * Math.PI * outerR
   const C_inner = 2 * Math.PI * innerR
 
-  const arcOuter = (pct) => (pct / 100) * C_outer
-  const arcInner = (pct) => (pct / 100) * C_inner
+  // Cap visual display at 100% but allow number to go higher
+  const arcOuter = (pct) => (Math.min(pct, 100) / 100) * C_outer
+  const arcInner = (pct) => (Math.min(pct, 100) / 100) * C_inner
 
   const controls = useAnimation()
   const prevDailyRef = useRef(daily)
@@ -181,8 +180,18 @@ export default function RingProgressGraph({
           {/* GRADIENT DEFINITIONS */}
           <defs>
             <linearGradient id="dailyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={theme.colors.p1} />
-              <stop offset="100%" stopColor={theme.colors.p1} />
+              <stop
+                offset="0%"
+                stopColor={
+                  daily >= 100 ? theme.colors.p2Above100 : theme.colors.p1
+                }
+              />
+              <stop
+                offset="100%"
+                stopColor={
+                  daily >= 100 ? theme.colors.p2Above100 : theme.colors.p1
+                }
+              />
             </linearGradient>
 
             <linearGradient id="weeklyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
