@@ -3,9 +3,9 @@
 
 const theme = {
   colors: {
-    p1: "#1976D2", // P1 (Baseline)
-    p2Below100: "#90CAF9", // P2 to Baseline
-    p2Above100: "#FFD54F", // P2 Above Baseline
+    p1: "#1976D2",
+    p2Below100: "#90CAF9",
+    p2Above100: "#FFD54F",
     incomplete: "#eee", // Incomplete
     accent: "#1976D2", // Accent (buttons, highlights)
     text: "#333", // Main text

@@ -60,6 +60,26 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     }
   }
 
+  function incrementTimesPerWeek() {
+    setHabit((h) => ({
+      ...h,
+      frequency: {
+        ...h.frequency,
+        timesPerWeek: Math.min(7, (h.frequency.timesPerWeek || 0) + 1),
+      },
+    }))
+  }
+
+  function decrementTimesPerWeek() {
+    setHabit((h) => ({
+      ...h,
+      frequency: {
+        ...h.frequency,
+        timesPerWeek: Math.max(1, (h.frequency.timesPerWeek || 0) - 1),
+      },
+    }))
+  }
+
   function handleTagInputChange(e) {
     const { name, value } = e.target
     if (name === "tagValue") {
@@ -182,11 +202,12 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           padding: 8,
           borderRadius: 6,
           border: `1px solid ${theme.colors.border}`,
+          fontSize: 16,
         }}
       />
-      {/* Horizontal switch for P1/P2 */}
+      {/* Horizontal switch for Core/Reach */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <label style={{ fontWeight: 500, marginRight: 8 }}>Type:</label>
+        {/* <label style={{ fontWeight: 500, marginRight: 8 }}>Type:</label> */}
         <div
           style={{
             display: "flex",
@@ -195,7 +216,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             border: `1px solid ${theme.colors.border}`,
             borderRadius: 20,
             padding: 2,
-            width: 80,
+            width: 100,
+            gap: 8,
             position: "relative",
           }}
         >
@@ -215,7 +237,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               userSelect: "none",
             }}
           >
-            P1
+            Core
           </div>
           <div
             onClick={() => setHabit((h) => ({ ...h, type: "P2" }))}
@@ -233,15 +255,15 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               userSelect: "none",
             }}
           >
-            P2
+            Reach
           </div>
           {/* Switch thumb */}
           <div
             style={{
               position: "absolute",
               top: 2,
-              left: habit.type === "P1" ? 2 : 40,
-              width: 38,
+              left: habit.type === "P1" ? 2 : 52,
+              width: 42,
               height: 28,
               borderRadius: 16,
               background:
@@ -253,22 +275,47 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         </div>
       </div>
       {/* Times per week input */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <label style={{ fontWeight: 500 }}>Times per week:</label>
-        <input
-          type="number"
-          name="timesPerWeek"
-          min={1}
-          max={7}
-          value={habit.frequency.timesPerWeek}
-          onChange={handleChange}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          justifyContent: "center",
+        }}
+      >
+        <button
+          type="button"
+          onClick={decrementTimesPerWeek}
           style={{
-            padding: 8,
+            padding: "8px 16px",
             borderRadius: 6,
             border: `1px solid ${theme.colors.border}`,
-            width: 60,
+            background: theme.colors.background,
+            cursor: "pointer",
+            fontSize: 18,
+            fontWeight: 600,
           }}
-        />
+        >
+          −
+        </button>
+        <span style={{ fontWeight: 500, minWidth: 140, textAlign: "center" }}>
+          {habit.frequency.timesPerWeek} times per week
+        </span>
+        <button
+          type="button"
+          onClick={incrementTimesPerWeek}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 6,
+            border: `1px solid ${theme.colors.border}`,
+            background: theme.colors.background,
+            cursor: "pointer",
+            fontSize: 18,
+            fontWeight: 600,
+          }}
+        >
+          +
+        </button>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div
@@ -289,6 +336,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               borderRadius: 6,
               border: `1px solid ${theme.colors.border}`,
               flex: 1,
+              fontSize: 16,
             }}
             onFocus={() => setTagDropdownOpen(true)}
             onBlur={() => setTimeout(() => setTagDropdownOpen(false), 150)}
@@ -301,6 +349,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               padding: 8,
               borderRadius: 6,
               border: `1px solid ${theme.colors.border}`,
+              fontSize: 16,
             }}
           >
             <option value="category">Category</option>

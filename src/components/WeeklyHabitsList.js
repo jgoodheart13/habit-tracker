@@ -162,7 +162,7 @@ export default function WeeklyHabitsList({
 
     return [
       {
-        label: "Baseline",
+        label: "Core",
         color: theme.colors.p1,
         // groups: [
         //   {
@@ -243,7 +243,6 @@ export default function WeeklyHabitsList({
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
-    const isP1 = thisPath.startsWith("Baseline")
     const collapseKey = thisPath
 
     const defaultCollapsed = false
