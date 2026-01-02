@@ -218,81 +218,80 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         }}
         className="habit-name-input"
       />
-      {/* Horizontal switch for Core/Reach */}
+      {/* Mode selector for Core/Reach */}
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          gap: 12,
+          flexDirection: "column",
+          gap: 8,
           opacity: habit.name ? 1 : 0.4,
           transition: "opacity 0.2s ease",
         }}
       >
-        {/* <label style={{ fontWeight: 500, marginRight: 8 }}>Type:</label> */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            background: theme.colors.background,
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: 20,
-            padding: 2,
-            width: 100,
-            gap: 8,
-            position: "relative",
+            gap: 12,
+            justifyContent: "center",
           }}
         >
-          <div
+          <button
+            type="button"
             onClick={() => setHabit((h) => ({ ...h, type: "P1" }))}
             style={{
-              flex: 1,
-              zIndex: 2,
-              textAlign: "center",
-              padding: "4px 0",
+              padding: "10px 24px",
+              borderRadius: 9999,
+              border: `2px solid ${habit.type === "P1" ? theme.colors.p1 : theme.colors.border}`,
+              background: habit.type === "P1" ? theme.colors.p1 : "transparent",
+              color: habit.type === "P1" ? theme.colors.background : theme.colors.text,
+              fontWeight: 600,
+              fontSize: 15,
               cursor: "pointer",
-              color:
-                habit.type === "P1"
-                  ? theme.colors.background
-                  : theme.colors.text,
-              fontWeight: habit.type === "P1" ? 700 : 400,
               userSelect: "none",
+              opacity: habit.type === "P1" ? 1 : 0.6,
+              boxShadow: habit.type === "P1" 
+                ? `0 2px 8px ${theme.colors.p1}30, inset 0 1px 2px ${theme.colors.p1}40`
+                : "none",
+              transition: "all 0.2s ease",
             }}
           >
             Core
-          </div>
-          <div
+          </button>
+          <button
+            type="button"
             onClick={() => setHabit((h) => ({ ...h, type: "P2" }))}
             style={{
-              flex: 1,
-              zIndex: 2,
-              textAlign: "center",
-              padding: "4px 0",
+              padding: "10px 24px",
+              borderRadius: 9999,
+              border: `2px solid ${habit.type === "P2" ? theme.colors.accent : theme.colors.border}`,
+              background: habit.type === "P2" ? theme.colors.accent : "transparent",
+              color: habit.type === "P2" ? theme.colors.background : theme.colors.text,
+              fontWeight: 600,
+              fontSize: 15,
               cursor: "pointer",
-              color:
-                habit.type === "P2"
-                  ? theme.colors.background
-                  : theme.colors.text,
-              fontWeight: habit.type === "P2" ? 700 : 400,
               userSelect: "none",
+              opacity: habit.type === "P2" ? 1 : 0.6,
+              boxShadow: habit.type === "P2" 
+                ? `0 2px 8px ${theme.colors.accent}30, inset 0 1px 2px ${theme.colors.accent}40`
+                : "none",
+              transition: "all 0.2s ease",
             }}
           >
             Reach
-          </div>
-          {/* Switch thumb */}
-          <div
-            style={{
-              position: "absolute",
-              top: 2,
-              left: habit.type === "P1" ? 2 : 52,
-              width: 42,
-              height: 28,
-              borderRadius: 16,
-              background:
-                habit.type === "P1" ? theme.colors.p1 : theme.colors.accent,
-              transition: "left 0.2s",
-              zIndex: 1,
-            }}
-          />
+          </button>
+        </div>
+        <div
+          key={habit.type}
+          style={{
+            textAlign: "center",
+            fontSize: 13,
+            color: theme.colors.text,
+            opacity: 0.7,
+            fontStyle: "italic",
+            animation: "fadeSlideIn 0.3s ease",
+          }}
+        >
+          {habit.type === "P1" ? "Build consistency" : "Push your limits"}
         </div>
       </div>
       {/* Times per week input */}
