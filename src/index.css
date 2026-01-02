@@ -78,6 +78,50 @@ code {
     transform: translateY(0);
   }
 }
+/* Frequency slider styling */
+.frequency-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e0e0;
+  outline: none;
+}
+
+.frequency-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4a90e2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.frequency-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4a90e2;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.frequency-slider.dragging::-webkit-slider-thumb {
+  width: 24px;
+  height: 24px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.frequency-slider.dragging::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
 .group-level[data-level="4"] {
   padding-left: 22px;
   background: #f3f3f3;

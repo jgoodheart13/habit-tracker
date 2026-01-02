@@ -13,6 +13,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       }
   )
   const [isNameFocused, setIsNameFocused] = useState(false)
+  const [isSliderDragging, setIsSliderDragging] = useState(false)
   const nameInputRef = React.useRef(null)
   const [tags, setTags] = useState(() => {
     if (habit && habit.tags) return habit.tags
@@ -241,17 +242,23 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             style={{
               padding: "10px 24px",
               borderRadius: 9999,
-              border: `2px solid ${habit.type === "P1" ? theme.colors.p1 : theme.colors.border}`,
+              border: `2px solid ${
+                habit.type === "P1" ? theme.colors.p1 : theme.colors.border
+              }`,
               background: habit.type === "P1" ? theme.colors.p1 : "transparent",
-              color: habit.type === "P1" ? theme.colors.background : theme.colors.text,
+              color:
+                habit.type === "P1"
+                  ? theme.colors.background
+                  : theme.colors.text,
               fontWeight: 600,
               fontSize: 15,
               cursor: "pointer",
               userSelect: "none",
               opacity: habit.type === "P1" ? 1 : 0.6,
-              boxShadow: habit.type === "P1" 
-                ? `0 2px 8px ${theme.colors.p1}30, inset 0 1px 2px ${theme.colors.p1}40`
-                : "none",
+              boxShadow:
+                habit.type === "P1"
+                  ? `0 2px 8px ${theme.colors.p1}30, inset 0 1px 2px ${theme.colors.p1}40`
+                  : "none",
               transition: "all 0.2s ease",
             }}
           >
@@ -263,17 +270,24 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             style={{
               padding: "10px 24px",
               borderRadius: 9999,
-              border: `2px solid ${habit.type === "P2" ? theme.colors.accent : theme.colors.border}`,
-              background: habit.type === "P2" ? theme.colors.accent : "transparent",
-              color: habit.type === "P2" ? theme.colors.background : theme.colors.text,
+              border: `2px solid ${
+                habit.type === "P2" ? theme.colors.accent : theme.colors.border
+              }`,
+              background:
+                habit.type === "P2" ? theme.colors.accent : "transparent",
+              color:
+                habit.type === "P2"
+                  ? theme.colors.background
+                  : theme.colors.text,
               fontWeight: 600,
               fontSize: 15,
               cursor: "pointer",
               userSelect: "none",
               opacity: habit.type === "P2" ? 1 : 0.6,
-              boxShadow: habit.type === "P2" 
-                ? `0 2px 8px ${theme.colors.accent}30, inset 0 1px 2px ${theme.colors.accent}40`
-                : "none",
+              boxShadow:
+                habit.type === "P2"
+                  ? `0 2px 8px ${theme.colors.accent}30, inset 0 1px 2px ${theme.colors.accent}40`
+                  : "none",
               transition: "all 0.2s ease",
             }}
           >
@@ -294,50 +308,53 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           {habit.type === "P1" ? "Build consistency" : "Push your limits"}
         </div>
       </div>
-      {/* Times per week input */}
+      {/* Frequency slider */}
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          gap: 12,
-          justifyContent: "center",
+          flexDirection: "column",
+          gap: 8,
           opacity: habit.name ? 1 : 0.4,
           transition: "opacity 0.2s ease",
         }}
       >
-        <button
-          type="button"
-          onClick={decrementTimesPerWeek}
+        <div
           style={{
-            padding: "8px 16px",
-            borderRadius: 6,
-            border: `1px solid ${theme.colors.border}`,
-            background: theme.colors.background,
-            cursor: "pointer",
-            fontSize: 18,
+            textAlign: "center",
+            fontSize: 15,
             fontWeight: 600,
+            color: theme.colors.text,
           }}
         >
-          −
-        </button>
-        <span style={{ fontWeight: 500, minWidth: 140, textAlign: "center" }}>
-          {habit.frequency.timesPerWeek} times per week
-        </span>
-        <button
-          type="button"
-          onClick={incrementTimesPerWeek}
+          {habit.frequency.timesPerWeek === 7
+            ? "Every day"
+            : `${habit.frequency.timesPerWeek}x / week`}
+        </div>
+        <input
+          type="range"
+          min="1"
+          max="7"
+          step="1"
+          value={habit.frequency.timesPerWeek}
+          onChange={(e) =>
+            setHabit((h) => ({
+              ...h,
+              frequency: {
+                ...h.frequency,
+                timesPerWeek: parseInt(e.target.value),
+              },
+            }))
+          }
+          onMouseDown={() => setIsSliderDragging(true)}
+          onMouseUp={() => setIsSliderDragging(false)}
+          onTouchStart={() => setIsSliderDragging(true)}
+          onTouchEnd={() => setIsSliderDragging(false)}
+          className={`frequency-slider ${isSliderDragging ? "dragging" : ""}`}
           style={{
-            padding: "8px 16px",
-            borderRadius: 6,
-            border: `1px solid ${theme.colors.border}`,
-            background: theme.colors.background,
+            width: "100%",
             cursor: "pointer",
-            fontSize: 18,
-            fontWeight: 600,
           }}
-        >
-          +
-        </button>
+        />
       </div>
       <div
         style={{
