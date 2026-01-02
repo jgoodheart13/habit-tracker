@@ -48,6 +48,25 @@ code {
   background: #f6f6f6;
 }
 
+.habit-name-input::placeholder {
+  color: #666 !important;
+  opacity: 1 !important;
+}
+
+.habit-name-input::-webkit-input-placeholder {
+  color: #666 !important;
+  opacity: 1 !important;
+}
+
+.habit-name-input::-moz-placeholder {
+  color: #666 !important;
+  opacity: 1 !important;
+}
+
+.habit-name-input:-ms-input-placeholder {
+  color: #666 !important;
+  opacity: 1 !important;
+}
 .group-level[data-level="4"] {
   padding-left: 22px;
   background: #f3f3f3;

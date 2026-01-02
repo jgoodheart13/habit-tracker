@@ -9,7 +9,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       existingHabit || {
         name: "",
         type: "P1",
-        frequency: { daily: true, timesPerWeek: 7 },
+        frequency: { timesPerWeek: 4 },
       }
   )
   const [isNameFocused, setIsNameFocused] = useState(false)
@@ -30,7 +30,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       habit || {
         name: "",
         type: "P1",
-        frequency: { timesPerWeek: 7 },
+        frequency: { timesPerWeek: 4 },
       }
     )
   }, [habit])
@@ -161,7 +161,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         habit || {
           name: "",
           type: "P1",
-          frequency: { timesPerWeek: 7 },
+          frequency: { timesPerWeek: 4 },
         }
       )
       setTags({ category: null, time: null })
@@ -203,17 +203,20 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         placeholder="Habit name..."
         required
         autoFocus
+        autoComplete="off"
         style={{
           padding: 8,
           borderRadius: 6,
           border: `1px solid ${theme.colors.border}`,
           fontSize: 16,
-          fontWeight: 400,
+          fontWeight: 600,
           boxShadow: isNameFocused
             ? `0 0 0 3px ${theme.colors.accent}40`
             : "none",
           transition: "box-shadow 0.2s ease",
+          color: theme.colors.text,
         }}
+        className="habit-name-input"
       />
       {/* Horizontal switch for Core/Reach */}
       <div
@@ -494,6 +497,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             border: `1px solid ${theme.colors.border}`,
             padding: "8px 18px",
             cursor: "pointer",
+            fontWeight: 600,
           }}
         >
           Cancel
@@ -507,6 +511,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             color: theme.colors.background,
             border: "none",
             fontWeight: 600,
+            opacity: habit.name ? 1 : 0.4,
+            transition: "opacity 0.2s ease",
             // minWidth: 110,
           }}
         >
