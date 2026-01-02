@@ -1,11 +1,12 @@
 import theme from "../styles/theme";
 import HabitForm from "./HabitForm";
+import { DEFAULT_FREQUENCY_TIMES_PER_WEEK } from "../constants/habitDefaults"
 
 export default function HabitModal({ show, onClose, onAdd, onEdit, habit }) {
-  if (!show) return null;
+  if (!show) return null
 
-  const isEditMode = !!habit;
-  const modalTitle = isEditMode ? "Edit Habit" : "Add Habit";
+  const isEditMode = !!habit
+  const modalTitle = isEditMode ? "Edit Habit" : "Add Habit"
 
   return (
     <div
@@ -52,7 +53,11 @@ export default function HabitModal({ show, onClose, onAdd, onEdit, habit }) {
           }}
           onClose={onClose}
           existingHabit={
-            habit || { name: "", type: "P1", frequency: { timesPerWeek: 7 } }
+            habit || {
+              name: "",
+              type: "P1",
+              frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
+            }
           }
         />
       </div>

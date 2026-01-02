@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react"
 import theme from "../styles/theme"
 import { getTags, saveTag } from "../services/habitService"
+import { DEFAULT_FREQUENCY_TIMES_PER_WEEK } from "../constants/habitDefaults"
 
 export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
@@ -9,7 +10,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       existingHabit || {
         name: "",
         type: "P1",
-        frequency: { timesPerWeek: 4 },
+        frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
       }
   )
   const [isNameFocused, setIsNameFocused] = useState(false)
@@ -22,6 +23,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [tagInput, setTagInput] = useState({ label: "", type: "category" })
   const [allTags, setAllTags] = useState([])
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
+  const [showTagInput, setShowTagInput] = useState(false)
 
   const isEdit = habit && habit.id
 
@@ -31,7 +33,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       habit || {
         name: "",
         type: "P1",
-        frequency: { timesPerWeek: 4 },
+        frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
       }
     )
   }, [habit])
@@ -62,26 +64,6 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     }
   }
 
-  function incrementTimesPerWeek() {
-    setHabit((h) => ({
-      ...h,
-      frequency: {
-        ...h.frequency,
-        timesPerWeek: Math.min(7, (h.frequency.timesPerWeek || 0) + 1),
-      },
-    }))
-  }
-
-  function decrementTimesPerWeek() {
-    setHabit((h) => ({
-      ...h,
-      frequency: {
-        ...h.frequency,
-        timesPerWeek: Math.max(1, (h.frequency.timesPerWeek || 0) - 1),
-      },
-    }))
-  }
-
   function handleTagInputChange(e) {
     const { name, value } = e.target
     if (name === "tagValue") {
@@ -109,6 +91,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     })
     setTagInput({ label: "", type: selectedTag.type })
     setTagDropdownOpen(false)
+    setShowTagInput(false)
   }
 
   function handleTagAdd() {
@@ -132,6 +115,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       })
       setTagInput({ label: "", type: tagInput.type })
       setTagDropdownOpen(false)
+      setShowTagInput(false)
     }
   }
 
@@ -162,7 +146,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         habit || {
           name: "",
           type: "P1",
-          frequency: { timesPerWeek: 4 },
+          frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
         }
       )
       setTags({ category: null, time: null })
@@ -365,100 +349,139 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           transition: "opacity 0.2s ease",
         }}
       >
+        {!showTagInput ? (
+          <button
+            type="button"
+            onClick={() => {
+              setTagInput((t) => ({ ...t, type: "category" }))
+              setShowTagInput(true)
+            }}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 6,
+              border: `1px dashed ${theme.colors.border}`,
+              background: "transparent",
+              color: theme.colors.text,
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+              opacity: 0.8,
+              transition: "opacity 0.2s ease",
+              alignSelf: "flex-start",
+            }}
+          >
+            + Add category
+          </button>
+        ) : (
+          <div
+            className="tag-input-container"
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              position: "relative",
+            }}
+          >
+            <input
+              name="tagValue"
+              value={tagInput.label}
+              onChange={handleTagInputChange}
+              placeholder="Add category"
+              autoComplete="off"
+              autoFocus
+              style={{
+                padding: 8,
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                flex: 1,
+                fontSize: 16,
+              }}
+              onFocus={() => setTagDropdownOpen(true)}
+              onBlur={() => setTimeout(() => setTagDropdownOpen(false), 150)}
+            />
+            <button
+              type="button"
+              onClick={handleTagAdd}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 6,
+                background: theme.colors.accent,
+                color: theme.colors.background,
+                border: "none",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              Add
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowTagInput(false)
+                setTagInput((t) => ({ ...t, label: "", type: "category" }))
+                setTagDropdownOpen(false)
+              }}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 6,
+                background: "transparent",
+                color: theme.colors.text,
+                border: `1px solid ${theme.colors.border}`,
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+            {tagDropdownOpen && filteredTags.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 38,
+                  left: 0,
+                  right: 0,
+                  background: theme.colors.background,
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: 6,
+                  boxShadow: theme.colors.shadow,
+                  zIndex: 10,
+                  maxHeight: 120,
+                  overflowY: "auto",
+                }}
+              >
+                {filteredTags?.map((t, idx) => (
+                  <div
+                    key={t.label + t.type + idx}
+                    onMouseDown={() => handleTagSelect(t)}
+                    style={{
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                      background:
+                        t.label === tagInput.label
+                          ? theme.colors.accent
+                          : theme.colors.background,
+                      color:
+                        t.label === tagInput.label
+                          ? theme.colors.background
+                          : theme.colors.text,
+                    }}
+                  >
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {/* Show assigned tags as labels with remove option */}
         <div
           style={{
             display: "flex",
-            gap: 8,
-            alignItems: "center",
-            position: "relative",
+            gap: 6,
+            marginTop: 4,
+            flexWrap: "wrap",
           }}
         >
-          <input
-            name="tagValue"
-            value={tagInput.label}
-            onChange={handleTagInputChange}
-            placeholder={`Add ${tagInput.type} tag`}
-            style={{
-              padding: 8,
-              borderRadius: 6,
-              border: `1px solid ${theme.colors.border}`,
-              flex: 1,
-              fontSize: 16,
-            }}
-            onFocus={() => setTagDropdownOpen(true)}
-            onBlur={() => setTimeout(() => setTagDropdownOpen(false), 150)}
-          />
-          <select
-            name="tagType"
-            value={tagInput.type}
-            onChange={handleTagInputChange}
-            style={{
-              padding: 8,
-              borderRadius: 6,
-              border: `1px solid ${theme.colors.border}`,
-              fontSize: 16,
-            }}
-          >
-            <option value="category">Category</option>
-            <option value="time">Time</option>
-          </select>
-          <button
-            type="button"
-            onClick={handleTagAdd}
-            style={{
-              padding: "8px 12px",
-              marginLeft: 4,
-              borderRadius: 6,
-              background: theme.colors.accent,
-              color: theme.colors.background,
-              border: "none",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Add
-          </button>
-          {tagDropdownOpen && filteredTags.length > 0 && (
-            <div
-              style={{
-                position: "absolute",
-                top: 38,
-                left: 0,
-                right: 0,
-                background: theme.colors.background,
-                border: `1px solid ${theme.colors.border}`,
-                borderRadius: 6,
-                boxShadow: theme.colors.shadow,
-                zIndex: 10,
-                maxHeight: 120,
-                overflowY: "auto",
-              }}
-            >
-              {filteredTags?.map((t, idx) => (
-                <div
-                  key={t.label + t.type + idx}
-                  onMouseDown={() => handleTagSelect(t)}
-                  style={{
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    background:
-                      t.label === tagInput.label
-                        ? theme.colors.accent
-                        : theme.colors.background,
-                    color:
-                      t.label === tagInput.label
-                        ? theme.colors.background
-                        : theme.colors.text,
-                  }}
-                >
-                  {t.label}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        {/* Show assigned tags as labels with remove option */}
-        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           {Object.keys(tags).map((type) =>
             tags[type]?.map((tag) => (
               <span
@@ -469,9 +492,10 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                   background: theme.colors.accent,
                   color: theme.colors.background,
                   borderRadius: 12,
-                  padding: "4px 10px",
+                  padding: "3px 8px",
                   fontSize: 13,
                   fontWeight: 500,
+                  animation: "tagPillIn 0.18s ease",
                 }}
               >
                 <span style={{ marginRight: 6 }}>{tag.label}</span>
@@ -486,6 +510,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                     fontSize: 15,
                     cursor: "pointer",
                     marginLeft: 2,
+                    lineHeight: 1,
+                    padding: 0,
                   }}
                 >
                   ×

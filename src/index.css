@@ -78,6 +78,33 @@ code {
     transform: translateY(0);
   }
 }
+@keyframes tagPillIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tag-input-container {
+  animation: slideInFromLeft 0.3s ease;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
 /* Frequency slider styling */
 .frequency-slider {
   -webkit-appearance: none;
