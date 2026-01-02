@@ -15,6 +15,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   )
   const [isNameFocused, setIsNameFocused] = useState(false)
   const [isSliderDragging, setIsSliderDragging] = useState(false)
+  const [isTagFocused, setIsTagFocused] = useState(false)
   const nameInputRef = React.useRef(null)
   const [tags, setTags] = useState(() => {
     if (habit && habit.tags) return habit.tags
@@ -172,10 +173,10 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         display: "flex",
         flexDirection: "column",
         gap: 12,
-        background: theme.colors.background,
+        background: "transparent",
         padding: 16,
         borderRadius: 12,
-        boxShadow: theme.colors.shadow,
+        boxShadow: "none",
       }}
     >
       <input
@@ -192,7 +193,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         style={{
           padding: 8,
           borderRadius: 6,
-          border: `1px solid ${theme.colors.border}`,
+          border: "none",
+          background: theme.colors.incomplete,
           fontSize: 16,
           fontWeight: 600,
           boxShadow: isNameFocused
@@ -359,8 +361,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             style={{
               padding: "8px 12px",
               borderRadius: 6,
-              border: `1px dashed ${theme.colors.border}`,
-              background: "transparent",
+              border: "none",
+              background: theme.colors.incomplete,
               color: theme.colors.text,
               fontSize: 14,
               fontWeight: 500,
@@ -392,12 +394,23 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               style={{
                 padding: 8,
                 borderRadius: 6,
-                border: `1px solid ${theme.colors.border}`,
+                border: "none",
+                background: theme.colors.incomplete,
                 flex: 1,
                 fontSize: 16,
+                boxShadow: isTagFocused
+                  ? `0 0 0 3px ${theme.colors.accent}40`
+                  : "none",
+                transition: "box-shadow 0.2s ease",
               }}
-              onFocus={() => setTagDropdownOpen(true)}
-              onBlur={() => setTimeout(() => setTagDropdownOpen(false), 150)}
+              onFocus={() => {
+                setIsTagFocused(true)
+                setTagDropdownOpen(true)
+              }}
+              onBlur={() => {
+                setIsTagFocused(false)
+                setTimeout(() => setTagDropdownOpen(false), 150)
+              }}
             />
             <button
               type="button"
@@ -424,9 +437,9 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               style={{
                 padding: "8px 12px",
                 borderRadius: 6,
-                background: "transparent",
+                background: theme.colors.incomplete,
                 color: theme.colors.text,
-                border: `1px solid ${theme.colors.border}`,
+                border: "none",
                 fontWeight: 500,
                 cursor: "pointer",
               }}
@@ -441,7 +454,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                   left: 0,
                   right: 0,
                   background: theme.colors.background,
-                  border: `1px solid ${theme.colors.border}`,
+                  border: "none",
                   borderRadius: 6,
                   boxShadow: theme.colors.shadow,
                   zIndex: 10,
@@ -536,7 +549,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           style={{
             background: theme.colors.incomplete,
             color: theme.colors.text,
-            border: `1px solid ${theme.colors.border}`,
+            border: "none",
             padding: "8px 18px",
             cursor: "pointer",
             fontWeight: 600,

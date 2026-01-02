@@ -30,7 +30,6 @@ export default function HabitModal({ show, onClose, onAdd, onEdit, habit }) {
           borderRadius: 16,
           minWidth: 340,
           boxShadow: theme.colors.shadow,
-          border: `1px solid ${theme.colors.border}`,
         }}
       >
         <h2

@@ -120,13 +120,13 @@ export default function WeeklyProgressGraph({
     >
       {/* Left Column: Stats */}
       <div style={{ flex: 1, textAlign: "left", fontSize: 14 }}>
-        <strong>P1s:</strong> {P1_done}/{P1_total} <br />
-        <strong>P1 Today:</strong> {P1_done_today}/{idealP1ForToday} <br />
-        <strong>P2s:</strong> {P2_done} <br />
-        <strong>P1 Points:</strong> +{P1_points.toFixed(1)}
+        <strong>Core W</strong> {P1_done}/{P1_total} <br />
+        <strong>Core T:</strong> {P1_done_today}/{idealP1ForToday} <br />
+        <strong>Core P:</strong> +{P1_points.toFixed(1)}
         <br />
-        <strong>P2 Points:</strong> +{P2_points.toFixed(1)}
-        <br />
+        <strong>Reach W:</strong> {P2_done} <br />
+        <strong>Reach BP:</strong> x{(P2_scale * basePoints).toFixed(1)} <br />
+        <strong>Reach P:</strong> +{P2_points.toFixed(1)} <br />
         <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
       </div>
 
