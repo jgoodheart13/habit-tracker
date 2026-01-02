@@ -12,6 +12,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         frequency: { daily: true, timesPerWeek: 7 },
       }
   )
+  const [isNameFocused, setIsNameFocused] = useState(false)
+  const nameInputRef = React.useRef(null)
   const [tags, setTags] = useState(() => {
     if (habit && habit.tags) return habit.tags
     return { category: null, time: null }
@@ -44,7 +46,6 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     }
     fetchTags()
   }, [])
-
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -193,20 +194,37 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       }}
     >
       <input
+        ref={nameInputRef}
         name="name"
         value={habit.name}
         onChange={handleChange}
-        placeholder="Habit name"
+        onFocus={() => setIsNameFocused(true)}
+        onBlur={() => setIsNameFocused(false)}
+        placeholder="Habit name..."
         required
+        autoFocus
         style={{
           padding: 8,
           borderRadius: 6,
           border: `1px solid ${theme.colors.border}`,
           fontSize: 16,
+          fontWeight: 400,
+          boxShadow: isNameFocused
+            ? `0 0 0 3px ${theme.colors.accent}40`
+            : "none",
+          transition: "box-shadow 0.2s ease",
         }}
       />
       {/* Horizontal switch for Core/Reach */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          opacity: habit.name ? 1 : 0.4,
+          transition: "opacity 0.2s ease",
+        }}
+      >
         {/* <label style={{ fontWeight: 500, marginRight: 8 }}>Type:</label> */}
         <div
           style={{
@@ -281,6 +299,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           alignItems: "center",
           gap: 12,
           justifyContent: "center",
+          opacity: habit.name ? 1 : 0.4,
+          transition: "opacity 0.2s ease",
         }}
       >
         <button
@@ -317,7 +337,15 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           +
         </button>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          opacity: habit.name ? 1 : 0.4,
+          transition: "opacity 0.2s ease",
+        }}
+      >
         <div
           style={{
             display: "flex",
