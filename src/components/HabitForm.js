@@ -157,14 +157,26 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   // Filter tags for dropdown (useMemo ensures UI updates when allTags or tagInput changes)
   const filteredTags = React.useMemo(() => {
     if (!Array.isArray(allTags)) return []
+
+    const selectedForType = Array.isArray(tags?.[tagInput.type])
+      ? tags[tagInput.type]
+      : []
+    const selectedLabels = new Set(
+      selectedForType.map((t) => (t?.label || "").toLowerCase()).filter(Boolean)
+    )
+
     return tagInput.label
       ? allTags.filter(
           (t) =>
             t.label.toLowerCase().includes(tagInput.label.toLowerCase()) &&
-            t.type === tagInput.type
+            t.type === tagInput.type &&
+            !selectedLabels.has(t.label.toLowerCase())
         )
-      : allTags.filter((t) => t.type === tagInput.type)
-  }, [allTags, tagInput])
+      : allTags.filter(
+          (t) =>
+            t.type === tagInput.type && !selectedLabels.has(t.label.toLowerCase())
+        )
+  }, [allTags, tagInput, tags])
 
   return (
     <form
