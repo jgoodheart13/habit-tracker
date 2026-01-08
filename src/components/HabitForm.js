@@ -241,9 +241,12 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               padding: "10px 24px",
               borderRadius: 9999,
               border: `2px solid ${
-                habit.type === "P1" ? theme.colors.p1 : theme.colors.border
+                habit.type === "P1"
+                  ? theme.colors.coreColor
+                  : theme.colors.border
               }`,
-              background: habit.type === "P1" ? theme.colors.p1 : "transparent",
+              background:
+                habit.type === "P1" ? theme.colors.coreColor : "transparent",
               color:
                 habit.type === "P1"
                   ? theme.colors.background
@@ -255,7 +258,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               opacity: habit.type === "P1" ? 1 : 0.6,
               boxShadow:
                 habit.type === "P1"
-                  ? `0 2px 8px ${theme.colors.p1}30, inset 0 1px 2px ${theme.colors.p1}40`
+                  ? `0 2px 8px ${theme.colors.coreColor}30, inset 0 1px 2px ${theme.colors.coreColor}40`
                   : "none",
               transition: "all 0.2s ease",
             }}
@@ -270,11 +273,11 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               borderRadius: 9999,
               border: `2px solid ${
                 habit.type === "P2"
-                  ? theme.colors.p2Below100
+                  ? theme.colors.reachColor
                   : theme.colors.border
               }`,
               background:
-                habit.type === "P2" ? theme.colors.p2Below100 : "transparent",
+                habit.type === "P2" ? theme.colors.reachColor : "transparent",
               color:
                 habit.type === "P2" ? theme.colors.text : theme.colors.text,
               fontWeight: 600,
@@ -284,7 +287,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               opacity: habit.type === "P2" ? 1 : 0.6,
               boxShadow:
                 habit.type === "P2"
-                  ? `0 2px 8px ${theme.colors.p2Below100}30, inset 0 1px 2px ${theme.colors.p2Below100}40`
+                  ? `0 2px 8px ${theme.colors.reachColor}30, inset 0 1px 2px ${theme.colors.reachColor}40`
                   : "none",
               transition: "all 0.2s ease",
             }}

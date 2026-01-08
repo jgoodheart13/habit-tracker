@@ -28,10 +28,10 @@ export function buildViewParts({
       style={{
         accentColor:
           completedWeeklyHabits?.length >= n
-            ? theme.colors.p2Above100
+            ? theme.colors.completeColor
             : habit.type === "P1"
-            ? theme.colors.p1
-            : theme.colors.p2Below100,
+            ? theme.colors.coreColor
+            : theme.colors.reachColor,
         width: "100%",
         height: "100%",
         flexShrink: 0,
@@ -44,7 +44,7 @@ export function buildViewParts({
       <span
         style={{
           color: "#111",
-          textShadow: `0 0 6px ${theme.colors.p2Above100}, 0 0 12px ${theme.colors.p2Above100}`,
+          textShadow: `0 0 6px ${theme.colors.completeColor}, 0 0 12px ${theme.colors.completeColor}`,
           fontWeight: 500,
           textDecoration:
             completedWeeklyHabits.length >= n ? "line-through" : "none",
@@ -180,7 +180,7 @@ export const Layouts = {
         <div
           style={{
             flex: 1,
-            borderLeft: `4px solid ${theme.colors.p1}` /* P1 color */,
+            borderLeft: `4px solid ${theme.colors.coreColor}` /* P1 color */,
             paddingLeft: 8,
           }}
         >
@@ -217,7 +217,7 @@ export const Layouts = {
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
             marginRight: 12,
-            borderLeft: `4px solid ${theme.colors.p1}` /* P1 color */,
+            borderLeft: `4px solid ${theme.colors.coreColor}` /* P1 color */,
             paddingLeft: 8,
           }}
         >
@@ -276,7 +276,7 @@ export const Layouts = {
         <div
           style={{
             flex: 1,
-            borderLeft: `4px solid ${theme.colors.p2Below100}` /* P1 color */,
+            borderLeft: `4px solid ${theme.colors.reachColor}` /* P1 color */,
             paddingLeft: 8,
           }}
         >

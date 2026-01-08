@@ -70,9 +70,9 @@ export default function RingProgressGraph({
       // Big burst glow when first hitting 100%, then smooth fade to no glow
       glowControls.start({
         filter: [
-          `drop-shadow(0 0 8px ${theme.colors.p2Above100}) drop-shadow(0 0 16px ${theme.colors.p2Above100})`,
-          `drop-shadow(0 0 20px ${theme.colors.p2Above100}) drop-shadow(0 0 40px ${theme.colors.p2Above100})`,
-          `drop-shadow(0 0 4px ${theme.colors.p2Above100}) drop-shadow(0 0 8px ${theme.colors.p2Above100})`,
+          `drop-shadow(0 0 8px ${theme.colors.completeColor}) drop-shadow(0 0 16px ${theme.colors.completeColor})`,
+          `drop-shadow(0 0 20px ${theme.colors.completeColor}) drop-shadow(0 0 40px ${theme.colors.completeColor})`,
+          `drop-shadow(0 0 4px ${theme.colors.completeColor}) drop-shadow(0 0 8px ${theme.colors.completeColor})`,
           "drop-shadow(0 0 0px transparent)",
         ],
         transition: {
@@ -239,13 +239,17 @@ export default function RingProgressGraph({
               <stop
                 offset="0%"
                 stopColor={
-                  daily >= 100 ? theme.colors.p2Above100 : theme.colors.p1
+                  daily >= 100
+                    ? theme.colors.completeColor
+                    : theme.colors.coreColor
                 }
               />
               <stop
                 offset="100%"
                 stopColor={
-                  daily >= 100 ? theme.colors.p2Above100 : theme.colors.p1
+                  daily >= 100
+                    ? theme.colors.completeColor
+                    : theme.colors.coreColor
                 }
               />
             </linearGradient>
@@ -253,12 +257,12 @@ export default function RingProgressGraph({
             <linearGradient id="weeklyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop
                 offset="0%"
-                stopColor={theme.colors.p1}
+                stopColor={theme.colors.coreColor}
                 stopOpacity={0.35}
               />
               <stop
                 offset="100%"
-                stopColor={theme.colors.p1}
+                stopColor={theme.colors.coreColor}
                 stopOpacity={0.35}
               />
             </linearGradient>
@@ -282,7 +286,7 @@ export default function RingProgressGraph({
                   points={`${x},${y - diamondSize} ${
                     x + diamondSize
                   },${y} ${x},${y + diamondSize} ${x - diamondSize},${y}`}
-                  fill={theme.colors.p2Below100}
+                  fill={theme.colors.reachColor}
                   stroke={theme.colors.background}
                   strokeWidth="1.5"
                   style={{

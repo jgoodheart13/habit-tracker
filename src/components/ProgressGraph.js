@@ -32,13 +32,13 @@ export default function ProgressGraph({ primaryPercentage }) {
         <div
           style={{
             width: `${roundedPercentage}%`,
-            background: theme.colors.p1,
+            background: theme.colors.coreColor,
           }}
         ></div>
         {/* <div
           style={{
             width: `${secondaryPercentage}%`,
-            background: theme.colors.p2Below100,
+            background: theme.colors.reachColor,
           }}
         ></div> */}
       </div>

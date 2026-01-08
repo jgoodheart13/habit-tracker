@@ -163,7 +163,7 @@ export default function WeeklyHabitsList({
     return [
       {
         label: "Core",
-        color: theme.colors.p1,
+        color: theme.colors.coreColor,
         // groups: [
         //   {
         //     label: "General",
@@ -174,7 +174,7 @@ export default function WeeklyHabitsList({
       },
       {
         label: "Reach",
-        color: theme.colors.p2Below100,
+        color: theme.colors.reachColor,
         groups: groupByCategoryTree(p2),
       },
     ]

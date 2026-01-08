@@ -3,9 +3,9 @@
 
 const theme = {
   colors: {
-    p1: "#1976D2",
-    p2Below100: "#90CAF9",
-    p2Above100: "#FFD54F",
+    coreColor: "#1976D2",
+    reachColor: "#90CAF9",
+    completeColor: "#FFD54F",
     incomplete: "#eee", // Incomplete
     accent: "#1976D2", // Accent (buttons, highlights)
     text: "#333", // Main text

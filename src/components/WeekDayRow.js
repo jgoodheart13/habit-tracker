@@ -9,15 +9,15 @@ export default function WeekDayRow({ weekDays, habit, completed, n, activeDate }
         let color = theme.colors.incomplete;
         if (isRecorded) {
           if (completed.length >= n) {
-            color = theme.colors.p2Above100;
+            color = theme.colors.completeColor;
           } else {
             let filled = completed.slice(0, idx + 1).length;
             color =
               filled <= n
                 ? habit.type === "P1"
-                  ? theme.colors.p1
-                  : theme.colors.p2Below100
-                : theme.colors.p2Above100
+                  ? theme.colors.coreColor
+                  : theme.colors.reachColor
+                : theme.colors.completeColor
           }
         }
         const isActive = day === activeDate;
