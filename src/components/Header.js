@@ -36,6 +36,35 @@ function LogoutButton() {
 export default function Header() {
   const { user, isAuthenticated } = useAuth0()
   const [showDropdown, setShowDropdown] = React.useState(false)
+  const dropdownRootRef = React.useRef(null)
+
+  React.useEffect(() => {
+    if (!showDropdown) return
+
+    const handlePointerDown = (e) => {
+      const root = dropdownRootRef.current
+      if (!root) return
+      if (!root.contains(e.target)) {
+        setShowDropdown(false)
+      }
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setShowDropdown(false)
+    }
+
+    document.addEventListener("mousedown", handlePointerDown)
+    document.addEventListener("touchstart", handlePointerDown, {
+      passive: true,
+    })
+    document.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown)
+      document.removeEventListener("touchstart", handlePointerDown)
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [showDropdown])
 
   return (
     <header
@@ -50,6 +79,7 @@ export default function Header() {
         borderBottom: "1px solid #eee",
         boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
         position: "relative",
+        zIndex: 50,
         flexShrink: 0,
       }}
     >
@@ -64,8 +94,7 @@ export default function Header() {
       >
         <img
           src={
-            process.env.PUBLIC_URL +
-            "/Reach4LogoMock-NoLogo-transparent.png"
+            process.env.PUBLIC_URL + "/Reach4LogoMock-NoLogo-transparent.png"
           }
           alt="Reach4 Logo"
           style={{ width: 38, height: 38, marginRight: 8 }}
@@ -104,11 +133,11 @@ export default function Header() {
           paddingRight: 16,
           position: "relative",
           marginLeft: "auto",
-          zIndex: 2,
+          zIndex: 51,
         }}
       >
         {isAuthenticated && (
-          <div style={{ position: "relative" }}>
+          <div ref={dropdownRootRef} style={{ position: "relative" }}>
             <button
               onClick={() => setShowDropdown((v) => !v)}
               style={{
@@ -150,7 +179,7 @@ export default function Header() {
                   borderRadius: 8,
                   boxShadow: theme.colors.shadow,
                   padding: 12,
-                  zIndex: 100,
+                  zIndex: 1000,
                 }}
               >
                 <div
