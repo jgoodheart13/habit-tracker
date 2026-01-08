@@ -257,14 +257,14 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               padding: "10px 24px",
               borderRadius: 9999,
               border: `2px solid ${
-                habit.type === "P2" ? theme.colors.accent : theme.colors.border
+                habit.type === "P2"
+                  ? theme.colors.p2Below100
+                  : theme.colors.border
               }`,
               background:
-                habit.type === "P2" ? theme.colors.accent : "transparent",
+                habit.type === "P2" ? theme.colors.p2Below100 : "transparent",
               color:
-                habit.type === "P2"
-                  ? theme.colors.background
-                  : theme.colors.text,
+                habit.type === "P2" ? theme.colors.text : theme.colors.text,
               fontWeight: 600,
               fontSize: 15,
               cursor: "pointer",
@@ -272,7 +272,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               opacity: habit.type === "P2" ? 1 : 0.6,
               boxShadow:
                 habit.type === "P2"
-                  ? `0 2px 8px ${theme.colors.accent}30, inset 0 1px 2px ${theme.colors.accent}40`
+                  ? `0 2px 8px ${theme.colors.p2Below100}30, inset 0 1px 2px ${theme.colors.p2Below100}40`
                   : "none",
               transition: "all 0.2s ease",
             }}
@@ -294,54 +294,56 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           {habit.type === "P1" ? "Build consistency" : "Push your limits"}
         </div>
       </div>
-      {/* Frequency slider */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          opacity: habit.name ? 1 : 0.4,
-          transition: "opacity 0.2s ease",
-        }}
-      >
+      {/* Frequency slider (Core only) */}
+      {habit.type !== "P2" && (
         <div
           style={{
-            textAlign: "center",
-            fontSize: 15,
-            fontWeight: 600,
-            color: theme.colors.text,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            opacity: habit.name ? 1 : 0.4,
+            transition: "opacity 0.2s ease",
           }}
         >
-          {habit.frequency.timesPerWeek === 7
-            ? "Every day"
-            : `${habit.frequency.timesPerWeek}x / week`}
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: 15,
+              fontWeight: 600,
+              color: theme.colors.text,
+            }}
+          >
+            {habit.frequency.timesPerWeek === 7
+              ? "Every day"
+              : `${habit.frequency.timesPerWeek}x / week`}
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="7"
+            step="1"
+            value={habit.frequency.timesPerWeek}
+            onChange={(e) =>
+              setHabit((h) => ({
+                ...h,
+                frequency: {
+                  ...h.frequency,
+                  timesPerWeek: parseInt(e.target.value),
+                },
+              }))
+            }
+            onMouseDown={() => setIsSliderDragging(true)}
+            onMouseUp={() => setIsSliderDragging(false)}
+            onTouchStart={() => setIsSliderDragging(true)}
+            onTouchEnd={() => setIsSliderDragging(false)}
+            className={`frequency-slider ${isSliderDragging ? "dragging" : ""}`}
+            style={{
+              width: "100%",
+              cursor: "pointer",
+            }}
+          />
         </div>
-        <input
-          type="range"
-          min="1"
-          max="7"
-          step="1"
-          value={habit.frequency.timesPerWeek}
-          onChange={(e) =>
-            setHabit((h) => ({
-              ...h,
-              frequency: {
-                ...h.frequency,
-                timesPerWeek: parseInt(e.target.value),
-              },
-            }))
-          }
-          onMouseDown={() => setIsSliderDragging(true)}
-          onMouseUp={() => setIsSliderDragging(false)}
-          onTouchStart={() => setIsSliderDragging(true)}
-          onTouchEnd={() => setIsSliderDragging(false)}
-          className={`frequency-slider ${isSliderDragging ? "dragging" : ""}`}
-          style={{
-            width: "100%",
-            cursor: "pointer",
-          }}
-        />
-      </div>
+      )}
       <div
         style={{
           display: "flex",
