@@ -4,7 +4,7 @@ import React, { useEffect } from "react"
 import WeeklyHabitRow from "./WeeklyHabitRow"
 import theme from "../styles/theme"
 import PropTypes from "prop-types"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence } from "framer-motion"
 
 export default function WeeklyHabitsList({
   habits,
@@ -295,7 +295,8 @@ export default function WeeklyHabitsList({
         level === 1
           ? group.color ?? theme.colors.accent
           : theme.colors.textSecondary,
-      fontWeight: level === 1 ? 700 : 600,
+      fontSize: level <= 2 ? 20 : 16,
+      fontWeight: level <= 2 ? 600 : 500,
       display: "flex",
       alignItems: "center",
       gap: "6px", // arrow sits to the left of label

@@ -9,13 +9,24 @@ export default function WeekDayRow({ weekDays, habit, completed, n, activeDate }
         let color = theme.colors.incomplete;
 
         if (isRecorded) {
-          // completed is ordered by weekDays (WeeklyHabitRow derives it that way).
-          // The first n recorded days count toward the goal (completeColor).
-          // Any additional recorded days beyond n are shaded reachColor.
-          const completionIndex = completed.indexOf(day); // 0-based rank among recorded days
-          color = completionIndex > -1 && completionIndex < n
-            ? theme.colors.completeColor
-            : theme.colors.reachColor;
+          const isWeekComplete = (completed?.length ?? 0) >= n
+          const baseCompletedColor =
+            habit.type === "P1"
+              ? theme.colors.coreColor
+              : theme.colors.reachColor
+
+          if (!isWeekComplete) {
+            // Before reaching the goal, show completions in the habit's base color.
+            color = baseCompletedColor
+          } else {
+            // After reaching the goal, mark exactly n completions as completeColor.
+            // Any additional completions are shaded reachColor to indicate "extra".
+            const completionIndex = completed.indexOf(day) // 0-based rank among recorded days
+            color =
+              completionIndex > -1 && completionIndex < n
+                ? theme.colors.completeColor
+                : theme.colors.reachColor
+          }
         }
         const isActive = day === activeDate;
         return (
