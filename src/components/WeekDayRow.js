@@ -7,18 +7,15 @@ export default function WeekDayRow({ weekDays, habit, completed, n, activeDate }
       {weekDays.map((day, idx) => {
         const isRecorded = habit.completedDates.includes(day);
         let color = theme.colors.incomplete;
+
         if (isRecorded) {
-          if (completed.length >= n) {
-            color = theme.colors.completeColor;
-          } else {
-            let filled = completed.slice(0, idx + 1).length;
-            color =
-              filled <= n
-                ? habit.type === "P1"
-                  ? theme.colors.coreColor
-                  : theme.colors.reachColor
-                : theme.colors.completeColor
-          }
+          // completed is ordered by weekDays (WeeklyHabitRow derives it that way).
+          // The first n recorded days count toward the goal (completeColor).
+          // Any additional recorded days beyond n are shaded reachColor.
+          const completionIndex = completed.indexOf(day); // 0-based rank among recorded days
+          color = completionIndex > -1 && completionIndex < n
+            ? theme.colors.completeColor
+            : theme.colors.reachColor;
         }
         const isActive = day === activeDate;
         return (

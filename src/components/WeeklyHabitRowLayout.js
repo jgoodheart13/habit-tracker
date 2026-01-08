@@ -19,6 +19,12 @@ export function buildViewParts({
   openSheet,
 }) {
   const n = habit.frequency.timesPerWeek
+  const isWeekComplete = (completedWeeklyHabits?.length ?? 0) >= n
+  const leftBarColor = isWeekComplete
+    ? theme.colors.completeColor
+    : habit.type === "P1"
+    ? theme.colors.coreColor
+    : theme.colors.reachColor
 
   const CheckBox = (
     <input
@@ -155,13 +161,21 @@ export function buildViewParts({
     EditButton,
     DeleteButton,
     HabitMenuButton,
+    leftBarColor,
   }
 }
 
 // Layout strategies
 export const Layouts = {
   P1: {
-    mobile: ({ CheckBox, HabitName, WeekRow, Fraction, HabitMenuButton }) => (
+    mobile: ({
+      CheckBox,
+      HabitName,
+      WeekRow,
+      Fraction,
+      HabitMenuButton,
+      leftBarColor,
+    }) => (
       <div style={{ display: "flex", width: "100%" }}>
         <div style={{ width: 50, display: "flex", justifyContent: "center" }}>
           <div
@@ -180,7 +194,7 @@ export const Layouts = {
         <div
           style={{
             flex: 1,
-            borderLeft: `4px solid ${theme.colors.coreColor}` /* P1 color */,
+            borderLeft: `4px solid ${leftBarColor}`,
             paddingLeft: 8,
           }}
         >
@@ -203,6 +217,7 @@ export const Layouts = {
       Fraction,
       EditButton,
       DeleteButton,
+      leftBarColor,
     }) => (
       <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
         {/* Column 1: Checkbox */}
@@ -217,7 +232,7 @@ export const Layouts = {
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
             marginRight: 12,
-            borderLeft: `4px solid ${theme.colors.coreColor}` /* P1 color */,
+            borderLeft: `4px solid ${leftBarColor}`,
             paddingLeft: 8,
           }}
         >
@@ -257,7 +272,13 @@ export const Layouts = {
   },
 
   P2: {
-    mobile: ({ CheckBox, HabitName, HabitMenuButton, WeekRow }) => (
+    mobile: ({
+      CheckBox,
+      HabitName,
+      HabitMenuButton,
+      WeekRow,
+      leftBarColor,
+    }) => (
       <div style={{ display: "flex", width: "100%" }}>
         <div style={{ width: 50, display: "flex", justifyContent: "center" }}>
           <div
@@ -276,7 +297,7 @@ export const Layouts = {
         <div
           style={{
             flex: 1,
-            borderLeft: `4px solid ${theme.colors.reachColor}` /* P1 color */,
+            borderLeft: `4px solid ${leftBarColor}`,
             paddingLeft: 8,
           }}
         >
@@ -301,7 +322,14 @@ export const Layouts = {
       </div>
     ),
 
-    desktop: ({ CheckBox, HabitName, WeekRow, EditButton, DeleteButton }) => (
+    desktop: ({
+      CheckBox,
+      HabitName,
+      WeekRow,
+      EditButton,
+      DeleteButton,
+      leftBarColor,
+    }) => (
       <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
         {/* Column 1: Checkbox */}
         <div style={{ width: 20, height: 20, marginRight: 15 }}>{CheckBox}</div>
@@ -315,6 +343,8 @@ export const Layouts = {
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
             marginRight: 12,
+            borderLeft: `4px solid ${leftBarColor}`,
+            paddingLeft: 8,
           }}
         >
           {HabitName}
