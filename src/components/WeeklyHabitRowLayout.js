@@ -301,7 +301,7 @@ export const Layouts = {
       </div>
     ),
 
-    desktop: ({ CheckBox, HabitName, EditButton, DeleteButton }) => (
+    desktop: ({ CheckBox, HabitName, WeekRow, EditButton, DeleteButton }) => (
       <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
         {/* Column 1: Checkbox */}
         <div style={{ width: 20, height: 20, marginRight: 15 }}>{CheckBox}</div>
@@ -318,6 +318,20 @@ export const Layouts = {
           }}
         >
           {HabitName}
+        </div>
+
+        {/* Column 3: Weekday row (fixed width so everything lines up) */}
+        <div
+          style={{
+            width: 224,
+            display: "flex",
+            flexDirection: "row",
+            gap: 4,
+            flexShrink: 0,
+            overflow: "hidden",
+          }}
+        >
+          {WeekRow}
         </div>
 
         {/* Column 4: actions (auto spacing) */}
