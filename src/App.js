@@ -1,31 +1,16 @@
-import React from "react";
-import AppRouter from "./AppRouter";
-import theme from "./styles/theme";
-import { useAuth0 } from "@auth0/auth0-react";
+import React from "react"
+import AppRouter from "./AppRouter"
 import { AuthenticationWrapper } from "./components/AuthenticationWrapper"
-import { Auth0Provider } from "@auth0/auth0-react"
+import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext"
 import { isMobile } from "react-device-detect"
-
-const domain = process.env.REACT_APP_AUTH0_DOMAIN
-const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID
-const audience = process.env.REACT_APP_AUTH0_AUDIENCE
 
 export default function App() {
   return (
-    <Auth0Provider
-      domain={domain}
-      clientId={clientId}
-      authorizationParams={{
-        redirect_uri: window.location.origin,
-        audience: audience,
-        scope: "openid profile email",
-      }}
-    >
+    <SupabaseAuthProvider>
       <AppContent />
-    </Auth0Provider>
+    </SupabaseAuthProvider>
   )
 }
-
 
 function AppContent() {
   return (

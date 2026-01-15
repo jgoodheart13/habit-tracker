@@ -8,7 +8,7 @@ import {
   markHabitComplete,
   deleteHabit,
 } from "../services/habitService"
-import { useAuth0 } from "@auth0/auth0-react"
+import { useSupabaseAuth } from "../contexts/SupabaseAuthContext"
 import LoadingScreen from "../components/LoadingScreen"
 import WeeklyHabitsList from "../components/WeeklyHabitsList"
 import { AuthContext } from "../components/AuthenticationWrapper"
@@ -23,8 +23,8 @@ import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
 
 export default function DailyViewPage() {
-  // Auth0 authentication status
-  const { isAuthenticated } = useAuth0()
+  // Supabase authentication status
+  const { isAuthenticated } = useSupabaseAuth()
   const { tokenReady } = useContext(AuthContext)
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'

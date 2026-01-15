@@ -1,25 +1,32 @@
-// AppRouter.js
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import DailyViewPage from "./pages/DailyViewPage";
-import LogoutPage from "./pages/LogoutPage";
+import React from "react"
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
+import { useSupabaseAuth } from "./contexts/SupabaseAuthContext"
+import DailyViewPage from "./pages/DailyViewPage"
+import LogoutPage from "./pages/LogoutPage"
+import AuthCallbackPage from "./pages/AuthCallbackPage"
 
-function PrivateRoute({ children, ...rest }) {
-  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+function PrivateRoute({ children }) {
+  const { isAuthenticated, isLoading, loginWithGoogle } = useSupabaseAuth()
+
   React.useEffect(() => {
+    // Redirect to Google OAuth if not authenticated
     if (!isLoading && !isAuthenticated) {
-      loginWithRedirect();
+      loginWithGoogle()
     }
-  }, [isLoading, isAuthenticated, loginWithRedirect]);
-  if (isLoading) return null;
-  return isAuthenticated ? children : null;
+  }, [isLoading, isAuthenticated, loginWithGoogle])
+
+  // Show nothing while loading or redirecting to login
+  if (isLoading) return null
+
+  // Render protected content only if authenticated
+  return isAuthenticated ? children : null
 }
 
 export default function AppRouter() {
   return (
     <Router>
       <Routes>
+        {/* Protected route - requires authentication */}
         <Route
           path="/"
           element={
@@ -28,9 +35,13 @@ export default function AppRouter() {
             </PrivateRoute>
           }
         />
+
+        {/* OAuth callback - handles redirect from Google */}
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+        {/* Logout page */}
         <Route path="/logout" element={<LogoutPage />} />
-        {/* Optionally add other routes here */}
       </Routes>
     </Router>
-  );
+  )
 }
