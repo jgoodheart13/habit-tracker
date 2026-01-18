@@ -20,10 +20,10 @@ jobs:
       - name: Get Build Timestamp
         id: build_time
         run: echo "value=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-      - name: Build Docker Image Dev
-        if: startsWith(github.ref, 'refs/heads/main')
+      
+      - name: Build Docker Image for Dev Branches
+        if: startsWith(github.ref, 'refs/heads/dev/')
         uses: docker/build-push-action@v3
-
         with:
           context: .
           file: ./Dockerfile
@@ -32,6 +32,18 @@ jobs:
           load: true
           build-args: |
             BUILD_ENV=dev
+      
+      - name: Build Docker Image for Main Branch
+        if: startsWith(github.ref, 'refs/heads/main')
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          outputs: type=docker,dest=docker-image.tar
+          tags: reach4.web:build-${{ steps.build_time.outputs.value }}
+          load: true
+          build-args: |
+            BUILD_ENV=production
 
       - name: Upload Artifact
         if: startsWith(github.ref, 'refs/heads/dev') || startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/heads/main')
@@ -42,7 +54,7 @@ jobs:
           retention-days: 1
 
   push-docker-image-to-registry-dev:
-    if: startsWith(github.ref, 'refs/heads/main')
+    if: startsWith(github.ref, 'refs/heads/dev/')
     needs: build-docker-image
     runs-on: ubuntu-latest
     environment:
@@ -61,8 +73,8 @@ jobs:
 
       - name: Retag Docker Image for Dev Registry
         run: |
-          docker tag reach4.web:build-${{ needs.build-docker-image.outputs.build_timestamp }} ${{ vars.CONTAINER_REGISTRY }}/reach4.web:dev-latest
-          docker tag reach4.web:build-${{ needs.build-docker-image.outputs.build_timestamp }} ${{ vars.CONTAINER_REGISTRY }}/reach4.web:dev-${{ needs.build-docker-image.outputs.build_timestamp }}
+          docker tag reach4.web:build-${{ needs.build-docker-image.outputs.build_timestamp }} ${{ vars.CONTAINER_REGISTRY }}/reach4.web.dev:latest
+          docker tag reach4.web:build-${{ needs.build-docker-image.outputs.build_timestamp }} ${{ vars.CONTAINER_REGISTRY }}/reach4.web.dev:${{ needs.build-docker-image.outputs.build_timestamp }}
 
       - name: Login to Docker Registry
         uses: docker/login-action@v2
@@ -73,5 +85,40 @@ jobs:
 
       - name: Push Image to Dev Registry
         run: |
-          docker push ${{ vars.CONTAINER_REGISTRY }}/reach4.web:dev-latest
-          docker push ${{ vars.CONTAINER_REGISTRY }}/reach4.web:dev-${{ needs.build-docker-image.outputs.build_timestamp }}
+          docker push ${{ vars.CONTAINER_REGISTRY }}/reach4.web.dev:latest
+          docker push ${{ vars.CONTAINER_REGISTRY }}/reach4.web.dev:${{ needs.build-docker-image.outputs.build_timestamp }}
+
+  push-docker-image-to-registry-prod:
+    if: startsWith(github.ref, 'refs/heads/main')
+    needs: build-docker-image
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Docker image from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: ./
+
+      - name: Load Docker image
+        run: docker load < docker-image.tar
+
+      - name: Retag Docker Image for Prod Registry
+        run: |
+          docker tag reach4.web:build-${{ needs.build-docker-image.outputs.build_timestamp }} ${{ vars.CONTAINER_REGISTRY }}/reach4.web:latest
+          docker tag reach4.web:build-${{ needs.build-docker-image.outputs.build_timestamp }} ${{ vars.CONTAINER_REGISTRY }}/reach4.web:${{ needs.build-docker-image.outputs.build_timestamp }}
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ vars.CONTAINER_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Push Image to Prod Registry
+        run: |
+          docker push ${{ vars.CONTAINER_REGISTRY }}/reach4.web:latest
+          docker push ${{ vars.CONTAINER_REGISTRY }}/reach4.web:${{ needs.build-docker-image.outputs.build_timestamp }}
