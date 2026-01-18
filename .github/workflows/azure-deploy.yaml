@@ -43,7 +43,7 @@ jobs:
           tags: reach4.web:build-${{ steps.build_time.outputs.value }}
           load: true
           build-args: |
-            BUILD_ENV=production
+            BUILD_ENV=prod
 
       - name: Upload Artifact
         if: startsWith(github.ref, 'refs/heads/dev') || startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/heads/main')
