@@ -1,38 +1,47 @@
-// AuthenticationWrapper.js
-import { useEffect, useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import React from "react";
-import LoadingScreen from "./LoadingScreen";
+import { useEffect, useState } from "react"
+import { useSupabaseAuth } from "../contexts/SupabaseAuthContext"
+import React from "react"
 
-export const AuthContext = React.createContext({ tokenReady: false });
+export const AuthContext = React.createContext({ tokenReady: false })
 
 export function AuthenticationWrapper({ children }) {
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
-  const [tokenReady, setTokenReady] = useState(false);
+  const { isAuthenticated, getAccessToken } = useSupabaseAuth()
+  const [tokenReady, setTokenReady] = useState(false)
 
   useEffect(() => {
     async function setAuthToken() {
       if (isAuthenticated) {
         try {
-          const token = await getAccessTokenSilently({
-            audience: process.env.REACT_APP_AUTH0_AUDIENCE,
-            scope: "openid profile email",
-          });
-          localStorage.setItem("auth_token", token);
-          setTokenReady(true);
-          console.log("Auth0 token set in localStorage");
+          // Get Supabase access token
+          const token = await getAccessToken()
+
+          if (token) {
+            localStorage.setItem("auth_token", token)
+            setTokenReady(true)
+            console.log("Supabase token set in localStorage")
+          }
         } catch (err) {
-          console.error("Error getting Auth0 token:", err);
+          console.error("Error getting Supabase token:", err)
         }
+      } else {
+        // Clear token if not authenticated
+        setTokenReady(false)
       }
     }
-    if (isAuthenticated)
-      setAuthToken();
-    const refreshInterval = setInterval(setAuthToken, 3600000);
-    return () => clearInterval(refreshInterval);
-  }, [isAuthenticated]);
 
-  // if (!tokenReady && window.location.href.endsWith("logout")=== false) {
+    if (isAuthenticated) {
+      setAuthToken()
+    }
+
+    // Refresh token every hour
+    // Supabase automatically handles token refresh, but we update localStorage
+    const refreshInterval = setInterval(setAuthToken, 3600000)
+
+    return () => clearInterval(refreshInterval)
+  }, [isAuthenticated, getAccessToken])
+
+  // Optional: Show loading screen until token is ready
+  // if (!tokenReady && window.location.href.endsWith("logout") === false) {
   //   return <LoadingScreen />;
   // }
 
@@ -40,5 +49,5 @@ export function AuthenticationWrapper({ children }) {
     <AuthContext.Provider value={{ tokenReady }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }

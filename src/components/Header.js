@@ -1,19 +1,14 @@
 import React from "react"
-import { useAuth0 } from "@auth0/auth0-react"
+import { useSupabaseAuth } from "../contexts/SupabaseAuthContext"
+import { useNavigate } from "react-router-dom"
 import theme from "../styles/theme"
 
 function LogoutButton() {
-  const { logout } = useAuth0()
+  const navigate = useNavigate()
 
   return (
     <button
-      onClick={() =>
-        logout({
-          logoutParams: {
-            returnTo: window.location.origin,
-          },
-        })
-      }
+      onClick={() => navigate("/logout")}
       style={{
         background: theme.colors.accent,
         color: theme.colors.background,
@@ -34,7 +29,8 @@ function LogoutButton() {
 }
 
 export default function Header() {
-  const { user, isAuthenticated } = useAuth0()
+  const { isAuthenticated, getUserMetadata } = useSupabaseAuth()
+  const userInfo = getUserMetadata()
   const [showDropdown, setShowDropdown] = React.useState(false)
   const dropdownRootRef = React.useRef(null)
 
@@ -148,7 +144,7 @@ export default function Header() {
                 display: "flex",
                 alignItems: "center",
               }}
-              title={user?.name || "Account"}
+              title={userInfo?.name || userInfo?.email || "Account"}
             >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                 <circle
@@ -189,7 +185,7 @@ export default function Header() {
                     textAlign: "center",
                   }}
                 >
-                  {user?.name || user?.email || "Account"}
+                  {userInfo?.name || userInfo?.email || "Account"}
                 </div>
 
                 <LogoutButton />
