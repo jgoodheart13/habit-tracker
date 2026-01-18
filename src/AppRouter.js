@@ -1,31 +1,38 @@
 import React from "react"
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom"
 import { useSupabaseAuth } from "./contexts/SupabaseAuthContext"
 import DailyViewPage from "./pages/DailyViewPage"
+import LoginPage from "./pages/LoginPage"
 import LogoutPage from "./pages/LogoutPage"
 import AuthCallbackPage from "./pages/AuthCallbackPage"
 
 function PrivateRoute({ children }) {
-  const { isAuthenticated, isLoading, loginWithGoogle } = useSupabaseAuth()
+  const { isAuthenticated, isLoading } = useSupabaseAuth()
 
-  React.useEffect(() => {
-    // Redirect to Google OAuth if not authenticated
-    if (!isLoading && !isAuthenticated) {
-      loginWithGoogle()
-    }
-  }, [isLoading, isAuthenticated, loginWithGoogle])
-
-  // Show nothing while loading or redirecting to login
+  // Show nothing while loading
   if (isLoading) return null
 
-  // Render protected content only if authenticated
-  return isAuthenticated ? children : null
+  // Redirect to login page if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  // Render protected content if authenticated
+  return children
 }
 
 export default function AppRouter() {
   return (
     <Router>
       <Routes>
+        {/* Login page for unauthenticated users */}
+        <Route path="/login" element={<LoginPage />} />
+
         {/* Protected route - requires authentication */}
         <Route
           path="/"

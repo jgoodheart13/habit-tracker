@@ -129,19 +129,27 @@ export const SupabaseAuthProvider = ({ children }) => {
    */
   const logout = async () => {
     try {
-      setError(null);
-      
-      const { error } = await supabase.auth.signOut();
-      
+      setError(null)
+
+      const { error } = await supabase.auth.signOut()
+
       if (error) {
-        console.error('Error during sign out:', error.message);
-        setError(error);
-        throw error;
+        console.error("Error during sign out:", error.message)
+        setError(error)
+        throw error
       }
 
       // Clear any app-specific cached data
-      localStorage.removeItem('auth_token');
-      
+      localStorage.removeItem("auth_token")
+
+      // Clear all Supabase session data from localStorage
+      // This prevents auto-login on page reload
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("sb-")) {
+          localStorage.removeItem(key)
+        }
+      })
+
       // State will be updated by onAuthStateChange listener
     } catch (error) {
       console.error('Logout error:', error);

@@ -34,9 +34,9 @@ export default function LogoutPage() {
         // Sign out from Supabase
         await logout()
 
-        // Redirect to home (login screen)
+        // Redirect to login page
         setTimeout(() => {
-          navigate("/", { replace: true })
+          navigate("/login", { replace: true })
         }, 1000)
       } catch (error) {
         console.error("Logout error:", error)
