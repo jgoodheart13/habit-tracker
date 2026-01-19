@@ -27,6 +27,8 @@ function PrivateRoute({ children }) {
 }
 
 export default function AppRouter() {
+  const { isAuthenticated, isLoading } = useSupabaseAuth()
+
   return (
     <Router>
       <Routes>
@@ -37,9 +39,11 @@ export default function AppRouter() {
         <Route
           path="/"
           element={
-            <PrivateRoute>
+            isLoading ? null : !isAuthenticated ? (
+              <Navigate to="/login" replace />
+            ) : (
               <DailyViewPage />
-            </PrivateRoute>
+            )
           }
         />
 
