@@ -110,36 +110,45 @@ export default function WeeklyHabitsList({
     })
 
     // Sort habits within each group by remaining habit days
+    // Use start-of-day state (before activeDate) so order stays static throughout the day
     Object.keys(parents).forEach((parentLabel) => {
       Object.keys(parents[parentLabel]).forEach((childLabel) => {
         parents[parentLabel][childLabel].sort((a, b) => {
           // Count completions BEFORE the active date (not including today)
           const completedA = weekDays.filter(
             (d) => a.completedDates.includes(d) && d < activeDate,
-          )
+          ).length
           const completedB = weekDays.filter(
             (d) => b.completedDates.includes(d) && d < activeDate,
-          )
-          const remainingA = a.frequency.timesPerWeek - completedA.length
-          const remainingB = b.frequency.timesPerWeek - completedB.length
-          return remainingB - remainingA // Desc order
+          ).length
+          const remainingA = a.frequency.timesPerWeek - completedA
+          const remainingB = b.frequency.timesPerWeek - completedB
+          
+          // Primary sort: by remaining (desc)
+          if (remainingB !== remainingA) {
+            return remainingB - remainingA
+          }
+          
+          // Secondary sort: by habit id for stable ordering
+          return (a.id || 0) - (b.id || 0)
         })
       })
     })
 
     // Calculate total remaining completions for each child group
+    // Based on start-of-day state (before activeDate) so order stays static throughout the day
     const childGroupTotals = {}
     Object.keys(parents).forEach((parentLabel) => {
       childGroupTotals[parentLabel] = {}
       Object.keys(parents[parentLabel]).forEach((childLabel) => {
         let childTotal = 0
         parents[parentLabel][childLabel].forEach((habit) => {
-          const completedThisWeek = weekDays.filter((d) =>
-            habit.completedDates.includes(d),
+          const completedBeforeToday = weekDays.filter(
+            (d) => habit.completedDates.includes(d) && d < activeDate,
           ).length
           const remaining = Math.max(
             0,
-            habit.frequency.timesPerWeek - completedThisWeek,
+            habit.frequency.timesPerWeek - completedBeforeToday,
           )
           childTotal += remaining
         })
