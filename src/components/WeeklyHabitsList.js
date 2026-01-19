@@ -115,10 +115,10 @@ export default function WeeklyHabitsList({
         parents[parentLabel][childLabel].sort((a, b) => {
           // Count completions BEFORE the active date (not including today)
           const completedA = weekDays.filter(
-            (d) => a.completedDates.includes(d) && d < activeDate
+            (d) => a.completedDates.includes(d) && d < activeDate,
           )
           const completedB = weekDays.filter(
-            (d) => b.completedDates.includes(d) && d < activeDate
+            (d) => b.completedDates.includes(d) && d < activeDate,
           )
           const remainingA = a.frequency.timesPerWeek - completedA.length
           const remainingB = b.frequency.timesPerWeek - completedB.length
@@ -127,17 +127,56 @@ export default function WeeklyHabitsList({
       })
     })
 
+    // Calculate total remaining completions for each child group
+    const childGroupTotals = {}
+    Object.keys(parents).forEach((parentLabel) => {
+      childGroupTotals[parentLabel] = {}
+      Object.keys(parents[parentLabel]).forEach((childLabel) => {
+        let childTotal = 0
+        parents[parentLabel][childLabel].forEach((habit) => {
+          const completedThisWeek = weekDays.filter((d) =>
+            habit.completedDates.includes(d),
+          ).length
+          const remaining = Math.max(
+            0,
+            habit.frequency.timesPerWeek - completedThisWeek,
+          )
+          childTotal += remaining
+        })
+        childGroupTotals[parentLabel][childLabel] = childTotal
+      })
+    })
+
+    // Calculate total remaining completions for each parent category
+    const categoryTotals = {}
+    Object.keys(parents).forEach((parentLabel) => {
+      categoryTotals[parentLabel] = Object.values(
+        childGroupTotals[parentLabel],
+      ).reduce((sum, val) => sum + val, 0)
+    })
+
     // turn into sorted UI-friendly arrays
     return Object.keys(parents)
-      .sort((a, b) =>
-        a === "Unspecified" ? 1 : b === "Unspecified" ? -1 : a.localeCompare(b)
-      )
+      .sort((a, b) => {
+        // Unspecified always goes last
+        if (a === "Unspecified") return 1
+        if (b === "Unspecified") return -1
+        // Sort by total remaining completions (descending)
+        return categoryTotals[b] - categoryTotals[a]
+      })
       .map((parentLabel) => ({
         label: parentLabel,
         groups: Object.keys(parents[parentLabel])
-          .sort((a, b) =>
-            a === "General" ? -1 : b === "General" ? 1 : a.localeCompare(b)
-          )
+          .sort((a, b) => {
+            // General always first
+            if (a === "General") return -1
+            if (b === "General") return 1
+            // Sort by total remaining completions (descending)
+            return (
+              childGroupTotals[parentLabel][b] -
+              childGroupTotals[parentLabel][a]
+            )
+          })
           .map((childLabel) => ({
             label: childLabel,
             habits: parents[parentLabel][childLabel],
