@@ -190,34 +190,51 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     e.preventDefault()
     if (!habit.name) return
 
-    // Merge timeOfDay into tags
-    const finalTags = { ...tags }
-    if (timeOfDay !== "unspecified") {
-      finalTags.time = [
-        {
-          label: timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1),
-          type: "time",
-        },
-      ]
-    } else {
-      delete finalTags.time
+    // Function to ensure time tag exists in database
+    const ensureTimeTag = async (timeLabel) => {
+      // Check if tag already exists
+      const existingTag = allTags.find(
+        (t) => t.type === "time" && t.label === timeLabel
+      )
+      if (existingTag) {
+        return existingTag
+      }
+      // Create new tag in database
+      const newTag = { label: timeLabel, type: "time" }
+      const savedTag = await saveTag(newTag)
+      return savedTag
     }
 
-    const habitWithTags = { ...habit, tags: finalTags }
-    if (isEdit) {
-      onEdit(habitWithTags)
-    } else {
-      onAdd({ ...habitWithTags, completedDates: [] })
-      setHabit(
-        habit || {
-          name: "",
-          type: "P1",
-          frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
-        },
-      )
-      setTags({ category: null, time: null })
-      setTimeOfDay("unspecified")
+    // Handle time tag creation before submitting
+    const submitHabit = async () => {
+      const finalTags = { ...tags }
+      
+      if (timeOfDay !== "unspecified") {
+        const timeLabel = timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)
+        const timeTag = await ensureTimeTag(timeLabel)
+        finalTags.time = [timeTag]
+      } else {
+        delete finalTags.time
+      }
+
+      const habitWithTags = { ...habit, tags: finalTags }
+      if (isEdit) {
+        onEdit(habitWithTags)
+      } else {
+        onAdd({ ...habitWithTags, completedDates: [] })
+        setHabit(
+          habit || {
+            name: "",
+            type: "P1",
+            frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
+          },
+        )
+        setTags({ category: null, time: null })
+        setTimeOfDay("unspecified")
+      }
     }
+
+    submitHabit()
   }
 
   // Filter tags for dropdown (useMemo ensures UI updates when allTags or tagInput changes)
@@ -450,49 +467,51 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             ? "Anytime"
             : timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)}
         </div>
-        <div style={{ position: "relative", paddingTop: 8, paddingBottom: 16 }}>
-          <input
-            type="range"
-            min="0"
-            max="3"
-            step="1"
-            value={
-              timeOfDay === "unspecified"
-                ? 0
-                : timeOfDay === "morning"
-                  ? 1
-                  : timeOfDay === "afternoon"
-                    ? 2
-                    : 3
-            }
-            onChange={(e) => {
-              const value = parseInt(e.target.value)
-              const timeMap = ["unspecified", "morning", "afternoon", "night"]
-              setTimeOfDay(timeMap[value])
-            }}
-            className="time-slider"
-            style={{
-              width: "100%",
-              cursor: "pointer",
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 16,
-              color: theme.colors.text,
-              opacity: 0.5,
-              marginTop: 4,
-              paddingLeft: 4,
-              paddingRight: 4,
-            }}
-          >
-            <span>Any</span>
-            <span>🌅</span>
-            <span>☀️</span>
-            <span>🌙</span>
-          </div>
+        <input
+          type="range"
+          min="0"
+          max="3"
+          step="1"
+          value={
+            timeOfDay === "unspecified"
+              ? 0
+              : timeOfDay === "morning"
+                ? 1
+                : timeOfDay === "afternoon"
+                  ? 2
+                  : 3
+          }
+          onChange={(e) => {
+            const value = parseInt(e.target.value)
+            const timeMap = ["unspecified", "morning", "afternoon", "night"]
+            setTimeOfDay(timeMap[value])
+          }}
+          onMouseDown={() => setIsSliderDragging(true)}
+          onMouseUp={() => setIsSliderDragging(false)}
+          onTouchStart={() => setIsSliderDragging(true)}
+          onTouchEnd={() => setIsSliderDragging(false)}
+          className={`frequency-slider ${isSliderDragging ? "dragging" : ""}`}
+          style={{
+            width: "100%",
+            cursor: "pointer",
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 16,
+            color: theme.colors.text,
+            opacity: 0.5,
+            marginTop: -4,
+            paddingLeft: 4,
+            paddingRight: 4,
+          }}
+        >
+          <span>Any</span>
+          <span>🌅</span>
+          <span>☀️</span>
+          <span>🌙</span>
         </div>
       </div>
       <div
