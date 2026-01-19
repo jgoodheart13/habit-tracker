@@ -25,6 +25,16 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [allTags, setAllTags] = useState([])
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
+  const [timeOfDay, setTimeOfDay] = useState(() => {
+    // Initialize from existing habit tags
+    if (existingHabit?.tags?.time && Array.isArray(existingHabit.tags.time)) {
+      const timeTag = existingHabit.tags.time[0]?.label?.toLowerCase()
+      if (["morning", "afternoon", "night"].includes(timeTag)) {
+        return timeTag
+      }
+    }
+    return "unspecified"
+  })
 
   const isEdit = habit && habit.id
 
@@ -35,8 +45,19 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         name: "",
         type: "P1",
         frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
-      }
+      },
     )
+    // Reset time of day when habit changes
+    if (habit?.tags?.time && Array.isArray(habit.tags.time)) {
+      const timeTag = habit.tags.time[0]?.label?.toLowerCase()
+      if (["morning", "afternoon", "night"].includes(timeTag)) {
+        setTimeOfDay(timeTag)
+      } else {
+        setTimeOfDay("unspecified")
+      }
+    } else {
+      setTimeOfDay("unspecified")
+    }
   }, [habit])
 
   useEffect(() => {
@@ -83,7 +104,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       }
       if (
         !updatedTags[selectedTag.type].some(
-          (tag) => tag.label === selectedTag.label
+          (tag) => tag.label === selectedTag.label,
         )
       ) {
         updatedTags[selectedTag.type].push(selectedTag)
@@ -125,7 +146,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       const updatedTags = { ...prev }
       if (updatedTags[type]) {
         updatedTags[type] = updatedTags[type].filter(
-          (tag) => tag.label !== label
+          (tag) => tag.label !== label,
         )
         if (updatedTags[type].length === 0) {
           delete updatedTags[type]
@@ -138,7 +159,21 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   function handleSubmit(e) {
     e.preventDefault()
     if (!habit.name) return
-    const habitWithTags = { ...habit, tags }
+
+    // Merge timeOfDay into tags
+    const finalTags = { ...tags }
+    if (timeOfDay !== "unspecified") {
+      finalTags.time = [
+        {
+          label: timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1),
+          type: "time",
+        },
+      ]
+    } else {
+      delete finalTags.time
+    }
+
+    const habitWithTags = { ...habit, tags: finalTags }
     if (isEdit) {
       onEdit(habitWithTags)
     } else {
@@ -148,9 +183,10 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           name: "",
           type: "P1",
           frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
-        }
+        },
       )
       setTags({ category: null, time: null })
+      setTimeOfDay("unspecified")
     }
   }
 
@@ -162,7 +198,9 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       ? tags[tagInput.type]
       : []
     const selectedLabels = new Set(
-      selectedForType.map((t) => (t?.label || "").toLowerCase()).filter(Boolean)
+      selectedForType
+        .map((t) => (t?.label || "").toLowerCase())
+        .filter(Boolean),
     )
 
     return tagInput.label
@@ -170,11 +208,12 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           (t) =>
             t.label.toLowerCase().includes(tagInput.label.toLowerCase()) &&
             t.type === tagInput.type &&
-            !selectedLabels.has(t.label.toLowerCase())
+            !selectedLabels.has(t.label.toLowerCase()),
         )
       : allTags.filter(
           (t) =>
-            t.type === tagInput.type && !selectedLabels.has(t.label.toLowerCase())
+            t.type === tagInput.type &&
+            !selectedLabels.has(t.label.toLowerCase()),
         )
   }, [allTags, tagInput, tags])
 
@@ -359,6 +398,73 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           />
         </div>
       )}
+      {/* Time of Day Slider */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          opacity: habit.name ? 1 : 0.4,
+          transition: "opacity 0.2s ease",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: 15,
+            fontWeight: 600,
+            color: theme.colors.text,
+          }}
+        >
+          {timeOfDay === "unspecified"
+            ? "Anytime"
+            : timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)}
+        </div>
+        <div style={{ position: "relative", paddingTop: 8, paddingBottom: 16 }}>
+          <input
+            type="range"
+            min="0"
+            max="3"
+            step="1"
+            value={
+              timeOfDay === "unspecified"
+                ? 0
+                : timeOfDay === "morning"
+                  ? 1
+                  : timeOfDay === "afternoon"
+                    ? 2
+                    : 3
+            }
+            onChange={(e) => {
+              const value = parseInt(e.target.value)
+              const timeMap = ["unspecified", "morning", "afternoon", "night"]
+              setTimeOfDay(timeMap[value])
+            }}
+            className="time-slider"
+            style={{
+              width: "100%",
+              cursor: "pointer",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 16,
+              color: theme.colors.text,
+              opacity: 0.5,
+              marginTop: 4,
+              paddingLeft: 4,
+              paddingRight: 4,
+            }}
+          >
+            <span>Any</span>
+            <span>🌅</span>
+            <span>☀️</span>
+            <span>🌙</span>
+          </div>
+        </div>
+      </div>
       <div
         style={{
           display: "flex",
@@ -512,43 +618,45 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             flexWrap: "wrap",
           }}
         >
-          {Object.keys(tags).map((type) =>
-            tags[type]?.map((tag) => (
-              <span
-                key={`${type}-${tag.label}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  background: theme.colors.accent,
-                  color: theme.colors.background,
-                  borderRadius: 12,
-                  padding: "3px 8px",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  animation: "tagPillIn 0.18s ease",
-                }}
-              >
-                <span style={{ marginRight: 6 }}>{tag.label}</span>
-                <button
-                  type="button"
-                  onClick={() => handleTagRemove(type, tag.label)}
+          {Object.keys(tags)
+            .filter((type) => type !== "time")
+            .map((type) =>
+              tags[type]?.map((tag) => (
+                <span
+                  key={`${type}-${tag.label}`}
                   style={{
-                    background: "none",
-                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    background: theme.colors.accent,
                     color: theme.colors.background,
-                    fontWeight: 700,
-                    fontSize: 15,
-                    cursor: "pointer",
-                    marginLeft: 2,
-                    lineHeight: 1,
-                    padding: 0,
+                    borderRadius: 12,
+                    padding: "3px 8px",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    animation: "tagPillIn 0.18s ease",
                   }}
                 >
-                  ×
-                </button>
-              </span>
-            ))
-          )}
+                  <span style={{ marginRight: 6 }}>{tag.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleTagRemove(type, tag.label)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: theme.colors.background,
+                      fontWeight: 700,
+                      fontSize: 15,
+                      cursor: "pointer",
+                      marginLeft: 2,
+                      lineHeight: 1,
+                      padding: 0,
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              )),
+            )}
         </div>
       </div>
       {/* Buttons row at bottom, inline with Cancel in modal */}

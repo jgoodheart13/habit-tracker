@@ -38,7 +38,7 @@ export default function DailyViewPage() {
   const [activeTab, setActiveTab] = useState("weekly") // State for active tab
   const [activeWeekRange, setActiveWeekRange] = useState(null)
   const [completedVisibility, setCompletedVisibility] = useState(
-    localStorage.getItem("completedVisibility") === "true"
+    localStorage.getItem("completedVisibility") !== "false",
   )
   const [weekDays, setWeekDays] = useState([])
   const [sheetOpen, setSheetOpen] = useState(false)

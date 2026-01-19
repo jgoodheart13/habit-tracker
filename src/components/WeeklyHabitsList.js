@@ -204,12 +204,26 @@ export default function WeeklyHabitsList({
       })
     })
 
-    return Object.keys(buckets).map((label) => ({
-      label,
-      color:
-        label === "Unspecified" ? theme.colors.incomplete : theme.colors.accent,
-      groups: groupByCategoryTree(buckets[label]),
-    }))
+    // Define custom time order
+    const timeOrder = ["Morning", "Afternoon", "Night", "Unspecified"]
+
+    return Object.keys(buckets)
+      .sort((a, b) => {
+        const indexA = timeOrder.indexOf(a)
+        const indexB = timeOrder.indexOf(b)
+        // If not in timeOrder, put at end
+        const posA = indexA === -1 ? timeOrder.length : indexA
+        const posB = indexB === -1 ? timeOrder.length : indexB
+        return posA - posB
+      })
+      .map((label) => ({
+        label: label === "Unspecified" ? "Anytime" : label,
+        color:
+          label === "Unspecified"
+            ? theme.colors.coreColor
+            : theme.colors.accent,
+        groups: groupByCategoryTree(buckets[label]),
+      }))
   }
 
   useEffect(() => {
