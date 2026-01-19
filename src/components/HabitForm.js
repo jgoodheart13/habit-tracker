@@ -2,7 +2,10 @@
 import React, { useEffect, useState } from "react"
 import theme from "../styles/theme"
 import { getTags, saveTag } from "../services/habitService"
+import { getTagHabits, deleteTag as apiDeleteTag } from "../api/tagsApi"
 import { DEFAULT_FREQUENCY_TIMES_PER_WEEK } from "../constants/habitDefaults"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faTrash } from "@fortawesome/free-solid-svg-icons"
 
 export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
@@ -11,7 +14,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         name: "",
         type: "P1",
         frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
-      }
+      },
   )
   const [isNameFocused, setIsNameFocused] = useState(false)
   const [isSliderDragging, setIsSliderDragging] = useState(false)
@@ -25,6 +28,21 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [allTags, setAllTags] = useState([])
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    tag: null,
+    habitCount: 0,
+  })
+  const [timeOfDay, setTimeOfDay] = useState(() => {
+    // Initialize from existing habit tags
+    if (existingHabit?.tags?.time && Array.isArray(existingHabit.tags.time)) {
+      const timeTag = existingHabit.tags.time[0]?.label?.toLowerCase()
+      if (["morning", "afternoon", "night"].includes(timeTag)) {
+        return timeTag
+      }
+    }
+    return "unspecified"
+  })
 
   const isEdit = habit && habit.id
 
@@ -35,8 +53,19 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         name: "",
         type: "P1",
         frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
-      }
+      },
     )
+    // Reset time of day when habit changes
+    if (habit?.tags?.time && Array.isArray(habit.tags.time)) {
+      const timeTag = habit.tags.time[0]?.label?.toLowerCase()
+      if (["morning", "afternoon", "night"].includes(timeTag)) {
+        setTimeOfDay(timeTag)
+      } else {
+        setTimeOfDay("unspecified")
+      }
+    } else {
+      setTimeOfDay("unspecified")
+    }
   }, [habit])
 
   useEffect(() => {
@@ -83,7 +112,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       }
       if (
         !updatedTags[selectedTag.type].some(
-          (tag) => tag.label === selectedTag.label
+          (tag) => tag.label === selectedTag.label,
         )
       ) {
         updatedTags[selectedTag.type].push(selectedTag)
@@ -125,7 +154,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       const updatedTags = { ...prev }
       if (updatedTags[type]) {
         updatedTags[type] = updatedTags[type].filter(
-          (tag) => tag.label !== label
+          (tag) => tag.label !== label,
         )
         if (updatedTags[type].length === 0) {
           delete updatedTags[type]
@@ -134,24 +163,78 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       return updatedTags
     })
   }
+  async function handleDeleteTag(tag) {
+    try {
+      const habitData = await getTagHabits(tag.id)
+      const habitCount = habitData.count || 0
+      setDeleteConfirmModal({ show: true, tag, habitCount })
+    } catch (err) {
+      console.error("Error fetching tag habits:", err)
+      alert("Failed to fetch tag information")
+    }
+  }
 
+  async function confirmDeleteTag() {
+    try {
+      await apiDeleteTag(deleteConfirmModal.tag.id)
+      // Refresh tags list
+      const updatedTags = await getTags()
+      setAllTags(Array.isArray(updatedTags) ? updatedTags : [])
+      setDeleteConfirmModal({ show: false, tag: null, habitCount: 0 })
+    } catch (err) {
+      console.error("Error deleting tag:", err)
+      alert("Failed to delete tag")
+    }
+  }
   function handleSubmit(e) {
     e.preventDefault()
     if (!habit.name) return
-    const habitWithTags = { ...habit, tags }
-    if (isEdit) {
-      onEdit(habitWithTags)
-    } else {
-      onAdd({ ...habitWithTags, completedDates: [] })
-      setHabit(
-        habit || {
-          name: "",
-          type: "P1",
-          frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
-        }
+
+    // Function to ensure time tag exists in database
+    const ensureTimeTag = async (timeLabel) => {
+      // Check if tag already exists
+      const existingTag = allTags.find(
+        (t) => t.type === "time" && t.label === timeLabel
       )
-      setTags({ category: null, time: null })
+      if (existingTag) {
+        return existingTag
+      }
+      // Create new tag in database
+      const newTag = { label: timeLabel, type: "time" }
+      const savedTag = await saveTag(newTag)
+      return savedTag
     }
+
+    // Handle time tag creation before submitting
+    const submitHabit = async () => {
+      const finalTags = { ...tags }
+      
+      if (timeOfDay !== "unspecified") {
+        const timeLabel = timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)
+        const timeTag = await ensureTimeTag(timeLabel)
+        finalTags.time = [timeTag]
+      } else {
+        delete finalTags.time
+      }
+
+      const habitWithTags = { ...habit, tags: finalTags }
+      if (isEdit) {
+        onEdit(habitWithTags)
+      } else {
+        onAdd({ ...habitWithTags, completedDates: [] })
+        setHabit(
+          habit || {
+            name: "",
+            type: "P1",
+            frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
+          },
+        )
+        setTags({ category: null, time: null })
+        setTimeOfDay("unspecified")
+      }
+    }
+
+    submitHabit()
   }
 
   // Filter tags for dropdown (useMemo ensures UI updates when allTags or tagInput changes)
@@ -162,7 +245,9 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       ? tags[tagInput.type]
       : []
     const selectedLabels = new Set(
-      selectedForType.map((t) => (t?.label || "").toLowerCase()).filter(Boolean)
+      selectedForType
+        .map((t) => (t?.label || "").toLowerCase())
+        .filter(Boolean),
     )
 
     return tagInput.label
@@ -170,11 +255,12 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           (t) =>
             t.label.toLowerCase().includes(tagInput.label.toLowerCase()) &&
             t.type === tagInput.type &&
-            !selectedLabels.has(t.label.toLowerCase())
+            !selectedLabels.has(t.label.toLowerCase()),
         )
       : allTags.filter(
           (t) =>
-            t.type === tagInput.type && !selectedLabels.has(t.label.toLowerCase())
+            t.type === tagInput.type &&
+            !selectedLabels.has(t.label.toLowerCase()),
         )
   }, [allTags, tagInput, tags])
 
@@ -359,6 +445,75 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           />
         </div>
       )}
+      {/* Time of Day Slider */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          opacity: habit.name ? 1 : 0.4,
+          transition: "opacity 0.2s ease",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: 15,
+            fontWeight: 600,
+            color: theme.colors.text,
+          }}
+        >
+          {timeOfDay === "unspecified"
+            ? "Anytime"
+            : timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)}
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="3"
+          step="1"
+          value={
+            timeOfDay === "unspecified"
+              ? 0
+              : timeOfDay === "morning"
+                ? 1
+                : timeOfDay === "afternoon"
+                  ? 2
+                  : 3
+          }
+          onChange={(e) => {
+            const value = parseInt(e.target.value)
+            const timeMap = ["unspecified", "morning", "afternoon", "night"]
+            setTimeOfDay(timeMap[value])
+          }}
+          onMouseDown={() => setIsSliderDragging(true)}
+          onMouseUp={() => setIsSliderDragging(false)}
+          onTouchStart={() => setIsSliderDragging(true)}
+          onTouchEnd={() => setIsSliderDragging(false)}
+          className={`frequency-slider ${isSliderDragging ? "dragging" : ""}`}
+          style={{
+            width: "100%",
+            cursor: "pointer",
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 16,
+            color: theme.colors.text,
+            opacity: 0.5,
+            marginTop: -4,
+            paddingLeft: 4,
+            paddingRight: 4,
+          }}
+        >
+          <span>Any</span>
+          <span>🌅</span>
+          <span>☀️</span>
+          <span>🌙</span>
+        </div>
+      </div>
       <div
         style={{
           display: "flex",
@@ -482,7 +637,6 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                 {filteredTags?.map((t, idx) => (
                   <div
                     key={t.label + t.type + idx}
-                    onMouseDown={() => handleTagSelect(t)}
                     style={{
                       padding: "8px 12px",
                       cursor: "pointer",
@@ -494,9 +648,31 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                         t.label === tagInput.label
                           ? theme.colors.background
                           : theme.colors.text,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    {t.label}
+                    <span
+                      onMouseDown={() => handleTagSelect(t)}
+                      style={{ flex: 1 }}
+                    >
+                      {t.label}
+                    </span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        onMouseDown={(e) => {
+                          e.stopPropagation()
+                          handleDeleteTag(t)
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          opacity: 0.6,
+                          fontSize: 14,
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -512,43 +688,45 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             flexWrap: "wrap",
           }}
         >
-          {Object.keys(tags).map((type) =>
-            tags[type]?.map((tag) => (
-              <span
-                key={`${type}-${tag.label}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  background: theme.colors.accent,
-                  color: theme.colors.background,
-                  borderRadius: 12,
-                  padding: "3px 8px",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  animation: "tagPillIn 0.18s ease",
-                }}
-              >
-                <span style={{ marginRight: 6 }}>{tag.label}</span>
-                <button
-                  type="button"
-                  onClick={() => handleTagRemove(type, tag.label)}
+          {Object.keys(tags)
+            .filter((type) => type !== "time")
+            .map((type) =>
+              tags[type]?.map((tag) => (
+                <span
+                  key={`${type}-${tag.label}`}
                   style={{
-                    background: "none",
-                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    background: theme.colors.accent,
                     color: theme.colors.background,
-                    fontWeight: 700,
-                    fontSize: 15,
-                    cursor: "pointer",
-                    marginLeft: 2,
-                    lineHeight: 1,
-                    padding: 0,
+                    borderRadius: 12,
+                    padding: "3px 8px",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    animation: "tagPillIn 0.18s ease",
                   }}
                 >
-                  ×
-                </button>
-              </span>
-            ))
-          )}
+                  <span style={{ marginRight: 6 }}>{tag.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleTagRemove(type, tag.label)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: theme.colors.background,
+                      fontWeight: 700,
+                      fontSize: 15,
+                      cursor: "pointer",
+                      marginLeft: 2,
+                      lineHeight: 1,
+                      padding: 0,
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              )),
+            )}
         </div>
       </div>
       {/* Buttons row at bottom, inline with Cancel in modal */}
@@ -591,6 +769,94 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           {"Save"}
         </button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmModal.show && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() =>
+            setDeleteConfirmModal({ show: false, tag: null, habitCount: 0 })
+          }
+        >
+          <div
+            style={{
+              background: theme.colors.background,
+              borderRadius: 12,
+              padding: 24,
+              maxWidth: 400,
+              width: "90%",
+              boxShadow: theme.colors.shadow,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ marginTop: 0, marginBottom: 16 }}>Delete Tag</h3>
+            <p style={{ marginBottom: 20 }}>
+              Are you sure you want to delete "
+              <strong>{deleteConfirmModal.tag?.label}</strong>"?
+              <span
+                style={{
+                  display: "block",
+                  marginTop: 8,
+                  color: theme.colors.accent,
+                }}
+              >
+                {deleteConfirmModal.habitCount > 0
+                  ? `This tag is currently used by ${deleteConfirmModal.habitCount} habit${deleteConfirmModal.habitCount !== 1 ? "s" : ""}.`
+                  : "This tag is not currently used by any habits."}
+              </span>
+            </p>
+            <div
+              style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}
+            >
+              <button
+                onClick={() =>
+                  setDeleteConfirmModal({
+                    show: false,
+                    tag: null,
+                    habitCount: 0,
+                  })
+                }
+                style={{
+                  background: theme.colors.incomplete,
+                  color: theme.colors.text,
+                  border: "none",
+                  padding: "8px 18px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteTag}
+                style={{
+                  background: "#e74c3c",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 18px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }

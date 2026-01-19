@@ -3,7 +3,8 @@ name: Deploy to Azure
 on:
   push:  # Trigger on any push event
     branches:
-      - '**'  # Matches all branches
+      - 'dev'
+      - 'main'
 
 
 jobs:

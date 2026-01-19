@@ -4,18 +4,17 @@ import {
   updateHabit as apiUpdateHabit,
   deleteHabit as apiDeleteHabit,
   markHabitComplete as apiMarkHabitComplete,
-  fetchTags,
-  addTag as apiAddTag,
 } from "../api/habitsApi"
+import { fetchTags, addTag as apiAddTag } from "../api/tagsApi"
 
 export function getTags() {
   // API call
-  return fetchTags();
+  return fetchTags()
 }
 
 export function saveTag(tag) {
   // API call
-  return apiAddTag(tag);
+  return apiAddTag(tag)
 }
 
 export function getHabits(weekEndDate) {
@@ -25,17 +24,17 @@ export function getHabits(weekEndDate) {
 
 export function addHabit(habit) {
   // API call
-  return apiAddHabit(habit);
+  return apiAddHabit(habit)
 }
 
 export function updateHabit(id, updates) {
   // API call
-  return apiUpdateHabit(id, updates);
+  return apiUpdateHabit(id, updates)
 }
 
 export function markHabitComplete(id, date, isChecked) {
   // API call
-  return apiMarkHabitComplete(id, date, isChecked);
+  return apiMarkHabitComplete(id, date, isChecked)
 }
 
 export function deleteHabit(id, activeDate) {
