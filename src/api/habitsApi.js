@@ -1,15 +1,4 @@
-
-import api from "../services/axios";
-// Tag API calls
-export async function fetchTags() {
-  const response = await api.get(`/tags`);
-  return response.data;
-}
-
-export async function addTag(tag) {
-  const response = await api.post(`/tags`, tag);
-  return response.data;
-}
+import api from "../services/axios"
 
 export async function fetchHabits(weekEndDate) {
   const response = await api.get(`/habits`, {
@@ -19,13 +8,12 @@ export async function fetchHabits(weekEndDate) {
 }
 
 export async function addHabit(habit) {
-  const response = await api.post(`/habits`, habit);
-  return response.data;
-  
+  const response = await api.post(`/habits`, habit)
+  return response.data
 }
 export async function updateHabit(id, updates) {
-  const response = await api.put(`/habits/${id}`, updates);
-  return response.data;
+  const response = await api.put(`/habits/${id}`, updates)
+  return response.data
 }
 
 export async function deleteHabit(id, archiveDate) {
@@ -36,6 +24,6 @@ export async function deleteHabit(id, archiveDate) {
 }
 
 export async function markHabitComplete(id, date, isChecked) {
-  const response = await api.post(`/habits/${id}/complete`, { date, isChecked });
-  return response.data;
+  const response = await api.post(`/habits/${id}/complete`, { date, isChecked })
+  return response.data
 }

@@ -2,7 +2,10 @@
 import React, { useEffect, useState } from "react"
 import theme from "../styles/theme"
 import { getTags, saveTag } from "../services/habitService"
+import { getTagHabits, deleteTag as apiDeleteTag } from "../api/tagsApi"
 import { DEFAULT_FREQUENCY_TIMES_PER_WEEK } from "../constants/habitDefaults"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faTrash } from "@fortawesome/free-solid-svg-icons"
 
 export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
@@ -11,7 +14,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         name: "",
         type: "P1",
         frequency: { timesPerWeek: DEFAULT_FREQUENCY_TIMES_PER_WEEK },
-      }
+      },
   )
   const [isNameFocused, setIsNameFocused] = useState(false)
   const [isSliderDragging, setIsSliderDragging] = useState(false)
@@ -25,6 +28,11 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [allTags, setAllTags] = useState([])
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    tag: null,
+    habitCount: 0,
+  })
   const [timeOfDay, setTimeOfDay] = useState(() => {
     // Initialize from existing habit tags
     if (existingHabit?.tags?.time && Array.isArray(existingHabit.tags.time)) {
@@ -155,7 +163,29 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       return updatedTags
     })
   }
+  async function handleDeleteTag(tag) {
+    try {
+      const habitData = await getTagHabits(tag.id)
+      const habitCount = habitData.count || 0
+      setDeleteConfirmModal({ show: true, tag, habitCount })
+    } catch (err) {
+      console.error("Error fetching tag habits:", err)
+      alert("Failed to fetch tag information")
+    }
+  }
 
+  async function confirmDeleteTag() {
+    try {
+      await apiDeleteTag(deleteConfirmModal.tag.id)
+      // Refresh tags list
+      const updatedTags = await getTags()
+      setAllTags(Array.isArray(updatedTags) ? updatedTags : [])
+      setDeleteConfirmModal({ show: false, tag: null, habitCount: 0 })
+    } catch (err) {
+      console.error("Error deleting tag:", err)
+      alert("Failed to delete tag")
+    }
+  }
   function handleSubmit(e) {
     e.preventDefault()
     if (!habit.name) return
@@ -588,7 +618,6 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                 {filteredTags?.map((t, idx) => (
                   <div
                     key={t.label + t.type + idx}
-                    onMouseDown={() => handleTagSelect(t)}
                     style={{
                       padding: "8px 12px",
                       cursor: "pointer",
@@ -600,9 +629,31 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                         t.label === tagInput.label
                           ? theme.colors.background
                           : theme.colors.text,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    {t.label}
+                    <span
+                      onMouseDown={() => handleTagSelect(t)}
+                      style={{ flex: 1 }}
+                    >
+                      {t.label}
+                    </span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        onMouseDown={(e) => {
+                          e.stopPropagation()
+                          handleDeleteTag(t)
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          opacity: 0.6,
+                          fontSize: 14,
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -699,6 +750,94 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           {"Save"}
         </button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmModal.show && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() =>
+            setDeleteConfirmModal({ show: false, tag: null, habitCount: 0 })
+          }
+        >
+          <div
+            style={{
+              background: theme.colors.background,
+              borderRadius: 12,
+              padding: 24,
+              maxWidth: 400,
+              width: "90%",
+              boxShadow: theme.colors.shadow,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ marginTop: 0, marginBottom: 16 }}>Delete Tag</h3>
+            <p style={{ marginBottom: 20 }}>
+              Are you sure you want to delete "
+              <strong>{deleteConfirmModal.tag?.label}</strong>"?
+              <span
+                style={{
+                  display: "block",
+                  marginTop: 8,
+                  color: theme.colors.accent,
+                }}
+              >
+                {deleteConfirmModal.habitCount > 0
+                  ? `This tag is currently used by ${deleteConfirmModal.habitCount} habit${deleteConfirmModal.habitCount !== 1 ? "s" : ""}.`
+                  : "This tag is not currently used by any habits."}
+              </span>
+            </p>
+            <div
+              style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}
+            >
+              <button
+                onClick={() =>
+                  setDeleteConfirmModal({
+                    show: false,
+                    tag: null,
+                    habitCount: 0,
+                  })
+                }
+                style={{
+                  background: theme.colors.incomplete,
+                  color: theme.colors.text,
+                  border: "none",
+                  padding: "8px 18px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteTag}
+                style={{
+                  background: "#e74c3c",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 18px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }
