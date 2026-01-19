@@ -67,7 +67,12 @@ export default function WeeklyHabitsList({
   }
 
   // Parent + child grouping (shared logic)
-  const groupByParentAndChildren = (habits, sortMode, freq) => {
+  const groupByParentAndChildren = (
+    habits,
+    sortMode,
+    freq,
+    sortByCompletions = true,
+  ) => {
     const parents = {}
 
     habits.forEach((habit) => {
@@ -109,95 +114,148 @@ export default function WeeklyHabitsList({
       }
     })
 
-    // Sort habits within each group by remaining habit days
-    // Use start-of-day state (before activeDate) so order stays static throughout the day
+    // Sort habits within each group
     Object.keys(parents).forEach((parentLabel) => {
       Object.keys(parents[parentLabel]).forEach((childLabel) => {
-        parents[parentLabel][childLabel].sort((a, b) => {
-          // Count completions BEFORE the active date (not including today)
-          const completedA = weekDays.filter(
-            (d) => a.completedDates.includes(d) && d < activeDate,
-          ).length
-          const completedB = weekDays.filter(
-            (d) => b.completedDates.includes(d) && d < activeDate,
-          ).length
-          const remainingA = a.frequency.timesPerWeek - completedA
-          const remainingB = b.frequency.timesPerWeek - completedB
-          
-          // Primary sort: by remaining (desc)
-          if (remainingB !== remainingA) {
-            return remainingB - remainingA
-          }
-          
-          // Secondary sort: by habit id for stable ordering
-          return (a.id || 0) - (b.id || 0)
-        })
-      })
-    })
+        if (sortByCompletions) {
+          // Use start-of-day state (before activeDate) so order stays static throughout the day
+          parents[parentLabel][childLabel].sort((a, b) => {
+            // Count completions BEFORE the active date (not including today)
+            const completedA = weekDays.filter(
+              (d) => a.completedDates.includes(d) && d < activeDate,
+            ).length
+            const completedB = weekDays.filter(
+              (d) => b.completedDates.includes(d) && d < activeDate,
+            ).length
+            const remainingA = a.frequency.timesPerWeek - completedA
+            const remainingB = b.frequency.timesPerWeek - completedB
 
-    // Calculate total remaining completions for each child group
-    // Based on start-of-day state (before activeDate) so order stays static throughout the day
-    const childGroupTotals = {}
-    Object.keys(parents).forEach((parentLabel) => {
-      childGroupTotals[parentLabel] = {}
-      Object.keys(parents[parentLabel]).forEach((childLabel) => {
-        let childTotal = 0
-        parents[parentLabel][childLabel].forEach((habit) => {
-          const completedBeforeToday = weekDays.filter(
-            (d) => habit.completedDates.includes(d) && d < activeDate,
-          ).length
-          const remaining = Math.max(
-            0,
-            habit.frequency.timesPerWeek - completedBeforeToday,
-          )
-          childTotal += remaining
-        })
-        childGroupTotals[parentLabel][childLabel] = childTotal
-      })
-    })
+            // Primary sort: by remaining (desc)
+            if (remainingB !== remainingA) {
+              return remainingB - remainingA
+            }
 
-    // Calculate total remaining completions for each parent category
-    const categoryTotals = {}
-    Object.keys(parents).forEach((parentLabel) => {
-      categoryTotals[parentLabel] = Object.values(
-        childGroupTotals[parentLabel],
-      ).reduce((sum, val) => sum + val, 0)
-    })
-
-    // turn into sorted UI-friendly arrays
-    return Object.keys(parents)
-      .sort((a, b) => {
-        // Unspecified always goes last
-        if (a === "Unspecified") return 1
-        if (b === "Unspecified") return -1
-        // Sort by total remaining completions (descending)
-        return categoryTotals[b] - categoryTotals[a]
-      })
-      .map((parentLabel) => ({
-        label: parentLabel,
-        groups: Object.keys(parents[parentLabel])
-          .sort((a, b) => {
-            // General always first
-            if (a === "General") return -1
-            if (b === "General") return 1
-            // Sort by total remaining completions (descending)
-            return (
-              childGroupTotals[parentLabel][b] -
-              childGroupTotals[parentLabel][a]
-            )
+            // Secondary sort: by habit name alphabetically
+            return (a.name || "").localeCompare(b.name || "")
           })
-          .map((childLabel) => ({
-            label: childLabel,
-            habits: parents[parentLabel][childLabel],
-          })),
-      }))
+        } else {
+          // Simple alphabetical sort by name
+          parents[parentLabel][childLabel].sort((a, b) => {
+            return (a.name || "").localeCompare(b.name || "")
+          })
+        }
+      })
+    })
+
+    // Calculate totals and sort categories
+    if (sortByCompletions) {
+      // Calculate total remaining completions for each child group
+      // Based on start-of-day state (before activeDate) so order stays static throughout the day
+      const childGroupTotals = {}
+      Object.keys(parents).forEach((parentLabel) => {
+        childGroupTotals[parentLabel] = {}
+        Object.keys(parents[parentLabel]).forEach((childLabel) => {
+          let childTotal = 0
+          parents[parentLabel][childLabel].forEach((habit) => {
+            const completedBeforeToday = weekDays.filter(
+              (d) => habit.completedDates.includes(d) && d < activeDate,
+            ).length
+            const remaining = Math.max(
+              0,
+              habit.frequency.timesPerWeek - completedBeforeToday,
+            )
+            childTotal += remaining
+          })
+          childGroupTotals[parentLabel][childLabel] = childTotal
+        })
+      })
+
+      // Calculate total remaining completions for each parent category
+      const categoryTotals = {}
+      Object.keys(parents).forEach((parentLabel) => {
+        categoryTotals[parentLabel] = Object.values(
+          childGroupTotals[parentLabel],
+        ).reduce((sum, val) => sum + val, 0)
+      })
+
+      // Sort by completions
+      return Object.keys(parents)
+        .sort((a, b) => {
+          if (a === "Unspecified") return 1
+          if (b === "Unspecified") return -1
+          return categoryTotals[b] - categoryTotals[a]
+        })
+        .map((parentLabel) => ({
+          label: parentLabel,
+          groups: Object.keys(parents[parentLabel])
+            .sort((a, b) => {
+              if (a === "General") return -1
+              if (b === "General") return 1
+              return (
+                childGroupTotals[parentLabel][b] -
+                childGroupTotals[parentLabel][a]
+              )
+            })
+            .map((childLabel) => ({
+              label: childLabel,
+              habits: parents[parentLabel][childLabel],
+            })),
+        }))
+    } else {
+      // Sort alphabetically
+      return Object.keys(parents)
+        .sort((a, b) => {
+          if (a === "Unspecified") return 1
+          if (b === "Unspecified") return -1
+          return a.localeCompare(b)
+        })
+        .map((parentLabel) => ({
+          label: parentLabel,
+          groups: Object.keys(parents[parentLabel])
+            .sort((a, b) => {
+              if (a === "General") return -1
+              if (b === "General") return 1
+              return a.localeCompare(b)
+            })
+            .map((childLabel) => ({
+              label: childLabel,
+              habits: parents[parentLabel][childLabel],
+            })),
+        }))
+    }
   }
 
   // CATEGORY-only tree (can be nested later)
-  const groupByCategoryTree = (habits) => {
+  const groupByCategoryTree = (
+    habits,
+    sortByTypeAndName = false,
+    sortByCompletions = true,
+  ) => {
     const sortMode = "category"
     const freq = computeTagFrequency(habits, sortMode)
-    const tree = groupByParentAndChildren(habits, sortMode, freq)
+    const tree = groupByParentAndChildren(
+      habits,
+      sortMode,
+      freq,
+      sortByCompletions,
+    )
+
+    // If sortByTypeAndName is true, sort habits by type (P1 before P2) then name
+    if (sortByTypeAndName) {
+      tree.forEach((parent) => {
+        parent.groups.forEach((group) => {
+          group.habits.sort((a, b) => {
+            // Primary sort: P1 before P2
+            if (a.type !== b.type) {
+              return a.type === "P1" ? -1 : 1
+            }
+            // Secondary sort: by name alphabetically
+            return (a.name || "").localeCompare(b.name || "")
+          })
+        })
+      })
+    }
+
     return tree.map((parent) => ({
       label: parent.label,
       groups: parent.groups,
@@ -268,7 +326,7 @@ export default function WeeklyHabitsList({
   }
 
   const groupByCategoryMode = (habits) => {
-    return groupByCategoryTree(habits).map((parent) => ({
+    return groupByCategoryTree(habits, true, false).map((parent) => ({
       label: parent.label,
       color:
         parent.label === "Unspecified"
@@ -309,7 +367,7 @@ export default function WeeklyHabitsList({
           label === "Unspecified"
             ? theme.colors.coreColor
             : theme.colors.accent,
-        groups: groupByCategoryTree(buckets[label]),
+        groups: groupByCategoryTree(buckets[label], true, false),
       }))
   }
 
