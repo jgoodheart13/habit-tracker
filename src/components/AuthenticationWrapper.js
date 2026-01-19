@@ -18,7 +18,6 @@ export function AuthenticationWrapper({ children }) {
           if (token) {
             localStorage.setItem("auth_token", token)
             setTokenReady(true)
-            console.log("Supabase token set in localStorage")
           }
         } catch (err) {
           console.error("Error getting Supabase token:", err)
