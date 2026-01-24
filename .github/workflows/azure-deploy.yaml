@@ -23,7 +23,7 @@ jobs:
         run: echo "value=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
       
       - name: Build Docker Image for Dev Branches
-        if: startsWith(github.ref, 'refs/heads/dev/')
+        if: startsWith(github.ref, 'refs/heads/dev')
         uses: docker/build-push-action@v3
         with:
           context: .
