@@ -23,7 +23,7 @@ jobs:
         run: echo "value=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
       
       - name: Build Docker Image for Dev Branches
-        if: startsWith(github.ref, 'refs/heads/dev/')
+        if: startsWith(github.ref, 'refs/heads/dev')
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -55,7 +55,7 @@ jobs:
           retention-days: 1
 
   push-docker-image-to-registry-dev:
-    if: startsWith(github.ref, 'refs/heads/dev/')
+    if: startsWith(github.ref, 'refs/heads/dev')
     needs: build-docker-image
     runs-on: ubuntu-latest
     environment:
