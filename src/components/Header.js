@@ -3,28 +3,98 @@ import { useSupabaseAuth } from "../contexts/SupabaseAuthContext"
 import { useNavigate } from "react-router-dom"
 import theme from "../styles/theme"
 
-function LogoutButton() {
+function DropdownMenu({ userInfo, onClose }) {
   const navigate = useNavigate()
 
+  const menuItemStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "10px 16px",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontSize: 15,
+    color: "#333",
+    width: "100%",
+    textAlign: "left",
+    borderRadius: 6,
+    transition: "background 0.2s",
+  }
+
+  const menuItemHoverStyle = {
+    background: "#f5f5f5",
+  }
+
   return (
-    <button
-      onClick={() => navigate("/logout")}
+    <div
       style={{
-        background: theme.colors.accent,
-        color: theme.colors.background,
-        border: "none",
-        borderRadius: 6,
-        padding: "8px 18px",
-        fontWeight: 600,
-        fontSize: 15,
+        position: "absolute",
+        top: 36,
+        right: 0,
+        background: "#fff",
+        border: `1px solid ${theme.colors.border}`,
+        borderRadius: 8,
         boxShadow: theme.colors.shadow,
-        cursor: "pointer",
-        marginTop: 8,
-        minWidth: 100,
+        padding: 8,
+        zIndex: 1000,
+        minWidth: 180,
       }}
     >
-      Log Out
-    </button>
+      <div
+        style={{
+          padding: "8px 16px",
+          fontWeight: 600,
+          fontSize: 14,
+          color: "#666",
+          borderBottom: `1px solid ${theme.colors.border}`,
+          marginBottom: 4,
+        }}
+      >
+        {userInfo?.name || userInfo?.email || "Account"}
+      </div>
+
+      <button
+        onClick={() => {
+          navigate("/help")
+          onClose()
+        }}
+        style={menuItemStyle}
+        onMouseEnter={(e) =>
+          Object.assign(e.currentTarget.style, menuItemHoverStyle)
+        }
+        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+      >
+        <span style={{ fontSize: 18 }}>❓</span>
+        Help & Guide
+      </button>
+
+      <div
+        style={{
+          height: 1,
+          background: theme.colors.border,
+          margin: "4px 0",
+        }}
+      />
+
+      <button
+        onClick={() => {
+          navigate("/logout")
+          onClose()
+        }}
+        style={{
+          ...menuItemStyle,
+          color: theme.colors.accent,
+          fontWeight: 600,
+        }}
+        onMouseEnter={(e) =>
+          Object.assign(e.currentTarget.style, menuItemHoverStyle)
+        }
+        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+      >
+        Log Out
+      </button>
+    </div>
   )
 }
 
@@ -165,31 +235,10 @@ export default function Header() {
             </button>
 
             {showDropdown && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 36,
-                  right: 0,
-                  background: "#fff",
-                  border: `1px solid ${theme.colors.border}`,
-                  borderRadius: 8,
-                  boxShadow: theme.colors.shadow,
-                  padding: 12,
-                  zIndex: 1000,
-                }}
-              >
-                <div
-                  style={{
-                    marginBottom: 8,
-                    fontWeight: 600,
-                    textAlign: "center",
-                  }}
-                >
-                  {userInfo?.name || userInfo?.email || "Account"}
-                </div>
-
-                <LogoutButton />
-              </div>
+              <DropdownMenu
+                userInfo={userInfo}
+                onClose={() => setShowDropdown(false)}
+              />
             )}
           </div>
         )}
