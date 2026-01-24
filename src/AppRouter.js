@@ -10,6 +10,8 @@ import DailyViewPage from "./pages/DailyViewPage"
 import LoginPage from "./pages/LoginPage"
 import LogoutPage from "./pages/LogoutPage"
 import AuthCallbackPage from "./pages/AuthCallbackPage"
+import DownloadPage from "./pages/DownloadPage"
+import HelpPage from "./pages/HelpPage"
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useSupabaseAuth()
@@ -32,6 +34,12 @@ export default function AppRouter() {
   return (
     <Router>
       <Routes>
+        {/* Public download/install page */}
+        <Route path="/download" element={<DownloadPage />} />
+
+        {/* Public help/tutorial page */}
+        <Route path="/help" element={<HelpPage />} />
+
         {/* Login page for unauthenticated users */}
         <Route path="/login" element={<LoginPage />} />
 
