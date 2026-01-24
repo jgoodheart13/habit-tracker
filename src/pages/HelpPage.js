@@ -30,22 +30,30 @@ export default function HelpPage() {
   // Pre-fill completions to make Time Sensitive show only the daily habit
   const previousDays = weekDays.slice(0, daysPassedExcludingToday)
 
-  // Helper to get random completions from previous days
-  const getRandomCompletions = (maxCount) => {
-    const count = Math.floor(
-      Math.random() * (Math.min(maxCount, previousDays.length) + 1),
-    )
+  // Helper to get random completions from previous days, capped at target frequency
+  const getRandomCompletions = (maxCount, weeklyTarget) => {
+    // Cap at both the days passed and the weekly target (to avoid over-completion)
+    const cappedMax = Math.min(maxCount, previousDays.length, weeklyTarget)
+    const count = Math.floor(Math.random() * (cappedMax + 1))
+    return previousDays.slice(0, count)
+  }
+
+  // Helper for reach goals - always below target so they never turn gold
+  const getReachCompletions = (maxCount, weeklyTarget) => {
+    // Reach goals should never hit their target (always < target)
+    const cappedMax = Math.min(maxCount, previousDays.length, weeklyTarget - 1)
+    const count = Math.floor(Math.random() * (Math.max(0, cappedMax) + 1))
     return previousDays.slice(0, count)
   }
 
   // Demo habits state - pre-filled with strategic completions
   const [habitCompletions, setHabitCompletions] = useState({
-    core1: getRandomCompletions(daysPassedExcludingToday), // Morning Workout: random from previous days
-    core2: getRandomCompletions(daysPassedExcludingToday), // Meditate: random from previous days
-    core3: getRandomCompletions(daysPassedExcludingToday), // Read: random from previous days
+    core1: getRandomCompletions(daysPassedExcludingToday, 4), // Morning Workout: random, max 4
+    core2: getRandomCompletions(daysPassedExcludingToday, 5), // Meditate: random, max 5
+    core3: getRandomCompletions(daysPassedExcludingToday, 4), // Read: random, max 4
     core4: previousDays, // Multivitamin: ALL previous days (so it shows in Time Sensitive)
-    reach1: getRandomCompletions(daysPassedExcludingToday), // Learn Spanish: random
-    reach2: getRandomCompletions(daysPassedExcludingToday), // Side Project: random
+    reach1: getReachCompletions(daysPassedExcludingToday, 2), // Learn Spanish: random, always < 2
+    reach2: getReachCompletions(daysPassedExcludingToday, 2), // Side Project: random, always < 2
   })
 
   // Demo habits definitions - Convert to P1/P2 for compatibility with components
@@ -129,14 +137,12 @@ export default function HelpPage() {
     const todayIndex = weekDays.indexOf(todayString)
     const daysLeftIncludingToday = 7 - todayIndex
 
-    // Only show if:
-    // 1. Still possible to complete (remaining <= days left)
-    // 2. Must do today (remaining == days left, meaning no buffer days)
-    return (
-      remaining > 0 &&
-      remaining <= daysLeftIncludingToday &&
-      remaining >= daysLeftIncludingToday
-    )
+    // Show if:
+    // 1. Still needs completions (remaining > 0)
+    // 2. AND either:
+    //    - Must do today with no buffer (remaining == days left)
+    //    - Already behind schedule (remaining > days left, impossible to complete)
+    return remaining > 0 && remaining >= daysLeftIncludingToday
   })
 
   const totalCoreTarget = coreHabits.reduce(
