@@ -55,7 +55,7 @@ jobs:
           retention-days: 1
 
   push-docker-image-to-registry-dev:
-    if: startsWith(github.ref, 'refs/heads/dev/')
+    if: startsWith(github.ref, 'refs/heads/dev')
     needs: build-docker-image
     runs-on: ubuntu-latest
     environment:
