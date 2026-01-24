@@ -1,15 +1,21 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import theme from "../styles/theme"
-import WeekDayRow from "../components/WeekDayRow"
 import RingProgressGraph from "../components/RingProgressGraph"
 import { motion } from "framer-motion"
 
 export default function HelpPage() {
   const navigate = useNavigate()
-  const [demoCompletions, setDemoCompletions] = useState([])
-  const [demoP2Completions, setDemoP2Completions] = useState([])
   const [expandedSection, setExpandedSection] = useState(null)
+
+  // Demo habits state - 3 core, 2 reach
+  const [habitCompletions, setHabitCompletions] = useState({
+    core1: [],
+    core2: [],
+    core3: [],
+    reach1: [],
+    reach2: [],
+  })
 
   // Generate week days starting from Monday
   const today = new Date()
@@ -22,46 +28,79 @@ export default function HelpPage() {
   })
   const todayString = today.toISOString().slice(0, 10)
 
-  // Demo habit for P1
-  const demoHabitP1 = {
-    id: "demo-1",
-    name: "Morning Workout",
-    type: "P1",
-    frequency: { timesPerWeek: 4 },
-    completedDates: demoCompletions,
-    tags: { category: [{ label: "Health" }], time: [{ label: "Morning" }] },
+  // Demo habits definitions
+  const demoHabits = [
+    {
+      id: "core1",
+      name: "Morning Workout",
+      type: "Core",
+      frequency: { timesPerWeek: 4 },
+      completedDates: habitCompletions.core1,
+    },
+    {
+      id: "core2",
+      name: "Meditate",
+      type: "Core",
+      frequency: { timesPerWeek: 5 },
+      completedDates: habitCompletions.core2,
+    },
+    {
+      id: "core3",
+      name: "Read 30min",
+      type: "Core",
+      frequency: { timesPerWeek: 4 },
+      completedDates: habitCompletions.core3,
+    },
+    {
+      id: "reach1",
+      name: "Learn Spanish",
+      type: "Reach",
+      frequency: { timesPerWeek: 2 },
+      completedDates: habitCompletions.reach1,
+    },
+    {
+      id: "reach2",
+      name: "Side Project",
+      type: "Reach",
+      frequency: { timesPerWeek: 2 },
+      completedDates: habitCompletions.reach2,
+    },
+  ]
+
+  const toggleCompletion = (habitId, date) => {
+    setHabitCompletions((prev) => ({
+      ...prev,
+      [habitId]: prev[habitId].includes(date)
+        ? prev[habitId].filter((d) => d !== date)
+        : [...prev[habitId], date],
+    }))
   }
 
-  // Demo habit for P2
-  const demoHabitP2 = {
-    id: "demo-2",
-    name: "Read a Book",
-    type: "P2",
-    frequency: { timesPerWeek: 2 },
-    completedDates: demoP2Completions,
-    tags: { category: [{ label: "Learning" }], time: [{ label: "Night" }] },
-  }
+  // Calculate progress for ring
+  const coreHabits = demoHabits.filter((h) => h.type === "Core")
+  const reachHabits = demoHabits.filter((h) => h.type === "Reach")
 
-  const toggleDemoCompletion = (day) => {
-    setDemoCompletions((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    )
-  }
+  const totalCoreTarget = coreHabits.reduce(
+    (sum, h) => sum + h.frequency.timesPerWeek,
+    0
+  )
+  const totalCoreCompleted = coreHabits.reduce(
+    (sum, h) => sum + h.completedDates.length,
+    0
+  )
+  const totalReachCompleted = reachHabits.reduce(
+    (sum, h) => sum + h.completedDates.length,
+    0
+  )
 
-  const toggleP2Completion = (day) => {
-    setDemoP2Completions((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    )
-  }
+  // Check if today's core habits are complete
+  const todayCoreCompleted = coreHabits.filter((h) =>
+    h.completedDates.includes(todayString)
+  ).length
+  const todayCoreTotal = coreHabits.length
 
-  const p1CompletedCount = demoCompletions.length
-  const p2CompletedCount = demoP2Completions.length
-  const p1Target = demoHabitP1.frequency.timesPerWeek
-  const p2Target = demoHabitP2.frequency.timesPerWeek
-
-  const dailyProgress = (p1CompletedCount / p1Target) * 100
-  const weeklyProgress =
-    ((p1CompletedCount + p2CompletedCount) / (p1Target + p2Target)) * 100
+  const dailyProgress = (todayCoreCompleted / todayCoreTotal) * 100
+  const weeklyProgress = (totalCoreCompleted / totalCoreTarget) * 100
 
   return (
     <div style={styles.container}>
@@ -92,10 +131,10 @@ export default function HelpPage() {
                   backgroundColor: theme.colors.coreColor,
                 }}
               >
-                P1
+                Core
               </div>
               <div>
-                <strong>Priority 1 (Core Habits)</strong>
+                <strong>Core Habits</strong>
                 <p style={styles.smallText}>
                   Your essential daily habits. These are your non-negotiables
                   that keep you on track.
@@ -109,10 +148,10 @@ export default function HelpPage() {
                   backgroundColor: theme.colors.reachColor,
                 }}
               >
-                P2
+                Reach
               </div>
               <div>
-                <strong>Priority 2 (Reach Goals)</strong>
+                <strong>Reach Goals</strong>
                 <p style={styles.smallText}>
                   Stretch goals that take you further. Optional but rewarding
                   when completed.
@@ -122,206 +161,118 @@ export default function HelpPage() {
           </div>
         </Section>
 
-        {/* Interactive Progress Ring Demo */}
+        {/* Combined Interactive Demo */}
         <Section
-          title="Understanding Your Progress Ring 💍"
+          title="Track Habits & Watch Your Progress 🎯💍"
           expanded={expandedSection === 1}
           onToggle={() => setExpandedSection(expandedSection === 1 ? null : 1)}
         >
-          <div style={styles.ringDemo}>
-            <div style={styles.ringContainer}>
-              <RingProgressGraph
-                dailyP1={dailyProgress}
-                weeklyP1={weeklyProgress}
-                p2Count={p2CompletedCount}
-                size={180}
-                strokeInner={12}
-                strokeOuter={12}
-                showNumbers={true}
-              />
-            </div>
-            <div style={styles.ringExplanation}>
-              <h4 style={styles.subheading}>
-                The ring shows your progress at a glance:
-              </h4>
-              <ul style={styles.list}>
-                <li>
-                  <strong style={{ color: theme.colors.coreColor }}>
-                    Inner Ring (Blue):
-                  </strong>{" "}
-                  Daily P1 progress
-                </li>
-                <li>
-                  <strong style={{ color: theme.colors.completeColor }}>
-                    Outer Ring (Yellow):
-                  </strong>{" "}
-                  Weekly overall progress
-                </li>
-                <li>
-                  <strong>💎 Diamonds:</strong> P2 habits completed (bonus
-                  points!)
-                </li>
-              </ul>
-              <p style={styles.highlight}>
-                ✨ When you hit 100% daily, the ring glows with celebration
-                animation!
-              </p>
-            </div>
-          </div>
-        </Section>
-
-        {/* Interactive Habit Tracking Demo */}
-        <Section
-          title="Tracking Your Habits ✅"
-          expanded={expandedSection === 2}
-          onToggle={() => setExpandedSection(expandedSection === 2 ? null : 2)}
-        >
           <p style={styles.text}>
-            Try it! Click on the week days below to mark habits as complete:
+            Try it! Check off some habits below and watch the ring update in real-time:
           </p>
 
-          {/* P1 Demo */}
-          <div style={styles.demoHabit}>
-            <div style={styles.habitHeader}>
-              <div
-                style={{
-                  ...styles.badge,
-                  backgroundColor: theme.colors.coreColor,
-                }}
-              >
-                P1
-              </div>
-              <div>
-                <strong>{demoHabitP1.name}</strong>
-                <p style={styles.smallText}>
-                  Goal: {p1Target}x per week • Progress: {p1CompletedCount}/
-                  {p1Target}
-                </p>
-              </div>
-            </div>
-            <div style={styles.weekRowContainer}>
-              <div
-                style={{ cursor: "pointer" }}
-                onClick={(e) => {
-                  const idx = Math.floor(
-                    (e.nativeEvent.offsetX / e.currentTarget.offsetWidth) * 7
-                  )
-                  if (idx >= 0 && idx < 7) toggleDemoCompletion(weekDays[idx])
-                }}
-              >
-                <WeekDayRow
-                  weekDays={weekDays}
-                  habit={demoHabitP1}
-                  completed={demoCompletions}
-                  n={p1Target}
-                  activeDate={todayString}
-                />
-              </div>
-            </div>
+          {/* Progress Ring */}
+          <div style={styles.ringContainer}>
+            <RingProgressGraph
+              dailyP1={dailyProgress}
+              weeklyP1={weeklyProgress}
+              p2Count={totalReachCompleted}
+              size={180}
+              strokeInner={12}
+              strokeOuter={12}
+              showNumbers={true}
+            />
           </div>
 
-          {/* P2 Demo */}
-          <div style={styles.demoHabit}>
-            <div style={styles.habitHeader}>
-              <div
-                style={{
-                  ...styles.badge,
-                  backgroundColor: theme.colors.reachColor,
-                }}
-              >
-                P2
-              </div>
-              <div>
-                <strong>{demoHabitP2.name}</strong>
-                <p style={styles.smallText}>
-                  Goal: {p2Target}x per week • Progress: {p2CompletedCount}/
-                  {p2Target}
-                </p>
-              </div>
-            </div>
-            <div style={styles.weekRowContainer}>
-              <div
-                style={{ cursor: "pointer" }}
-                onClick={(e) => {
-                  const idx = Math.floor(
-                    (e.nativeEvent.offsetX / e.currentTarget.offsetWidth) * 7
-                  )
-                  if (idx >= 0 && idx < 7) toggleP2Completion(weekDays[idx])
-                }}
-              >
-                <WeekDayRow
-                  weekDays={weekDays}
-                  habit={demoHabitP2}
-                  completed={demoP2Completions}
-                  n={p2Target}
-                  activeDate={todayString}
-                />
-              </div>
-            </div>
+          <div style={styles.ringExplanation}>
+            <ul style={styles.list}>
+              <li>
+                <strong style={{ color: theme.colors.coreColor }}>
+                  Inner Ring (Blue):
+                </strong>{" "}
+                Today's Core progress ({todayCoreCompleted}/{todayCoreTotal})
+              </li>
+              <li>
+                <strong style={{ color: theme.colors.coreColor }}>
+                  Outer Ring (Blue):
+                </strong>{" "}
+                This week's Core progress ({totalCoreCompleted}/{totalCoreTarget})
+              </li>
+              <li>
+                <strong>💎 Diamonds:</strong> Reach habits completed ({totalReachCompleted})
+              </li>
+            </ul>
+            <p style={styles.highlight}>
+              ✨ Complete all your Core goals and both rings glow GOLD! Try it!
+            </p>
+          </div>
+
+          {/* Demo Habits - Core */}
+          <div style={styles.habitsSection}>
+            <h4 style={styles.subheading}>Core Habits:</h4>
+            {coreHabits.map((habit) => (
+              <DemoHabitCheckbox
+                key={habit.id}
+                habit={habit}
+                onToggle={toggleCompletion}
+                todayString={todayString}
+              />
+            ))}
+          </div>
+
+          {/* Demo Habits - Reach */}
+          <div style={styles.habitsSection}>
+            <h4 style={styles.subheading}>Reach Goals:</h4>
+            {reachHabits.map((habit) => (
+              <DemoHabitCheckbox
+                key={habit.id}
+                habit={habit}
+                onToggle={toggleCompletion}
+                todayString={todayString}
+              />
+            ))}
           </div>
 
           <div style={styles.colorGuide}>
-            <h4 style={styles.subheading}>Understanding the colors:</h4>
-            <div style={styles.colorExamples}>
-              <div style={styles.colorItem}>
-                <div
-                  style={{
-                    ...styles.colorBox,
-                    backgroundColor: theme.colors.coreColor,
-                  }}
-                />
-                <span>P1 in progress (blue)</span>
-              </div>
-              <div style={styles.colorItem}>
-                <div
-                  style={{
-                    ...styles.colorBox,
-                    backgroundColor: theme.colors.reachColor,
-                  }}
-                />
-                <span>P2 in progress (light blue)</span>
-              </div>
-              <div style={styles.colorItem}>
-                <div
-                  style={{
-                    ...styles.colorBox,
-                    backgroundColor: theme.colors.completeColor,
-                  }}
-                />
-                <span>Goal completed (yellow) ✨</span>
-              </div>
-              <div style={styles.colorItem}>
-                <div
-                  style={{
-                    ...styles.colorBox,
-                    backgroundColor: theme.colors.incomplete,
-                  }}
-                />
-                <span>Not yet done (gray)</span>
-              </div>
-            </div>
-            <p style={styles.highlight}>
-              💡 Once you reach your weekly goal, additional completions show
-              in light blue as "reach" days!
-            </p>
+            <h4 style={styles.subheading}>Understanding the system:</h4>
+            <ul style={styles.list}>
+              <li>
+                <strong style={{ color: theme.colors.coreColor }}>
+                  Core habits (blue)
+                </strong>{" "}
+                power the rings - complete them daily and weekly
+              </li>
+              <li>
+                <strong style={{ color: theme.colors.reachColor }}>
+                  Reach habits (light blue)
+                </strong>{" "}
+                add diamonds - bonus achievements!
+              </li>
+              <li>
+                <strong style={{ color: theme.colors.completeColor }}>
+                  Gold glow
+                </strong>{" "}
+                = Core goals complete! 🎉
+              </li>
+            </ul>
           </div>
         </Section>
 
         {/* Creating Habits */}
         <Section
           title="Creating Your First Habit 📝"
-          expanded={expandedSection === 3}
-          onToggle={() => setExpandedSection(expandedSection === 3 ? null : 3)}
+          expanded={expandedSection === 2}
+          onToggle={() => setExpandedSection(expandedSection === 2 ? null : 2)}
         >
           <ol style={styles.stepList}>
             <li>
               <strong>Tap the "+" button</strong> at the top of your habit list
             </li>
             <li>
-              <strong>Choose P1 or P2:</strong>
+              <strong>Choose Core or Reach:</strong>
               <ul style={styles.nestedList}>
-                <li>P1 for essential daily habits (workout, meditation)</li>
-                <li>P2 for stretch goals (side project, learning)</li>
+                <li>Core for essential daily habits (workout, meditation)</li>
+                <li>Reach for stretch goals (side project, learning)</li>
               </ul>
             </li>
             <li>
@@ -341,8 +292,8 @@ export default function HelpPage() {
         {/* Best Practices */}
         <Section
           title="Tips for Success 🌟"
-          expanded={expandedSection === 4}
-          onToggle={() => setExpandedSection(expandedSection === 4 ? null : 4)}
+          expanded={expandedSection === 3}
+          onToggle={() => setExpandedSection(expandedSection === 3 ? null : 3)}
         >
           <div style={styles.tipsList}>
             <div style={styles.tip}>
@@ -357,7 +308,7 @@ export default function HelpPage() {
             <div style={styles.tip}>
               <span style={styles.tipIcon}>🎯</span>
               <div>
-                <strong>Be realistic with P1 habits</strong>
+                <strong>Be realistic with Core habits</strong>
                 <p style={styles.smallText}>
                   Set goals you can actually maintain. 4-5x per week allows for
                   rest days.
@@ -367,7 +318,7 @@ export default function HelpPage() {
             <div style={styles.tip}>
               <span style={styles.tipIcon}>🚀</span>
               <div>
-                <strong>Use P2 for aspirational goals</strong>
+                <strong>Use Reach for aspirational goals</strong>
                 <p style={styles.smallText}>
                   These are your "reach" habits. No pressure, just bonus credit!
                 </p>
@@ -414,8 +365,8 @@ export default function HelpPage() {
         {/* Quick Reference */}
         <Section
           title="Quick Reference 📚"
-          expanded={expandedSection === 5}
-          onToggle={() => setExpandedSection(expandedSection === 5 ? null : 5)}
+          expanded={expandedSection === 4}
+          onToggle={() => setExpandedSection(expandedSection === 4 ? null : 4)}
         >
           <div style={styles.reference}>
             <h4 style={styles.subheading}>Week View:</h4>
@@ -450,6 +401,82 @@ export default function HelpPage() {
             Start Tracking Now →
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function DemoHabitCheckbox({ habit, onToggle, todayString }) {
+  const isChecked = habit.completedDates.includes(todayString)
+  const weekCompletions = habit.completedDates.length
+  const target = habit.frequency.timesPerWeek
+  const isWeekComplete = weekCompletions >= target
+
+  const checkboxColor = isWeekComplete
+    ? theme.colors.completeColor
+    : habit.type === "Core"
+    ? theme.colors.coreColor
+    : theme.colors.reachColor
+
+  const leftBarColor = isWeekComplete
+    ? theme.colors.completeColor
+    : habit.type === "Core"
+    ? theme.colors.coreColor
+    : theme.colors.reachColor
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        background: isChecked ? "#e6e6e6" : "#fff",
+        padding: 8,
+        borderRadius: 8,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+        marginBottom: 8,
+        opacity: isChecked ? 0.55 : 1,
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          display: "flex",
+          justifyContent: "center",
+          marginRight: 8,
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onChange={() => onToggle(habit.id, todayString)}
+          style={{
+            accentColor: checkboxColor,
+            width: 24,
+            height: 24,
+            cursor: "pointer",
+          }}
+        />
+      </div>
+      <div
+        style={{
+          flex: 1,
+          borderLeft: `4px solid ${leftBarColor}`,
+          paddingLeft: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontWeight: 500, color: "#111" }}>{habit.name}</span>
+          {habit.type === "Core" && (
+            <span style={{ fontSize: 13, color: "#888" }}>
+              {weekCompletions} / {target}
+            </span>
+          )}
+        </div>
+        {habit.type === "Reach" && (
+          <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>
+            Goal: {target}x per week • {weekCompletions} completed
+          </div>
+        )}
       </div>
     </div>
   )
@@ -578,19 +605,22 @@ const styles = {
     color: "#777",
     margin: "4px 0 0 0",
   },
-  ringDemo: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 20,
-    padding: "20px 0",
-  },
   ringContainer: {
     padding: 20,
+    display: "flex",
+    justifyContent: "center",
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    marginBottom: 20,
   },
   ringExplanation: {
     textAlign: "left",
     width: "100%",
+    marginBottom: 20,
+  },
+  habitsSection: {
+    marginTop: 20,
+    marginBottom: 20,
   },
   subheading: {
     fontSize: 16,
@@ -613,47 +643,11 @@ const styles = {
     color: "#666",
     marginTop: 12,
   },
-  demoHabit: {
-    backgroundColor: "#f8f9fa",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    border: "2px solid #e9ecef",
-  },
-  habitHeader: {
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  weekRowContainer: {
-    display: "flex",
-    justifyContent: "center",
-  },
   colorGuide: {
     marginTop: 24,
     padding: 16,
     backgroundColor: "#f8f9fa",
     borderRadius: 8,
-  },
-  colorExamples: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    gap: 12,
-    marginTop: 12,
-  },
-  colorItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    fontSize: 14,
-  },
-  colorBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    border: "1px solid #ddd",
-    flexShrink: 0,
   },
   stepList: {
     margin: "8px 0",
