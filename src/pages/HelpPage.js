@@ -7,7 +7,7 @@ import { motion } from "framer-motion"
 
 export default function HelpPage() {
   const navigate = useNavigate()
-  const [expandedSection, setExpandedSection] = useState(null)
+  const [expandedSection, setExpandedSection] = useState(0)
 
   // Demo habits state - 3 core, 2 reach
   const [habitCompletions, setHabitCompletions] = useState({
@@ -176,7 +176,7 @@ export default function HelpPage() {
         <Section
           title={
             <span>
-              Track Habits & Watch Your Progress{" "}
+              Track Habits & Progress{" "}
               <span
                 style={{ color: theme.colors.coreColor, fontSize: "1.1em" }}
               >
@@ -394,7 +394,7 @@ export default function HelpPage() {
         </Section>
 
         {/* Quick Reference */}
-        <Section
+        {/* <Section
           title="Quick Reference 📚"
           expanded={expandedSection === 4}
           onToggle={() => setExpandedSection(expandedSection === 4 ? null : 4)}
@@ -412,8 +412,7 @@ export default function HelpPage() {
 
             <h4 style={styles.subheading}>Habit Actions:</h4>
             <ul style={styles.list}>
-              <li>Long press or tap menu icon to edit/delete</li>
-              <li>Drag to reorder (coming soon!)</li>
+              <li>Tap menu icon to edit/delete</li>
             </ul>
 
             <h4 style={styles.subheading}>Progress Tracking:</h4>
@@ -423,7 +422,7 @@ export default function HelpPage() {
               <li>Progress resets each Monday</li>
             </ul>
           </div>
-        </Section>
+        </Section> */}
 
         {/* Get Started CTA */}
         <div style={styles.cta}>
@@ -445,8 +444,8 @@ function Section({ title, children, expanded, onToggle }) {
       animate={{ backgroundColor: expanded ? "#f8f9fa" : "#fff" }}
     >
       <button onClick={onToggle} style={styles.sectionHeader}>
-        <h2 style={styles.sectionTitle}>{title}</h2>
         <span style={styles.expandIcon}>{expanded ? "▼" : "▶"}</span>
+        <h2 style={styles.sectionTitle}>{title}</h2>
       </button>
       {expanded && (
         <motion.div
@@ -517,8 +516,8 @@ const styles = {
     width: "100%",
     padding: 20,
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
     background: "none",
     border: "none",
     cursor: "pointer",
@@ -529,6 +528,8 @@ const styles = {
     fontWeight: 700,
     color: "#333",
     margin: 0,
+    flex: 1,
+    textAlign: "center",
   },
   expandIcon: {
     fontSize: 14,
