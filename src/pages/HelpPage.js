@@ -8,15 +8,9 @@ import { motion } from "framer-motion"
 export default function HelpPage() {
   const navigate = useNavigate()
   const [expandedSection, setExpandedSection] = useState(0)
-
-  // Demo habits state - 3 core, 2 reach
-  const [habitCompletions, setHabitCompletions] = useState({
-    core1: [],
-    core2: [],
-    core3: [],
-    reach1: [],
-    reach2: [],
-  })
+  const [timeSensitiveCollapsed, setTimeSensitiveCollapsed] = useState(false)
+  const [coreCollapsed, setCoreCollapsed] = useState(false)
+  const [reachCollapsed, setReachCollapsed] = useState(false)
 
   // Generate week days starting from Monday
   const today = new Date()
@@ -28,6 +22,31 @@ export default function HelpPage() {
     return d.toISOString().slice(0, 10)
   })
   const todayString = today.toISOString().slice(0, 10)
+
+  // Calculate how many days into the week we are (0 = Monday, 6 = Sunday)
+  const todayIndex = weekDays.indexOf(todayString)
+  const daysPassedExcludingToday = Math.max(0, todayIndex) // Days before today
+
+  // Pre-fill completions to make Time Sensitive show only the daily habit
+  const previousDays = weekDays.slice(0, daysPassedExcludingToday)
+
+  // Helper to get random completions from previous days
+  const getRandomCompletions = (maxCount) => {
+    const count = Math.floor(
+      Math.random() * (Math.min(maxCount, previousDays.length) + 1),
+    )
+    return previousDays.slice(0, count)
+  }
+
+  // Demo habits state - pre-filled with strategic completions
+  const [habitCompletions, setHabitCompletions] = useState({
+    core1: getRandomCompletions(daysPassedExcludingToday), // Morning Workout: random from previous days
+    core2: getRandomCompletions(daysPassedExcludingToday), // Meditate: random from previous days
+    core3: getRandomCompletions(daysPassedExcludingToday), // Read: random from previous days
+    core4: previousDays, // Multivitamin: ALL previous days (so it shows in Time Sensitive)
+    reach1: getRandomCompletions(daysPassedExcludingToday), // Learn Spanish: random
+    reach2: getRandomCompletions(daysPassedExcludingToday), // Side Project: random
+  })
 
   // Demo habits definitions - Convert to P1/P2 for compatibility with components
   const demoHabits = [
@@ -51,6 +70,13 @@ export default function HelpPage() {
       type: "P1",
       frequency: { timesPerWeek: 4 },
       completedDates: habitCompletions.core3,
+    },
+    {
+      id: "core4",
+      name: "Take Multivitamin",
+      type: "P1",
+      frequency: { timesPerWeek: 7 },
+      completedDates: habitCompletions.core4,
     },
     {
       id: "reach1",
@@ -89,6 +115,29 @@ export default function HelpPage() {
   // Calculate progress for ring
   const coreHabits = demoHabits.filter((h) => h.type === "P1")
   const reachHabits = demoHabits.filter((h) => h.type === "P2")
+
+  // Calculate Time Sensitive habits (core habits not completed today that need to be done)
+  const timeSensitiveHabits = coreHabits.filter((habit) => {
+    if (habit.completedDates.includes(todayString)) return false // Already done today
+
+    const completedThisWeek = weekDays.filter((d) =>
+      habit.completedDates.includes(d),
+    ).length
+    const remaining = habit.frequency.timesPerWeek - completedThisWeek
+
+    // Calculate days left in the week INCLUDING today
+    const todayIndex = weekDays.indexOf(todayString)
+    const daysLeftIncludingToday = 7 - todayIndex
+
+    // Only show if:
+    // 1. Still possible to complete (remaining <= days left)
+    // 2. Must do today (remaining == days left, meaning no buffer days)
+    return (
+      remaining > 0 &&
+      remaining <= daysLeftIncludingToday &&
+      remaining >= daysLeftIncludingToday
+    )
+  })
 
   const totalCoreTarget = coreHabits.reduce(
     (sum, h) => sum + h.frequency.timesPerWeek,
@@ -230,38 +279,108 @@ export default function HelpPage() {
             </p>
           </div>
 
+          {/* Time Sensitive explanation */}
+          <div style={styles.timeSensitiveExplanation}>
+            <p style={styles.text}>
+              💡 <strong>Time Sensitive:</strong> Core habits that need to be
+              completed today to stay on track with your weekly goals appear
+              here. Complete these first to maintain momentum!
+            </p>
+          </div>
+
+          {/* Demo Habits - Time Sensitive */}
+          <div style={styles.habitsSection}>
+            <h3 style={styles.categoryHeader}>
+              <span
+                style={styles.categoryArrow}
+                onClick={() =>
+                  setTimeSensitiveCollapsed(!timeSensitiveCollapsed)
+                }
+              >
+                {timeSensitiveCollapsed ? "▶" : "▼"}
+              </span>
+              <span style={{ color: theme.colors.accent }}>Time Sensitive</span>
+            </h3>
+            {!timeSensitiveCollapsed &&
+              (timeSensitiveHabits.length > 0 ? (
+                timeSensitiveHabits.map((habit) => (
+                  <WeeklyHabitRow
+                    key={habit.id}
+                    habit={habit}
+                    activeDate={todayString}
+                    handleComplete={handleComplete}
+                    handleDelete={handleDelete}
+                    onEdit={onEdit}
+                    weekDays={weekDays}
+                    openSheet={openSheet}
+                  />
+                ))
+              ) : (
+                <p
+                  style={{
+                    ...styles.text,
+                    fontStyle: "italic",
+                    color: "#999",
+                    marginLeft: 12,
+                  }}
+                >
+                  All caught up! 🎉
+                </p>
+              ))}
+          </div>
+
           {/* Demo Habits - Core */}
           <div style={styles.habitsSection}>
-            <h4 style={styles.subheading}>Core Habits:</h4>
-            {coreHabits.map((habit) => (
-              <WeeklyHabitRow
-                key={habit.id}
-                habit={habit}
-                activeDate={todayString}
-                handleComplete={handleComplete}
-                handleDelete={handleDelete}
-                onEdit={onEdit}
-                weekDays={weekDays}
-                openSheet={openSheet}
-              />
-            ))}
+            <h3 style={styles.categoryHeader}>
+              <span
+                style={styles.categoryArrow}
+                onClick={() => setCoreCollapsed(!coreCollapsed)}
+              >
+                {coreCollapsed ? "▶" : "▼"}
+              </span>
+              <span style={{ color: theme.colors.coreColor }}>Core Habits</span>
+            </h3>
+            {!coreCollapsed &&
+              coreHabits.map((habit) => (
+                <WeeklyHabitRow
+                  key={habit.id}
+                  habit={habit}
+                  activeDate={todayString}
+                  handleComplete={handleComplete}
+                  handleDelete={handleDelete}
+                  onEdit={onEdit}
+                  weekDays={weekDays}
+                  openSheet={openSheet}
+                />
+              ))}
           </div>
 
           {/* Demo Habits - Reach */}
           <div style={styles.habitsSection}>
-            <h4 style={styles.subheading}>Reach Goals:</h4>
-            {reachHabits.map((habit) => (
-              <WeeklyHabitRow
-                key={habit.id}
-                habit={habit}
-                activeDate={todayString}
-                handleComplete={handleComplete}
-                handleDelete={handleDelete}
-                onEdit={onEdit}
-                weekDays={weekDays}
-                openSheet={openSheet}
-              />
-            ))}
+            <h3 style={styles.categoryHeader}>
+              <span
+                style={styles.categoryArrow}
+                onClick={() => setReachCollapsed(!reachCollapsed)}
+              >
+                {reachCollapsed ? "▶" : "▼"}
+              </span>
+              <span style={{ color: theme.colors.reachColor }}>
+                Reach Goals
+              </span>
+            </h3>
+            {!reachCollapsed &&
+              reachHabits.map((habit) => (
+                <WeeklyHabitRow
+                  key={habit.id}
+                  habit={habit}
+                  activeDate={todayString}
+                  handleComplete={handleComplete}
+                  handleDelete={handleDelete}
+                  onEdit={onEdit}
+                  weekDays={weekDays}
+                  openSheet={openSheet}
+                />
+              ))}
           </div>
 
           <div style={styles.colorGuide}>
@@ -585,6 +704,19 @@ const styles = {
     marginTop: 20,
     marginBottom: 20,
   },
+  categoryHeader: {
+    margin: "0px 0px",
+    fontSize: 20,
+    fontWeight: 600,
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  },
+  categoryArrow: {
+    cursor: "pointer",
+    lineHeight: 1,
+    color: theme.colors.accent,
+  },
   subheading: {
     fontSize: 16,
     fontWeight: 600,
@@ -605,6 +737,14 @@ const styles = {
     fontSize: 14,
     color: "#666",
     marginTop: 12,
+  },
+  timeSensitiveExplanation: {
+    backgroundColor: "#E3F2FD",
+    border: `2px solid ${theme.colors.accent}`,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 24,
+    marginBottom: 12,
   },
   colorGuide: {
     marginTop: 24,
