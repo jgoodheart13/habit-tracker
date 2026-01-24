@@ -4,6 +4,7 @@ import theme from "../styles/theme"
 import RingProgressGraph from "../components/RingProgressGraph"
 import WeeklyHabitRow from "../components/WeeklyHabitRow"
 import { motion } from "framer-motion"
+import { getUrgentHabits, categorizeHabits } from "../utils/habitFilters"
 
 export default function HelpPage() {
   const navigate = useNavigate()
@@ -120,30 +121,11 @@ export default function HelpPage() {
   const onEdit = () => {} // No-op for demo
   const openSheet = () => {} // No-op for demo
 
-  // Calculate progress for ring
-  const coreHabits = demoHabits.filter((h) => h.type === "P1")
-  const reachHabits = demoHabits.filter((h) => h.type === "P2")
+  // Calculate progress for ring - use shared categorization logic
+  const { coreHabits, reachHabits } = categorizeHabits(demoHabits)
 
-  // Calculate Time Sensitive habits (core habits not completed today that need to be done)
-  const timeSensitiveHabits = coreHabits.filter((habit) => {
-    if (habit.completedDates.includes(todayString)) return false // Already done today
-
-    const completedThisWeek = weekDays.filter((d) =>
-      habit.completedDates.includes(d),
-    ).length
-    const remaining = habit.frequency.timesPerWeek - completedThisWeek
-
-    // Calculate days left in the week INCLUDING today
-    const todayIndex = weekDays.indexOf(todayString)
-    const daysLeftIncludingToday = 7 - todayIndex
-
-    // Show if:
-    // 1. Still needs completions (remaining > 0)
-    // 2. AND either:
-    //    - Must do today with no buffer (remaining == days left)
-    //    - Already behind schedule (remaining > days left, impossible to complete)
-    return remaining > 0 && remaining >= daysLeftIncludingToday
-  })
+  // Calculate Time Sensitive habits - use shared filtering logic
+  const timeSensitiveHabits = getUrgentHabits(coreHabits, todayString, weekDays)
 
   const totalCoreTarget = coreHabits.reduce(
     (sum, h) => sum + h.frequency.timesPerWeek,

@@ -5,6 +5,7 @@ import WeeklyHabitRow from "./WeeklyHabitRow"
 import theme from "../styles/theme"
 import PropTypes from "prop-types"
 import { AnimatePresence } from "framer-motion"
+import { getUrgentHabits, sortUrgentHabits } from "../utils/habitFilters"
 
 export default function WeeklyHabitsList({
   habits,
@@ -266,28 +267,11 @@ export default function WeeklyHabitsList({
     const p1 = habits.filter((h) => h.type === "P1")
     const p2 = habits.filter((h) => h.type === "P2")
 
-    // Calculate days remaining in week (from activeDate to end of week)
-    const daysRemainingInWeek = weekDays.filter((d) => d >= activeDate).length
-
-    // Identify urgent habits - need to be done today to stay on track
-    // Only Core (P1) habits can be urgent since Reach goals don't use frequency
-    const isHabitUrgent = (habit) => {
-      // Reach goals are never urgent
-      if (habit.type === "P2") return false
-
-      const completedThisWeek = weekDays.filter((d) =>
-        habit.completedDates.includes(d),
-      ).length
-      const completionsRemaining =
-        habit.frequency.timesPerWeek - completedThisWeek
-
-      // Urgent if completions remaining >= days remaining
-      // But not urgent if already completed today
-      const completedToday = habit.completedDates.includes(activeDate)
-      return completionsRemaining >= daysRemainingInWeek && !completedToday
-    }
-
-    const urgentHabits = habits.filter(isHabitUrgent)
+    // Identify urgent habits using shared utility
+    const urgentHabits = sortUrgentHabits(
+      getUrgentHabits(habits, activeDate, weekDays),
+      weekDays,
+    )
 
     // Build Core groups with Time Sensitive subcategory if applicable
     const coreGroups = groupByCategoryTree(p1)
@@ -296,18 +280,7 @@ export default function WeeklyHabitsList({
     if (urgentHabits.length > 0) {
       coreGroups.unshift({
         label: "Time Sensitive",
-        habits: urgentHabits.sort((a, b) => {
-          // Sort by remaining completions
-          const completedA = weekDays.filter((d) =>
-            a.completedDates.includes(d),
-          ).length
-          const completedB = weekDays.filter((d) =>
-            b.completedDates.includes(d),
-          ).length
-          const remainingA = a.frequency.timesPerWeek - completedA
-          const remainingB = b.frequency.timesPerWeek - completedB
-          return remainingB - remainingA
-        }),
+        habits: urgentHabits,
       })
     }
 
