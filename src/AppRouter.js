@@ -12,6 +12,7 @@ import LogoutPage from "./pages/LogoutPage"
 import AuthCallbackPage from "./pages/AuthCallbackPage"
 import DownloadPage from "./pages/DownloadPage"
 import HelpPage from "./pages/HelpPage"
+import CoinPusherDemoPage from "./pages/CoinPusherDemoPage"
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useSupabaseAuth()
@@ -39,6 +40,9 @@ export default function AppRouter() {
 
         {/* Public help/tutorial page */}
         <Route path="/help" element={<HelpPage />} />
+
+        {/* Coin Pusher Demo Page */}
+        <Route path="/coin-pusher-demo" element={<CoinPusherDemoPage />} />
 
         {/* Login page for unauthenticated users */}
         <Route path="/login" element={<LoginPage />} />
