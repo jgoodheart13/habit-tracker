@@ -62,12 +62,16 @@ export class HabitEvent {
  * Manages the board state and event history
  */
 export class BoardState {
-  constructor() {
+  constructor(persistenceKey = 'coinPusherBoard') {
+    this.persistenceKey = persistenceKey;
     this.events = []; // Ordered list of habit events
     this.coins = []; // Current coins on board
     this.nextCoinId = 0;
     this.fallenCoins = []; // Coins that have fallen (for rewards tracking)
     this.totalRewards = { core: 0, reach: 0, neutral: 0 };
+    
+    // Load persisted state
+    this.loadState();
   }
 
   /**
@@ -93,17 +97,27 @@ export class BoardState {
    */
   addEvent(event) {
     this.events.push(event);
+    this.saveState();
     return event;
   }
 
   /**
    * Remove the last event and replay the board
+   * UNDO RULES:
+   * - Removes push event from current week only
+   * - NEVER reverts XP or restores fallen coins
+   * - Only affects coins still on board
+   * Edge Cases:
+   *   A: All coins on board → removed via replay, pressure decreases
+   *   B: All coins fallen → nothing happens visually, XP unchanged
+   *   C: Some fallen, some remain → remaining removed, fallen stay gone
    */
   undoLastEvent() {
     if (this.events.length === 0) return null;
     
     const removed = this.events.pop();
     this.replayBoard();
+    this.saveState();
     return removed;
   }
 
@@ -111,6 +125,7 @@ export class BoardState {
    * Clear board and replay all events
    * This does NOT restore fallen coins or revoke rewards
    * Coins that have fallen in history remain fallen
+   * CRITICAL: Replay NEVER grants new rewards (Edge Case 6)
    */
   replayBoard() {
     // Preserve all coins that have fallen throughout history
@@ -125,24 +140,24 @@ export class BoardState {
       // Spawn coins
       this.spawnCoins(event);
       
-      // Filter out any coins that historically fell
-      // (shouldn't happen but safety check)
+      // Filter out any coins that historically fell (should never spawn them)
       this.coins = this.coins.filter(c => !historicallyFallenCoinIds.has(c.id));
       
-      // Advance, settle, and drop
+      // Advance and settle
       this.advanceBoard();
       this.settleCoins();
       
-      // Check for new fallen coins but don't add to rewards
-      // (rewards were already granted when they first fell)
+      // Remove any coins that would fall, but DO NOT grant rewards
+      // This enforces: "Undo should never result in additional drops"
       const remaining = [];
       for (const coin of this.coins) {
         if (coin.hasFallen()) {
-          // This coin is falling now during replay
-          // Only add to fallen list if not already there
+          // This coin is falling during replay
+          // Track it but never grant rewards during replay
           if (!historicallyFallenCoinIds.has(coin.id)) {
             this.fallenCoins.push(coin);
             historicallyFallenCoinIds.add(coin.id);
+            // NO reward increment here - replay never grants rewards
           }
         } else {
           remaining.push(coin);
@@ -172,11 +187,13 @@ export class BoardState {
 
   /**
    * Spawn coins for an event
+   * RULE: Each push spawns exactly 1 main coin + 2 neutral coins
+   * Coins spawn at Y=0 with seeded random X positions
    */
   spawnCoins(event) {
     const newCoins = [];
     
-    // Spawn 2 neutral coins
+    // Spawn 2 neutral coins (filler, not associated with habit)
     for (let i = 0; i < 2; i++) {
       const coin = new Coin(
         `coin-${this.nextCoinId++}`,
@@ -188,7 +205,7 @@ export class BoardState {
       this.coins.push(coin);
     }
     
-    // Spawn 1 main coin
+    // Spawn 1 main coin (Core or Reach, matching habit type)
     const mainCoin = new Coin(
       `coin-${this.nextCoinId++}`,
       event.coinType,
@@ -268,7 +285,9 @@ export class BoardState {
 
   /**
    * Drop coins that have crossed the edge
-   * grantRewards: whether to increment reward counters (false during replay)
+   * RULE: Fallen coins are permanent and grant rewards immediately
+   * RULE: During replay (grantRewards=false), track falls but never grant rewards
+   * Edge Case 6: Undo never causes additional reward drops
    */
   dropFallenCoins(grantRewards = true) {
     const remaining = [];
@@ -285,6 +304,7 @@ export class BoardState {
         }
         
         // Grant rewards only if requested (not during replay)
+        // CRITICAL: Replay never grants rewards (Edge Case 6)
         if (grantRewards && !alreadyFallen) {
           if (coin.type === COIN_TYPES.CORE) {
             this.totalRewards.core++;
@@ -300,6 +320,7 @@ export class BoardState {
     }
     
     this.coins = remaining;
+    this.saveState();
     return fallen;
   }
 
@@ -313,5 +334,80 @@ export class BoardState {
       fallenCoins: [...this.fallenCoins],
       totalRewards: { ...this.totalRewards },
     };
+  }
+
+  /**
+   * Save state to localStorage
+   */
+  saveState() {
+    try {
+      const state = {
+        events: this.events.map(e => ({
+          habitId: e.habitId,
+          timestamp: e.timestamp,
+          coinType: e.coinType,
+          spawnPositions: e.spawnPositions,
+        })),
+        coins: this.coins.map(c => ({
+          id: c.id,
+          type: c.type,
+          x: c.x,
+          y: c.y,
+        })),
+        nextCoinId: this.nextCoinId,
+        totalRewards: { ...this.totalRewards },
+        fallenCoins: this.fallenCoins.map(c => ({
+          id: c.id,
+          type: c.type,
+        })),
+      };
+      localStorage.setItem(this.persistenceKey, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Failed to save coin pusher state:', e);
+    }
+  }
+
+  /**
+   * Load state from localStorage
+   */
+  loadState() {
+    try {
+      const saved = localStorage.getItem(this.persistenceKey);
+      if (!saved) return;
+      
+      const state = JSON.parse(saved);
+      
+      // Restore events
+      this.events = state.events.map(e => 
+        new HabitEvent(e.habitId, e.timestamp, e.coinType, e.spawnPositions)
+      );
+      
+      // Restore coins directly (no replay needed)
+      this.coins = (state.coins || []).map(c => 
+        new Coin(c.id, c.type, c.x, c.y)
+      );
+      
+      // Restore fallen coins
+      this.fallenCoins = (state.fallenCoins || []).map(c => 
+        new Coin(c.id, c.type, 0, 0)
+      );
+      
+      // Restore counters
+      this.nextCoinId = state.nextCoinId || 0;
+      this.totalRewards = state.totalRewards || { core: 0, reach: 0, neutral: 0 };
+    } catch (e) {
+      console.warn('Failed to load coin pusher state:', e);
+    }
+  }
+
+  /**
+   * Clear persisted state
+   */
+  clearState() {
+    try {
+      localStorage.removeItem(this.persistenceKey);
+    } catch (e) {
+      console.warn('Failed to clear coin pusher state:', e);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { BoardState } from './boardState';
 import { BOARD_WIDTH, BOARD_DEPTH, COIN_TYPES, ANIMATION_TIMING } from './constants';
@@ -7,13 +7,14 @@ import CoinComponent from './CoinComponent';
 /**
  * Main Coin Pusher Board Component
  */
-export default function CoinPusherBoard({ 
+const CoinPusherBoard = forwardRef(({ 
   onRewardGranted, 
   containerWidth = 600,
-  containerHeight = 400 
-}) {
-  const [boardState] = useState(() => new BoardState());
-  const [coins, setCoins] = useState([]);
+  containerHeight = 400,
+  persistenceKey = 'coinPusherBoard'
+}, ref) => {
+  const [boardState] = useState(() => new BoardState(persistenceKey));
+  const [coins, setCoins] = useState(() => boardState.coins);
   const [animationState, setAnimationState] = useState('idle');
   const [glowIntensity, setGlowIntensity] = useState(0);
   const [recentDrops, setRecentDrops] = useState([]);
@@ -132,18 +133,43 @@ export default function CoinPusherBoard({
   /**
    * Expose methods via ref
    */
+  useImperativeHandle(ref, () => ({
+    pushCore: (habitId) => executePushCycle(habitId, COIN_TYPES.CORE),
+    pushReach: (habitId) => executePushCycle(habitId, COIN_TYPES.REACH),
+    undo: undoLastPush,
+    getState: () => boardState.getState(),
+    // Weekly Lock-in: Clear all board state, XP finalized, new week starts clean
+    clearBoard: () => {
+      boardState.clearState(); // Remove from localStorage
+      boardState.events = [];
+      boardState.coins = [];
+      boardState.fallenCoins = [];
+      boardState.totalRewards = { core: 0, reach: 0, neutral: 0 };
+      boardState.nextCoinId = 0;
+      setCoins([]);
+      setAnimationState('idle');
+    },
+  }), [executePushCycle, undoLastPush, boardState]);
+  
+  // Also expose via window for backward compatibility (demo page)
   useEffect(() => {
-    // Create methods object
-    const methods = {
-      pushCore: (habitId) => executePushCycle(habitId, COIN_TYPES.CORE),
-      pushReach: (habitId) => executePushCycle(habitId, COIN_TYPES.REACH),
-      undo: undoLastPush,
-      getState: () => boardState.getState(),
-    };
-    
-    // Expose via window for demo purposes
     if (typeof window !== 'undefined') {
-      window.coinPusherBoard = methods;
+      window.coinPusherBoard = {
+        pushCore: (habitId) => executePushCycle(habitId, COIN_TYPES.CORE),
+        pushReach: (habitId) => executePushCycle(habitId, COIN_TYPES.REACH),
+        undo: undoLastPush,
+        getState: () => boardState.getState(),
+        clearBoard: () => {
+          boardState.clearState();
+          boardState.events = [];
+          boardState.coins = [];
+          boardState.fallenCoins = [];
+          boardState.totalRewards = { core: 0, reach: 0, neutral: 0 };
+          boardState.nextCoinId = 0;
+          setCoins([]);
+          setAnimationState('idle');
+        },
+      };
     }
     
     return () => {
@@ -286,4 +312,8 @@ export default function CoinPusherBoard({
       </div>
     </div>
   );
-}
+});
+
+CoinPusherBoard.displayName = 'CoinPusherBoard';
+
+export default CoinPusherBoard;
