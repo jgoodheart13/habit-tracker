@@ -3,7 +3,12 @@ import React from "react"
 import theme from "../styles/theme"
 import WeekDayRow from "./WeekDayRow"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTrash, faEdit, faEllipsis } from "@fortawesome/free-solid-svg-icons"
+import {
+  faTrash,
+  faEdit,
+  faEllipsis,
+  faCirclePause,
+} from "@fortawesome/free-solid-svg-icons"
 
 // Reusable view parts (these receive props from WeeklyHabitRow.js)
 export function buildViewParts({
@@ -19,28 +24,34 @@ export function buildViewParts({
   openSheet,
 }) {
   const n = habit.frequency.timesPerWeek
-  const isWeekComplete = (completedWeeklyHabits?.length ?? 0) >= n
-  const leftBarColor = isWeekComplete
-    ? theme.colors.completeColor
-    : habit.type === "P1"
-    ? theme.colors.coreColor
-    : theme.colors.reachColor
+  const isPaused = n === 0
+  const isWeekComplete = !isPaused && (completedWeeklyHabits?.length ?? 0) >= n
+  const leftBarColor = isPaused
+    ? "#999"
+    : isWeekComplete
+      ? theme.colors.completeColor
+      : habit.type === "P1"
+        ? theme.colors.coreColor
+        : theme.colors.reachColor
 
   const CheckBox = (
     <input
       type="checkbox"
       checked={completedToday}
       onChange={(e) => handleComplete(habit.id, activeDate, e.target.checked)}
+      disabled={isPaused}
       style={{
-        accentColor:
-          completedWeeklyHabits?.length >= n
+        accentColor: isPaused
+          ? "#999"
+          : completedWeeklyHabits?.length >= n
             ? theme.colors.completeColor
             : habit.type === "P1"
-            ? theme.colors.coreColor
-            : theme.colors.reachColor,
+              ? theme.colors.coreColor
+              : theme.colors.reachColor,
         width: "100%",
         height: "100%",
         flexShrink: 0,
+        cursor: isPaused ? "not-allowed" : "pointer",
       }}
     />
   )
@@ -49,17 +60,27 @@ export function buildViewParts({
     habit.type === "P1" ? (
       <span
         style={{
-          color: "#111",
-          textShadow: `0 0 6px ${theme.colors.completeColor}, 0 0 12px ${theme.colors.completeColor}`,
+          color: isPaused ? "#999" : "#111",
+          textShadow: isPaused
+            ? "none"
+            : `0 0 6px ${theme.colors.completeColor}, 0 0 12px ${theme.colors.completeColor}`,
           fontWeight: 500,
           textDecoration:
             completedWeeklyHabits.length >= n ? "line-through" : "none",
+          fontStyle: isPaused ? "italic" : "normal",
         }}
       >
         {habit.name}
       </span>
     ) : (
-      <span style={{ color: "#111" }}>{habit.name}</span>
+      <span
+        style={{
+          color: isPaused ? "#999" : "#111",
+          fontStyle: isPaused ? "italic" : "normal",
+        }}
+      >
+        {habit.name}
+      </span>
     )
 
   const WeekRow =
@@ -79,11 +100,16 @@ export function buildViewParts({
         style={{
           marginLeft: 12,
           fontSize: 13,
-          color: "#888",
+          color: isPaused ? "#999" : "#888",
           flexShrink: 0,
+          fontStyle: "normal",
         }}
       >
-        {completedWeeklyHabits?.length} / {n}
+        {isPaused ? (
+          <FontAwesomeIcon icon={faCirclePause} />
+        ) : (
+          `${completedWeeklyHabits?.length} / ${n}`
+        )}
       </span>
     ) : null
 

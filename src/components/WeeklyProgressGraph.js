@@ -1,6 +1,5 @@
-import ProgressGraph from "./ProgressGraph"
 import RingProgressGraph from "./RingProgressGraph"
-import theme from "../styles/theme"
+import { IntegratedStats } from "./StatsDisplay"
 
 // NEW PROPS:
 // - dailyP1Percent must be passed from parent
@@ -106,41 +105,40 @@ export default function WeeklyProgressGraph({
 
   const P1_points = weeklyP1Percent * basePoints
   const totalPoints = P1_points + P2_points
-  const overflowXP = Math.max(0, totalPoints - 100)
 
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
+        justifyContent: "center",
         width: "100%",
+        padding: "20px 16px",
+        boxSizing: "border-box",
+        position: "relative",
       }}
     >
-      {/* Left Column: Stats */}
-      <div style={{ flex: 1, textAlign: "left", fontSize: 14 }}>
-        <strong>Core W</strong> {P1_done}/{P1_total} <br />
-        <strong>Core T:</strong> {P1_done_today}/{idealP1ForToday} <br />
-        <strong>Core P:</strong> +{P1_points.toFixed(1)}
-        <br />
-        <strong>Reach W:</strong> {P2_done} <br />
-        <strong>Reach BP:</strong> x{(P2_scale * basePoints).toFixed(1)} <br />
-        <strong>Reach P:</strong> +{P2_points.toFixed(1)} <br />
-        <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
-      </div>
-
-      {/* Center Column: Ring */}
-      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-        <RingProgressGraph
-          dailyP1={dailyP1Percent} // INNER RING
-          weeklyP1={weeklyP1Percent} // OUTER RING
-          p2Count={P2_done} // P2 diamonds
-          weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+      {/* Stats - Absolute positioned left */}
+      <div style={{ position: "absolute", left: 16 }}>
+        <IntegratedStats
+          coreWeekly={P1_done}
+          coreWeeklyTotal={P1_total}
+          corePoints={P1_points.toFixed(1)}
+          reachWeekly={P2_done}
+          reachPoints={P2_points.toFixed(1)}
+          totalPoints={totalPoints.toFixed(1)}
         />
       </div>
 
-      <div style={{ flex: 1 }}></div>
+      {/* Ring Graph - True center */}
+      <RingProgressGraph
+        dailyP1={dailyP1Percent} // INNER RING
+        weeklyP1={weeklyP1Percent} // OUTER RING
+        p2Count={P2_done} // P2 diamonds
+        weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+      />
+
+      {/* Right space reserved for future content */}
     </div>
   )
 }

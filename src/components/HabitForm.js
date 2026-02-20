@@ -414,13 +414,15 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               color: theme.colors.text,
             }}
           >
-            {habit.frequency.timesPerWeek === 7
-              ? "Every day"
-              : `${habit.frequency.timesPerWeek}x / week`}
+            {habit.frequency.timesPerWeek === 0
+              ? "Paused"
+              : habit.frequency.timesPerWeek === 7
+                ? "Every day"
+                : `${habit.frequency.timesPerWeek}x / week`}
           </div>
           <input
             type="range"
-            min="1"
+            min="0"
             max="7"
             step="1"
             value={habit.frequency.timesPerWeek}

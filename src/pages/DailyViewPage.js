@@ -17,10 +17,11 @@ import { addHabit, updateHabit } from "../services/habitService"
 import DateChanger from "../components/DateChanger"
 import ProgressTabs from "../components/ProgressTabs"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faEyeSlash, faEye } from "@fortawesome/free-solid-svg-icons"
+import { faEyeSlash, faEye, faTimes, faBars, faPlus, faSort } from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
+import Footer from "../components/Footer"
 
 export default function DailyViewPage() {
   // Supabase authentication status
@@ -43,6 +44,14 @@ export default function DailyViewPage() {
   const [weekDays, setWeekDays] = useState([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sheetContent, setSheetContent] = useState(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    habitId: null,
+    habitName: "",
+    isDeleting: false,
+  })
+  const [menuOpen, setMenuOpen] = useState(false)
 
   function openSheet(habit) {
     setSheetContent(
@@ -54,7 +63,11 @@ export default function DailyViewPage() {
           setSheetOpen(false)
         }}
         onDelete={() => {
-          handleDelete(habit.id)
+          setDeleteConfirmModal({
+            show: true,
+            habitId: habit.id,
+            habitName: habit.name,
+          })
           setSheetOpen(false)
         }}
       />
@@ -210,11 +223,31 @@ export default function DailyViewPage() {
       })
   }
 
-  function handleDelete(id) {
+  function handleDelete(id, name) {
+    setDeleteConfirmModal({
+      show: true,
+      habitId: id,
+      habitName: name,
+    })
+  }
+
+  function confirmDelete() {
+    setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: true }))
     ;(async () => {
-      await deleteHabit(id, activeDate)
-      const updated = await getHabits(activeWeekRange.end)
-      setHabits(updated)
+      try {
+        await deleteHabit(deleteConfirmModal.habitId, activeDate)
+        const updated = await getHabits(activeWeekRange.end)
+        setHabits(updated)
+        setDeleteConfirmModal({
+          show: false,
+          habitId: null,
+          habitName: "",
+          isDeleting: false,
+        })
+      } catch (err) {
+        console.error("Error deleting habit:", err)
+        setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
+      }
     })()
   }
 
@@ -307,7 +340,7 @@ export default function DailyViewPage() {
             top: 0,
             zIndex: 10,
             background: theme.colors.background,
-            paddingBottom: 8,
+            // paddingBottom: 8,
           }}
         >
           {/* <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} /> */}
@@ -321,7 +354,6 @@ export default function DailyViewPage() {
 
           <div
             style={{
-              padding: `0px ${theme.defaultHorizontalPadding}`,
               paddingTop: 8,
             }}
           >
@@ -333,72 +365,55 @@ export default function DailyViewPage() {
             />
           </div>
 
+          {/* Search bar */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
+              padding: "0 16px",
               marginBottom: 4,
-              justifyContent: "space-between", // Push elements to opposite ends
             }}
           >
-            {/* Sort */}
-            {/* LEFT SIDE: Sort + Eye */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {/* Sort */}
-              <select
-                value={sortMode}
-                onChange={(e) => setSortMode(e.target.value)}
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   padding: "6px 12px",
+                  paddingRight: searchQuery ? "32px" : "12px",
                   borderRadius: 6,
                   border: `1px solid ${theme.colors.border}`,
                   fontSize: 15,
+                  width: "100%",
+                  outline: "none",
                 }}
-              >
-                <option value="priority">Priority</option>
-                <option value="category">Category</option>
-                <option value="time">Time</option>
-              </select>
-
-              {/* Eye icon */}
-              <button
-                onClick={toggleCompletedVisibility}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                title={
-                  completedVisibility ? "Hide Completed" : "Show Completed"
-                }
-              >
-                <FontAwesomeIcon
-                  icon={completedVisibility ? faEye : faEyeSlash}
-                  size="lg"
-                  color="#555"
-                />
-              </button>
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  style={{
+                    position: "absolute",
+                    right: 6,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 4,
+                    display: "flex",
+                    alignItems: "center",
+                    color: "#999",
+                  }}
+                  title="Clear search"
+                >
+                  <FontAwesomeIcon icon={faTimes} size="sm" />
+                </button>
+              )}
             </div>
-
-            {/* Add button */}
-            <button
-              onClick={() => handleOpenHabitModal()}
-              style={{
-                padding: "6px 12px",
-                marginRight: 8,
-                borderRadius: 6,
-                border: `1px solid ${theme.colors.border}`,
-                background: theme.colors.accent,
-                color: theme.colors.text,
-                cursor: "pointer",
-                fontSize: 15,
-              }}
-            >
-              Add Habit
-            </button>
           </div>
         </div>
         <div>
@@ -408,6 +423,7 @@ export default function DailyViewPage() {
               display: "flex",
               flexDirection: "column",
               gap: 24,
+              paddingBottom: 120,
             }}
           >
             <WeeklyHabitsList
@@ -420,9 +436,158 @@ export default function DailyViewPage() {
               completedVisibility={completedVisibility}
               weekDays={weekDays}
               openSheet={openSheet}
+              searchQuery={searchQuery}
             />
           </div>
         </div>
+
+        {/* Floating Utility Bar */}
+        <div
+          style={{
+            position: "fixed",
+            bottom: 32,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            padding: "8px 16px",
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+            zIndex: 100,
+          }}
+        >
+          {/* LEFT: Menu Icon */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                background: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              title="Menu"
+            >
+              <FontAwesomeIcon icon={faBars} size="lg" color="#555" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {menuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 50,
+                  left: 0,
+                  background: "#fff",
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: 6,
+                  boxShadow: theme.colors.shadow,
+                  minWidth: 180,
+                  zIndex: 1001,
+                }}
+              >
+                <button
+                  onClick={() => {
+                    toggleCompletedVisibility()
+                    setMenuOpen(false)
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    border: "none",
+                    background: "none",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    fontSize: 15,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={completedVisibility ? faEye : faEyeSlash}
+                    color="#555"
+                  />
+                  {completedVisibility ? "Hide Completed" : "Show Completed"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* CENTER: Sort Dropdown */}
+          <div style={{ position: "relative" }}>
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value)}
+              style={{
+                padding: "6px 32px 6px 12px",
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                fontSize: 15,
+                fontWeight: 700,
+                textAlign: "center",
+                textAlignLast: "center",
+                appearance: "none",
+                background: "#fff",
+                cursor: "pointer",
+                minWidth: 120,
+              }}
+            >
+              <option value="priority" style={{ textAlign: "center" }}>
+                Priority
+              </option>
+              <option value="category" style={{ textAlign: "center" }}>
+                Category
+              </option>
+              <option value="time" style={{ textAlign: "center" }}>
+                Time
+              </option>
+            </select>
+            <div
+              style={{
+                position: "absolute",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "none",
+              }}
+            >
+              <FontAwesomeIcon icon={faSort} size="sm" color="#555" />
+            </div>
+          </div>
+
+          {/* RIGHT: Add Habit Button */}
+          <button
+            onClick={() => handleOpenHabitModal()}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 6,
+              border: "none",
+              background: theme.colors.accent,
+              color: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 20,
+              fontWeight: "bold",
+            }}
+            title="Add Habit"
+          >
+            <FontAwesomeIcon icon={faPlus} />
+          </button>
+        </div>
+
+        <Footer />
       </div>
       <BottomSheet isOpen={sheetOpen} onClose={() => setSheetOpen(false)}>
         {sheetContent}
@@ -436,6 +601,135 @@ export default function DailyViewPage() {
           habit={editingHabit}
           isEditing={!!editingHabit}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmModal.show && (
+        <>
+          <style>
+            {`
+              @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+            `}
+          </style>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+            }}
+            onClick={() =>
+              setDeleteConfirmModal({
+                show: false,
+                habitId: null,
+                habitName: "",
+                isDeleting: false,
+              })
+            }
+          >
+            <div
+              style={{
+                background: theme.colors.background,
+                borderRadius: 12,
+                padding: 24,
+                maxWidth: 400,
+                width: "90%",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  marginTop: 0,
+                  marginBottom: 16,
+                  color: theme.colors.text,
+                }}
+              >
+                Delete Habit
+              </h3>
+              <p style={{ marginBottom: 20, color: theme.colors.text }}>
+                Are you sure you want to delete "
+                <strong>{deleteConfirmModal.habitName}</strong>"? This action
+                cannot be undone.
+              </p>
+              <div
+                style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}
+              >
+                <button
+                  onClick={() =>
+                    setDeleteConfirmModal({
+                      show: false,
+                      habitId: null,
+                      habitName: "",
+                      isDeleting: false,
+                    })
+                  }
+                  disabled={deleteConfirmModal.isDeleting}
+                  style={{
+                    background: theme.colors.incomplete,
+                    color: theme.colors.text,
+                    border: "none",
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    cursor: deleteConfirmModal.isDeleting
+                      ? "not-allowed"
+                      : "pointer",
+                    fontWeight: 600,
+                    opacity: deleteConfirmModal.isDeleting ? 0.5 : 1,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleteConfirmModal.isDeleting}
+                  style={{
+                    background: "#e74c3c",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    cursor: deleteConfirmModal.isDeleting
+                      ? "not-allowed"
+                      : "pointer",
+                    fontWeight: 600,
+                    opacity: deleteConfirmModal.isDeleting ? 0.7 : 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {deleteConfirmModal.isDeleting ? (
+                    <>
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          border: "2px solid white",
+                          borderTopColor: "transparent",
+                          borderRadius: "50%",
+                          animation: "spin 0.6s linear infinite",
+                        }}
+                      />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
