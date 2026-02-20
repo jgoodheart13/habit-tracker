@@ -14,27 +14,28 @@ export function IntegratedStats({
       style={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        gap: 16,
+        alignItems: "flex-start",
+        gap: 10,
+        minWidth: 100,
       }}
     >
-      {/* Total - Prominent but elegant */}
-      <div style={{ textAlign: "center" }}>
+      {/* Total - Prominent */}
+      <div>
         <div
           style={{
-            fontSize: 11,
-            color: "#bbb",
+            fontSize: 9,
+            color: "#999",
             textTransform: "uppercase",
-            fontWeight: 500,
-            letterSpacing: "1px",
-            marginBottom: 6,
+            fontWeight: 600,
+            letterSpacing: "0.5px",
+            marginBottom: 4,
           }}
         >
           Total XP
         </div>
         <div
           style={{
-            fontSize: 32,
+            fontSize: 28,
             fontWeight: 700,
             color: theme.colors.accent,
             lineHeight: 1,
@@ -47,64 +48,81 @@ export function IntegratedStats({
       {/* Subtle divider */}
       <div
         style={{
-          width: 60,
+          width: 40,
           height: 1,
           background: `linear-gradient(90deg, ${theme.colors.coreColor}40, ${theme.colors.reachColor}40)`,
         }}
       />
 
-      {/* Core + Reach - Side by side, minimal */}
-      <div
-        style={{
-          display: "flex",
-          gap: 32,
-          fontSize: 13,
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              color: theme.colors.coreColor,
-              fontWeight: 700,
-              marginBottom: 3,
-            }}
-          >
-            {coreWeekly}/{coreWeeklyTotal}
-          </div>
-          <div style={{ fontSize: 10, color: "#aaa" }}>Core</div>
-          <div
-            style={{
-              fontSize: 11,
-              color: theme.colors.coreColor,
-              fontWeight: 600,
-              marginTop: 2,
-            }}
-          >
-            +{corePoints}
-          </div>
+      {/* Core */}
+      <div>
+        <div
+          style={{
+            fontSize: 9,
+            color: "#999",
+            textTransform: "uppercase",
+            fontWeight: 600,
+            letterSpacing: "0.5px",
+            marginBottom: 3,
+          }}
+        >
+          Core
         </div>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: theme.colors.coreColor,
+            lineHeight: 1.2,
+          }}
+        >
+          {coreWeekly}/{coreWeeklyTotal}
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            color: theme.colors.coreColor,
+            fontWeight: 600,
+            marginTop: 2,
+          }}
+        >
+          +{corePoints}
+        </div>
+      </div>
 
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              color: theme.colors.reachColor,
-              fontWeight: 700,
-              marginBottom: 3,
-            }}
-          >
-            {reachWeekly}
-          </div>
-          <div style={{ fontSize: 10, color: "#aaa" }}>Reach</div>
-          <div
-            style={{
-              fontSize: 11,
-              color: theme.colors.reachColor,
-              fontWeight: 600,
-              marginTop: 2,
-            }}
-          >
-            +{reachPoints}
-          </div>
+      {/* Reach */}
+      <div>
+        <div
+          style={{
+            fontSize: 9,
+            color: "#999",
+            textTransform: "uppercase",
+            fontWeight: 600,
+            letterSpacing: "0.5px",
+            marginBottom: 3,
+          }}
+        >
+          Reach
+        </div>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: theme.colors.reachColor,
+            lineHeight: 1.2,
+          }}
+        >
+          {reachWeekly}
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            color: theme.colors.reachColor,
+            fontWeight: 600,
+            marginTop: 2,
+          }}
+        >
+          +{reachPoints}
         </div>
       </div>
     </div>

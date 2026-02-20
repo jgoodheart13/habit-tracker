@@ -353,7 +353,6 @@ export default function DailyViewPage() {
 
           <div
             style={{
-              padding: `0px ${theme.defaultHorizontalPadding}`,
               paddingTop: 8,
             }}
           >

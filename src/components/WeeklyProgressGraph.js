@@ -1,6 +1,4 @@
-import ProgressGraph from "./ProgressGraph"
 import RingProgressGraph from "./RingProgressGraph"
-import theme from "../styles/theme"
 import { IntegratedStats } from "./StatsDisplay"
 
 // NEW PROPS:
@@ -107,20 +105,32 @@ export default function WeeklyProgressGraph({
 
   const P1_points = weeklyP1Percent * basePoints
   const totalPoints = P1_points + P2_points
-  const overflowXP = Math.max(0, totalPoints - 100)
 
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        gap: 20,
-        padding: "20px 0",
+        justifyContent: "center",
         width: "100%",
+        padding: "20px 16px",
+        boxSizing: "border-box",
+        position: "relative",
       }}
     >
-      {/* Ring Graph - Centered */}
+      {/* Stats - Absolute positioned left */}
+      <div style={{ position: "absolute", left: 16 }}>
+        <IntegratedStats
+          coreWeekly={P1_done}
+          coreWeeklyTotal={P1_total}
+          corePoints={P1_points.toFixed(1)}
+          reachWeekly={P2_done}
+          reachPoints={P2_points.toFixed(1)}
+          totalPoints={totalPoints.toFixed(1)}
+        />
+      </div>
+
+      {/* Ring Graph - True center */}
       <RingProgressGraph
         dailyP1={dailyP1Percent} // INNER RING
         weeklyP1={weeklyP1Percent} // OUTER RING
@@ -128,15 +138,7 @@ export default function WeeklyProgressGraph({
         weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
       />
 
-      {/* Subtle Integrated Stats */}
-      <IntegratedStats
-        coreWeekly={P1_done}
-        coreWeeklyTotal={P1_total}
-        corePoints={P1_points.toFixed(1)}
-        reachWeekly={P2_done}
-        reachPoints={P2_points.toFixed(1)}
-        totalPoints={totalPoints.toFixed(1)}
-      />
+      {/* Right space reserved for future content */}
     </div>
   )
 }
