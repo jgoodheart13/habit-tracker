@@ -1,6 +1,7 @@
 import ProgressGraph from "./ProgressGraph"
 import RingProgressGraph from "./RingProgressGraph"
 import theme from "../styles/theme"
+import { IntegratedStats } from "./StatsDisplay"
 
 // NEW PROPS:
 // - dailyP1Percent must be passed from parent
@@ -112,35 +113,30 @@ export default function WeeklyProgressGraph({
     <div
       style={{
         display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
+        flexDirection: "column",
         alignItems: "center",
+        gap: 20,
+        padding: "20px 0",
         width: "100%",
       }}
     >
-      {/* Left Column: Stats */}
-      <div style={{ flex: 1, textAlign: "left", fontSize: 14 }}>
-        <strong>Core W</strong> {P1_done}/{P1_total} <br />
-        <strong>Core T:</strong> {P1_done_today}/{idealP1ForToday} <br />
-        <strong>Core P:</strong> +{P1_points.toFixed(1)}
-        <br />
-        <strong>Reach W:</strong> {P2_done} <br />
-        <strong>Reach BP:</strong> x{(P2_scale * basePoints).toFixed(1)} <br />
-        <strong>Reach P:</strong> +{P2_points.toFixed(1)} <br />
-        <strong>Total:</strong> {totalPoints.toFixed(1)} pts <br />
-      </div>
+      {/* Ring Graph - Centered */}
+      <RingProgressGraph
+        dailyP1={dailyP1Percent} // INNER RING
+        weeklyP1={weeklyP1Percent} // OUTER RING
+        p2Count={P2_done} // P2 diamonds
+        weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+      />
 
-      {/* Center Column: Ring */}
-      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-        <RingProgressGraph
-          dailyP1={dailyP1Percent} // INNER RING
-          weeklyP1={weeklyP1Percent} // OUTER RING
-          p2Count={P2_done} // P2 diamonds
-          weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
-        />
-      </div>
-
-      <div style={{ flex: 1 }}></div>
+      {/* Subtle Integrated Stats */}
+      <IntegratedStats
+        coreWeekly={P1_done}
+        coreWeeklyTotal={P1_total}
+        corePoints={P1_points.toFixed(1)}
+        reachWeekly={P2_done}
+        reachPoints={P2_points.toFixed(1)}
+        totalPoints={totalPoints.toFixed(1)}
+      />
     </div>
   )
 }

@@ -178,6 +178,31 @@ export default function RingProgressGraph({
             strokeLinecap="round"
           />
 
+          {/* 7-DAY SEGMENT DIVIDERS */}
+          {Array.from({ length: 7 }).map((_, i) => {
+            const angle = (360 / 7) * i
+            const rad = (angle * Math.PI) / 180
+            const innerEdge = outerR - strokeOuter / 2 + 1
+            const outerEdge = outerR + strokeOuter / 2 - 1
+            const x1 = expandedCenter + innerEdge * Math.cos(rad)
+            const y1 = expandedCenter + innerEdge * Math.sin(rad)
+            const x2 = expandedCenter + outerEdge * Math.cos(rad)
+            const y2 = expandedCenter + outerEdge * Math.sin(rad)
+
+            return (
+              <line
+                key={i}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="rgba(0,0,0,0.12)"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+              />
+            )
+          })}
+
           {/* OUTER WEEKLY PROGRESS (gradient) */}
           {weekly > 0 && (
             <circle
@@ -304,7 +329,11 @@ export default function RingProgressGraph({
                   key={i}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: i * 0.05, duration: 0.3, ease: "backOut" }}
+                  transition={{
+                    delay: i * 0.05,
+                    duration: 0.3,
+                    ease: "backOut",
+                  }}
                 >
                   <foreignObject
                     x={x - 10}
@@ -315,23 +344,23 @@ export default function RingProgressGraph({
                       overflow: "visible",
                     }}
                   >
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: theme.colors.reachColor,
-                      filter: `drop-shadow(0 0 3px ${theme.colors.reachColor}) drop-shadow(0 0 6px ${theme.colors.reachColor})`,
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faDiamond} size="sm" />
-                  </div>
-                </foreignObject>
-              </motion.g>
-            )
-          })}
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: theme.colors.reachColor,
+                        filter: `drop-shadow(0 0 3px ${theme.colors.reachColor}) drop-shadow(0 0 6px ${theme.colors.reachColor})`,
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faDiamond} size="sm" />
+                    </div>
+                  </foreignObject>
+                </motion.g>
+              )
+            })}
           </motion.g>
         </motion.svg>
 
