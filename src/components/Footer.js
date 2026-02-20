@@ -9,7 +9,7 @@ export default function Footer() {
         position: "sticky",
         bottom: 0,
         textAlign: "center",
-        padding: "16px",
+        padding: "8px",
         background: theme.colors.background,
         borderTop: `1px solid ${theme.colors.border}`,
         zIndex: 10,

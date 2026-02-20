@@ -17,7 +17,7 @@ import { addHabit, updateHabit } from "../services/habitService"
 import DateChanger from "../components/DateChanger"
 import ProgressTabs from "../components/ProgressTabs"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faEyeSlash, faEye, faTimes } from "@fortawesome/free-solid-svg-icons"
+import { faEyeSlash, faEye, faTimes, faBars, faPlus, faSort } from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
@@ -51,6 +51,7 @@ export default function DailyViewPage() {
     habitName: "",
     isDeleting: false,
   })
+  const [menuOpen, setMenuOpen] = useState(false)
 
   function openSheet(habit) {
     setSheetContent(
@@ -364,64 +365,18 @@ export default function DailyViewPage() {
             />
           </div>
 
+          {/* Search bar */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
+              padding: "0 16px",
               marginBottom: 4,
-              justifyContent: "space-between", // Push elements to opposite ends
             }}
           >
-            {/* Sort */}
-            {/* LEFT SIDE: Sort + Eye */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {/* Sort */}
-              <select
-                value={sortMode}
-                onChange={(e) => setSortMode(e.target.value)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  border: `1px solid ${theme.colors.border}`,
-                  fontSize: 15,
-                }}
-              >
-                <option value="priority">Priority</option>
-                <option value="category">Category</option>
-                <option value="time">Time</option>
-              </select>
-
-              {/* Eye icon */}
-              <button
-                onClick={toggleCompletedVisibility}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                title={
-                  completedVisibility ? "Hide Completed" : "Show Completed"
-                }
-              >
-                <FontAwesomeIcon
-                  icon={completedVisibility ? faEye : faEyeSlash}
-                  size="lg"
-                  color="#555"
-                />
-              </button>
-            </div>
-
-            {/* Search bar */}
             <div
               style={{
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
-                flexGrow: 1,
-                maxWidth: 300,
               }}
             >
               <input
@@ -459,23 +414,6 @@ export default function DailyViewPage() {
                 </button>
               )}
             </div>
-
-            {/* Add button */}
-            <button
-              onClick={() => handleOpenHabitModal()}
-              style={{
-                padding: "6px 12px",
-                marginRight: 8,
-                borderRadius: 6,
-                border: `1px solid ${theme.colors.border}`,
-                background: theme.colors.accent,
-                color: theme.colors.text,
-                cursor: "pointer",
-                fontSize: 15,
-              }}
-            >
-              Add Habit
-            </button>
           </div>
         </div>
         <div>
@@ -485,6 +423,7 @@ export default function DailyViewPage() {
               display: "flex",
               flexDirection: "column",
               gap: 24,
+              paddingBottom: 120,
             }}
           >
             <WeeklyHabitsList
@@ -501,6 +440,147 @@ export default function DailyViewPage() {
             />
           </div>
         </div>
+
+        {/* Floating Utility Bar */}
+        <div
+          style={{
+            position: "fixed",
+            bottom: 32,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            padding: "8px 16px",
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+            zIndex: 100,
+          }}
+        >
+          {/* LEFT: Menu Icon */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                background: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              title="Menu"
+            >
+              <FontAwesomeIcon icon={faBars} size="lg" color="#555" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {menuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 50,
+                  left: 0,
+                  background: "#fff",
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: 6,
+                  boxShadow: theme.colors.shadow,
+                  minWidth: 180,
+                  zIndex: 1001,
+                }}
+              >
+                <button
+                  onClick={() => {
+                    toggleCompletedVisibility()
+                    setMenuOpen(false)
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    border: "none",
+                    background: "none",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    fontSize: 15,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={completedVisibility ? faEye : faEyeSlash}
+                    color="#555"
+                  />
+                  {completedVisibility ? "Hide Completed" : "Show Completed"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* CENTER: Sort Dropdown */}
+          <div style={{ position: "relative" }}>
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value)}
+              style={{
+                padding: "6px 32px 6px 12px",
+                borderRadius: 6,
+                border: `1px solid ${theme.colors.border}`,
+                fontSize: 15,
+                fontWeight: 700,
+                textAlign: "center",
+                textAlignLast: "center",
+                appearance: "none",
+                background: "#fff",
+                cursor: "pointer",
+                minWidth: 120,
+              }}
+            >
+              <option value="priority" style={{ textAlign: "center" }}>Priority</option>
+              <option value="category" style={{ textAlign: "center" }}>Category</option>
+              <option value="time" style={{ textAlign: "center" }}>Time</option>
+            </select>
+            <div
+              style={{
+                position: "absolute",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "none",
+              }}
+            >
+              <FontAwesomeIcon icon={faSort} size="sm" color="#555" />
+            </div>
+          </div>
+
+          {/* RIGHT: Add Habit Button */}
+          <button
+            onClick={() => handleOpenHabitModal()}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 6,
+              border: "none",
+              background: theme.colors.accent,
+              color: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 20,
+              fontWeight: "bold",
+            }}
+            title="Add Habit"
+          >
+            <FontAwesomeIcon icon={faPlus} />
+          </button>
+        </div>
+
         <Footer />
       </div>
       <BottomSheet isOpen={sheetOpen} onClose={() => setSheetOpen(false)}>
