@@ -41,7 +41,7 @@ export default function WeeklyHabitRow({
     habit,
     activeDate,
     handleComplete,
-    handleDelete,
+    handleDelete: () => handleDelete(habit.id, habit.name),
     onEdit,
     showWeekDays,
     weekDays,

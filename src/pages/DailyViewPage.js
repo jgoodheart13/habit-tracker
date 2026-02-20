@@ -43,6 +43,12 @@ export default function DailyViewPage() {
   const [weekDays, setWeekDays] = useState([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sheetContent, setSheetContent] = useState(null)
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    habitId: null,
+    habitName: "",
+    isDeleting: false,
+  })
 
   function openSheet(habit) {
     setSheetContent(
@@ -54,7 +60,11 @@ export default function DailyViewPage() {
           setSheetOpen(false)
         }}
         onDelete={() => {
-          handleDelete(habit.id)
+          setDeleteConfirmModal({
+            show: true,
+            habitId: habit.id,
+            habitName: habit.name,
+          })
           setSheetOpen(false)
         }}
       />
@@ -210,11 +220,31 @@ export default function DailyViewPage() {
       })
   }
 
-  function handleDelete(id) {
+  function handleDelete(id, name) {
+    setDeleteConfirmModal({
+      show: true,
+      habitId: id,
+      habitName: name,
+    })
+  }
+
+  function confirmDelete() {
+    setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: true }))
     ;(async () => {
-      await deleteHabit(id, activeDate)
-      const updated = await getHabits(activeWeekRange.end)
-      setHabits(updated)
+      try {
+        await deleteHabit(deleteConfirmModal.habitId, activeDate)
+        const updated = await getHabits(activeWeekRange.end)
+        setHabits(updated)
+        setDeleteConfirmModal({
+          show: false,
+          habitId: null,
+          habitName: "",
+          isDeleting: false,
+        })
+      } catch (err) {
+        console.error("Error deleting habit:", err)
+        setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
+      }
     })()
   }
 
@@ -436,6 +466,135 @@ export default function DailyViewPage() {
           habit={editingHabit}
           isEditing={!!editingHabit}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmModal.show && (
+        <>
+          <style>
+            {`
+              @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+            `}
+          </style>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+            }}
+            onClick={() =>
+              setDeleteConfirmModal({
+                show: false,
+                habitId: null,
+                habitName: "",
+                isDeleting: false,
+              })
+            }
+          >
+            <div
+              style={{
+                background: theme.colors.background,
+                borderRadius: 12,
+                padding: 24,
+                maxWidth: 400,
+                width: "90%",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  marginTop: 0,
+                  marginBottom: 16,
+                  color: theme.colors.text,
+                }}
+              >
+                Delete Habit
+              </h3>
+              <p style={{ marginBottom: 20, color: theme.colors.text }}>
+                Are you sure you want to delete "
+                <strong>{deleteConfirmModal.habitName}</strong>"? This action
+                cannot be undone.
+              </p>
+              <div
+                style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}
+              >
+                <button
+                  onClick={() =>
+                    setDeleteConfirmModal({
+                      show: false,
+                      habitId: null,
+                      habitName: "",
+                      isDeleting: false,
+                    })
+                  }
+                  disabled={deleteConfirmModal.isDeleting}
+                  style={{
+                    background: theme.colors.incomplete,
+                    color: theme.colors.text,
+                    border: "none",
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    cursor: deleteConfirmModal.isDeleting
+                      ? "not-allowed"
+                      : "pointer",
+                    fontWeight: 600,
+                    opacity: deleteConfirmModal.isDeleting ? 0.5 : 1,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleteConfirmModal.isDeleting}
+                  style={{
+                    background: "#e74c3c",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    cursor: deleteConfirmModal.isDeleting
+                      ? "not-allowed"
+                      : "pointer",
+                    fontWeight: 600,
+                    opacity: deleteConfirmModal.isDeleting ? 0.7 : 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {deleteConfirmModal.isDeleting ? (
+                    <>
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          border: "2px solid white",
+                          borderTopColor: "transparent",
+                          borderRadius: "50%",
+                          animation: "spin 0.6s linear infinite",
+                        }}
+                      />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
