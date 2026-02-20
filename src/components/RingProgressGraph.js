@@ -8,6 +8,8 @@ import {
   animate,
 } from "framer-motion"
 import { useEffect, useRef } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faDiamond } from "@fortawesome/free-solid-svg-icons"
 
 export default function RingProgressGraph({
   dailyP1 = 0,
@@ -42,8 +44,10 @@ export default function RingProgressGraph({
 
   const controls = useAnimation()
   const glowControls = useAnimation()
+  const diamondSpinControls = useAnimation()
   const prevDailyRef = useRef(daily)
   const prevWasBelow100 = useRef(daily < 100)
+  const prevP2CountRef = useRef(p2Count)
   const dashProgress = useMotionValue(daily)
 
   const dashArray = useTransform(dashProgress, (v) => {
@@ -118,6 +122,20 @@ export default function RingProgressGraph({
 
     prevDailyRef.current = daily
   }, [daily, dashProgress])
+
+  // Spin animation when a new diamond is added
+  useEffect(() => {
+    if (p2Count > prevP2CountRef.current && prevP2CountRef.current > 0) {
+      diamondSpinControls.start({
+        rotate: [0, 360],
+        transition: {
+          duration: 0.8,
+          ease: [0.34, 1.56, 0.64, 1], // Bouncy easing
+        },
+      })
+    }
+    prevP2CountRef.current = p2Count
+  }, [p2Count, diamondSpinControls])
 
   return (
     <div style={{ textAlign: "center" }}>
@@ -269,34 +287,52 @@ export default function RingProgressGraph({
           </defs>
 
           {/* P2 DIAMONDS ORBITING THE RINGS */}
-          {Array.from({ length: p2Count }).map((_, i) => {
-            const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
-            const rad = (angle * Math.PI) / 180
-            const x = expandedCenter + diamondOrbitR * Math.cos(rad)
-            const y = expandedCenter + diamondOrbitR * Math.sin(rad)
+          <motion.g
+            animate={diamondSpinControls}
+            style={{
+              transformOrigin: `${expandedCenter}px ${expandedCenter}px`,
+            }}
+          >
+            {Array.from({ length: p2Count }).map((_, i) => {
+              const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
+              const rad = (angle * Math.PI) / 180
+              const x = expandedCenter + diamondOrbitR * Math.cos(rad)
+              const y = expandedCenter + diamondOrbitR * Math.sin(rad)
 
-            return (
-              <motion.g
-                key={i}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: i * 0.05, duration: 0.3, ease: "backOut" }}
-              >
-                <polygon
-                  points={`${x},${y - diamondSize} ${
-                    x + diamondSize
-                  },${y} ${x},${y + diamondSize} ${x - diamondSize},${y}`}
-                  fill={theme.colors.reachColor}
-                  stroke={theme.colors.background}
-                  strokeWidth="1.5"
-                  style={{
-                    transform: "rotate(90deg)",
-                    transformOrigin: `${x}px ${y}px`,
-                  }}
-                />
+              return (
+                <motion.g
+                  key={i}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.05, duration: 0.3, ease: "backOut" }}
+                >
+                  <foreignObject
+                    x={x - 10}
+                    y={y - 10}
+                    width={20}
+                    height={20}
+                    style={{
+                      overflow: "visible",
+                    }}
+                  >
+                  <div
+                    style={{
+                      width: 20,
+                      height: 20,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: theme.colors.reachColor,
+                      filter: `drop-shadow(0 0 3px ${theme.colors.reachColor}) drop-shadow(0 0 6px ${theme.colors.reachColor})`,
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faDiamond} size="sm" />
+                  </div>
+                </foreignObject>
               </motion.g>
             )
           })}
+          </motion.g>
         </motion.svg>
 
         {showNumbers && (
