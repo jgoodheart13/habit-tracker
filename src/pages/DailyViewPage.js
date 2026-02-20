@@ -17,7 +17,7 @@ import { addHabit, updateHabit } from "../services/habitService"
 import DateChanger from "../components/DateChanger"
 import ProgressTabs from "../components/ProgressTabs"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faEyeSlash, faEye } from "@fortawesome/free-solid-svg-icons"
+import { faEyeSlash, faEye, faTimes } from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
@@ -43,6 +43,7 @@ export default function DailyViewPage() {
   const [weekDays, setWeekDays] = useState([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sheetContent, setSheetContent] = useState(null)
+  const [searchQuery, setSearchQuery] = useState("")
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({
     show: false,
     habitId: null,
@@ -413,6 +414,52 @@ export default function DailyViewPage() {
               </button>
             </div>
 
+            {/* Search bar */}
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                flexGrow: 1,
+                maxWidth: 300,
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Search habits..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  padding: "6px 12px",
+                  paddingRight: searchQuery ? "32px" : "12px",
+                  borderRadius: 6,
+                  border: `1px solid ${theme.colors.border}`,
+                  fontSize: 15,
+                  width: "100%",
+                  outline: "none",
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  style={{
+                    position: "absolute",
+                    right: 6,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 4,
+                    display: "flex",
+                    alignItems: "center",
+                    color: "#999",
+                  }}
+                  title="Clear search"
+                >
+                  <FontAwesomeIcon icon={faTimes} size="sm" />
+                </button>
+              )}
+            </div>
+
             {/* Add button */}
             <button
               onClick={() => handleOpenHabitModal()}
@@ -450,6 +497,7 @@ export default function DailyViewPage() {
               completedVisibility={completedVisibility}
               weekDays={weekDays}
               openSheet={openSheet}
+              searchQuery={searchQuery}
             />
           </div>
         </div>

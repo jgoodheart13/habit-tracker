@@ -17,6 +17,7 @@ export default function WeeklyHabitsList({
   completedVisibility,
   weekDays,
   openSheet,
+  searchQuery = "",
 }) {
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
@@ -77,6 +78,11 @@ export default function WeeklyHabitsList({
     const parents = {}
 
     habits.forEach((habit) => {
+      // Filter by search query
+      if (searchQuery && !habit.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return // Skip habits that don't match search
+      }
+
       // Filter out completed habits if completedVisibility is false
       const isHidden =
         habit.completedDates.includes(activeDate) ||
@@ -264,12 +270,17 @@ export default function WeeklyHabitsList({
   }
 
   const groupByPriority = (habits) => {
-    const p1 = habits.filter((h) => h.type === "P1")
-    const p2 = habits.filter((h) => h.type === "P2")
+    // Filter by search query
+    const filteredHabits = searchQuery
+      ? habits.filter((h) => h.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : habits
+
+    const p1 = filteredHabits.filter((h) => h.type === "P1")
+    const p2 = filteredHabits.filter((h) => h.type === "P2")
 
     // Identify urgent habits using shared utility
     const urgentHabits = sortUrgentHabits(
-      getUrgentHabits(habits, activeDate, weekDays),
+      getUrgentHabits(filteredHabits, activeDate, weekDays),
       weekDays,
     )
 
@@ -313,6 +324,11 @@ export default function WeeklyHabitsList({
     const buckets = {}
 
     habits.forEach((h) => {
+      // Filter by search query
+      if (searchQuery && !h.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return
+      }
+
       const times = getTags(h, "time")
       const labels = times.length ? times.map((t) => t.label) : ["Unspecified"]
 
@@ -371,7 +387,7 @@ export default function WeeklyHabitsList({
       setGroupedHabits(groupedHabits)
     }
     if (weekDays.length > 0 && habits) sortHabits()
-  }, [sortMode, habits, weekDays, completedVisibility])
+  }, [sortMode, habits, weekDays, completedVisibility, searchQuery])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
