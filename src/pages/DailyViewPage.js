@@ -21,6 +21,7 @@ import { faEyeSlash, faEye, faTimes } from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
+import Footer from "../components/Footer"
 
 export default function DailyViewPage() {
   // Supabase authentication status
@@ -501,6 +502,7 @@ export default function DailyViewPage() {
             />
           </div>
         </div>
+        <Footer />
       </div>
       <BottomSheet isOpen={sheetOpen} onClose={() => setSheetOpen(false)}>
         {sheetContent}
