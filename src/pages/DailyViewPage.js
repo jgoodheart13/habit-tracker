@@ -340,7 +340,7 @@ export default function DailyViewPage() {
             top: 0,
             zIndex: 10,
             background: theme.colors.background,
-            paddingBottom: 8,
+            // paddingBottom: 8,
           }}
         >
           {/* <ProgressTabs activeTab={activeTab} setActiveTab={setActiveTab} /> */}
@@ -381,7 +381,7 @@ export default function DailyViewPage() {
             >
               <input
                 type="text"
-                placeholder="Search habits..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -541,9 +541,15 @@ export default function DailyViewPage() {
                 minWidth: 120,
               }}
             >
-              <option value="priority" style={{ textAlign: "center" }}>Priority</option>
-              <option value="category" style={{ textAlign: "center" }}>Category</option>
-              <option value="time" style={{ textAlign: "center" }}>Time</option>
+              <option value="priority" style={{ textAlign: "center" }}>
+                Priority
+              </option>
+              <option value="category" style={{ textAlign: "center" }}>
+                Category
+              </option>
+              <option value="time" style={{ textAlign: "center" }}>
+                Time
+              </option>
             </select>
             <div
               style={{
