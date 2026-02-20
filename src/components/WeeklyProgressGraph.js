@@ -113,7 +113,7 @@ export default function WeeklyProgressGraph({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        padding: "10px 16px",
+        padding: "20px 16px",
         boxSizing: "border-box",
         position: "relative",
       }}
