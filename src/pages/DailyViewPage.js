@@ -62,6 +62,14 @@ export default function DailyViewPage() {
           handleOpenHabitModal(habit)
           setSheetOpen(false)
         }}
+        onPause={() => {
+          handlePauseHabit(habit)
+          setSheetOpen(false)
+        }}
+        onResume={() => {
+          handleResumeHabit(habit)
+          setSheetOpen(false)
+        }}
         onDelete={() => {
           setDeleteConfirmModal({
             show: true,
@@ -70,7 +78,7 @@ export default function DailyViewPage() {
           })
           setSheetOpen(false)
         }}
-      />
+      />,
     )
     setSheetOpen(true)
   }
@@ -292,15 +300,35 @@ export default function DailyViewPage() {
   }
 
   function handleUpdateHabit(updatedHabit) {
-    // Close modal
-    handleCloseHabitModal()
     // Update habit in backend and refresh list
     ;(async () => {
-      // Assuming there's an updateHabit function in habitService
       await updateHabit(updatedHabit.id, updatedHabit)
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
     })()
+  }
+
+  function handlePauseHabit(habit) {
+    const pausedHabit = {
+      ...habit,
+      frequency: {
+        ...habit.frequency,
+        timesPerWeek: 0,
+      },
+    }
+    handleUpdateHabit(pausedHabit)
+  }
+
+  function handleResumeHabit(habit) {
+    // Resume with a default frequency of 7 (daily)
+    const resumedHabit = {
+      ...habit,
+      frequency: {
+        ...habit.frequency,
+        timesPerWeek: 7,
+      },
+    }
+    handleUpdateHabit(resumedHabit)
   }
 
   const toggleCompletedVisibility = () => {
@@ -392,6 +420,7 @@ export default function DailyViewPage() {
                   fontSize: 15,
                   width: "100%",
                   outline: "none",
+                  marginBottom: 8,
                 }}
               />
               {searchQuery && (
