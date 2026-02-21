@@ -9,7 +9,7 @@ import {
 } from "framer-motion"
 import { useEffect, useRef } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDiamond } from "@fortawesome/free-solid-svg-icons"
+import { faGem } from "@fortawesome/free-solid-svg-icons"
 
 export default function RingProgressGraph({
   dailyP1 = 0,
@@ -314,9 +314,7 @@ export default function RingProgressGraph({
           {/* P2 DIAMONDS ORBITING THE RINGS */}
           <motion.g
             animate={diamondSpinControls}
-            style={{
-              transformOrigin: `${expandedCenter}px ${expandedCenter}px`,
-            }}
+            transform-origin={`${expandedCenter} ${expandedCenter}`}
           >
             {Array.from({ length: p2Count }).map((_, i) => {
               const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
@@ -353,9 +351,10 @@ export default function RingProgressGraph({
                         justifyContent: "center",
                         color: theme.colors.reachColor,
                         filter: `drop-shadow(0 0 3px ${theme.colors.reachColor}) drop-shadow(0 0 6px ${theme.colors.reachColor})`,
+                        transform: "rotate(90deg)",
                       }}
                     >
-                      <FontAwesomeIcon icon={faDiamond} size="sm" />
+                      <FontAwesomeIcon icon={faGem} size="sm" />
                     </div>
                   </foreignObject>
                 </motion.g>
