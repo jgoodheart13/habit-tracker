@@ -15,47 +15,36 @@ export function IntegratedStats({
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: 10,
+        gap: 8,
         minWidth: 100,
       }}
     >
       {/* Total - Prominent */}
-      <div>
+      <div style={{ marginBottom: 4 }}>
         <div
           style={{
-            fontSize: 9,
-            color: "#999",
-            textTransform: "uppercase",
-            fontWeight: 600,
-            letterSpacing: "0.5px",
-            marginBottom: 4,
-          }}
-        >
-          Total XP
-        </div>
-        <div
-          style={{
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: 700,
-            color: theme.colors.accent,
+            color: theme.colors.text,
             lineHeight: 1,
           }}
         >
-          {totalPoints}
+          {Math.round(totalPoints)} XP
+        </div>
+        <div
+          style={{
+            fontSize: 10,
+            color: "#999",
+            fontWeight: 500,
+            marginTop: 2,
+          }}
+        >
+          This Week
         </div>
       </div>
 
-      {/* Subtle divider */}
-      <div
-        style={{
-          width: 40,
-          height: 1,
-          background: `linear-gradient(90deg, ${theme.colors.coreColor}40, ${theme.colors.reachColor}40)`,
-        }}
-      />
-
       {/* Core */}
-      <div>
+      <div style={{ paddingLeft: 8 }}>
         <div
           style={{
             fontSize: 9,
@@ -63,7 +52,7 @@ export function IntegratedStats({
             textTransform: "uppercase",
             fontWeight: 600,
             letterSpacing: "0.5px",
-            marginBottom: 3,
+            marginBottom: 2,
           }}
         >
           Core
@@ -72,11 +61,11 @@ export function IntegratedStats({
           style={{
             fontSize: 14,
             fontWeight: 700,
-            color: theme.colors.coreColor,
+            color: theme.colors.text,
             lineHeight: 1.2,
           }}
         >
-          {coreWeekly}/{coreWeeklyTotal}
+          {Math.round(coreWeekly)} / {Math.round(coreWeeklyTotal)}
         </div>
         <div
           style={{
@@ -86,12 +75,12 @@ export function IntegratedStats({
             marginTop: 2,
           }}
         >
-          +{corePoints}
+          +{Math.round(corePoints)} XP
         </div>
       </div>
 
       {/* Reach */}
-      <div>
+      <div style={{ paddingLeft: 8 }}>
         <div
           style={{
             fontSize: 9,
@@ -99,7 +88,7 @@ export function IntegratedStats({
             textTransform: "uppercase",
             fontWeight: 600,
             letterSpacing: "0.5px",
-            marginBottom: 3,
+            marginBottom: 2,
           }}
         >
           Reach
@@ -108,11 +97,11 @@ export function IntegratedStats({
           style={{
             fontSize: 14,
             fontWeight: 700,
-            color: theme.colors.reachColor,
+            color: theme.colors.text,
             lineHeight: 1.2,
           }}
         >
-          {reachWeekly}
+          {Math.round(reachWeekly)}
         </div>
         <div
           style={{
@@ -122,7 +111,7 @@ export function IntegratedStats({
             marginTop: 2,
           }}
         >
-          +{reachPoints}
+          +{Math.round(reachPoints)} XP
         </div>
       </div>
     </div>

@@ -31,8 +31,9 @@ export default function RingProgressGraph({
   const outerR = center - strokeOuter / 2 - 6
   const innerR = center - strokeOuter - strokeInner / 2 - 10
   const diamondOrbitR = outerR + strokeOuter / 2 + 12 // Orbit outside the rings
+  const textArcR = outerR + strokeOuter / 2 + 8 // Slightly outside the outer ring stroke
   const diamondSize = 6
-  const expandedSize = size + diamondSize * 4 // Extra space for diamonds
+  const expandedSize = size + diamondSize * 4 + 30 // Extra space for diamonds and glow
   const expandedCenter = expandedSize / 2
 
   const C_outer = 2 * Math.PI * outerR
@@ -138,7 +139,7 @@ export default function RingProgressGraph({
   }, [p2Count, diamondSpinControls])
 
   return (
-    <div style={{ textAlign: "center" }}>
+    <div style={{ textAlign: "center", isolation: "isolate" }}>
       <motion.div
         animate={controls}
         style={{
@@ -361,6 +362,31 @@ export default function RingProgressGraph({
               )
             })}
           </motion.g>
+
+          {/* WEEKLY PERCENTAGE TEXT ALONG ARC - Rendered last for top z-index */}
+          {weekly > 0 && (() => {
+            // Calculate position at the end of the weekly arc
+            // In SVG coordinates (before rotation), 0° is at 3 o'clock
+            // Progress starts at 0° and moves clockwise
+            const progressAngle = (Math.min(weekly, 100) / 100) * 360
+            const angleInRadians = (progressAngle * Math.PI) / 180
+            const textX = expandedCenter + textArcR * Math.cos(angleInRadians)
+            const textY = expandedCenter + textArcR * Math.sin(angleInRadians)
+            
+            return (
+              <g transform={`translate(${textX}, ${textY}) rotate(90)`}>
+                <text
+                  fill="#000"
+                  fontSize="13"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  <tspan fontWeight="600">{Math.round(weekly)}</tspan>
+                  <tspan fontWeight="400">%</tspan>
+                </text>
+              </g>
+            )
+          })()}
         </motion.svg>
 
         {showNumbers && (
@@ -375,9 +401,6 @@ export default function RingProgressGraph({
           >
             <div style={{ fontSize: 32, fontWeight: 700 }}>
               {Math.round(daily)}
-            </div>
-            <div style={{ fontSize: 18, opacity: 0.65 }}>
-              {Math.round(weekly)}
             </div>
           </div>
         )}

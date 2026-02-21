@@ -392,6 +392,7 @@ export default function DailyViewPage() {
                   fontSize: 15,
                   width: "100%",
                   outline: "none",
+                  marginBottom: 8,
                 }}
               />
               {searchQuery && (
