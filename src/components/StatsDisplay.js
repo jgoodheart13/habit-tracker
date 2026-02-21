@@ -20,7 +20,7 @@ export function IntegratedStats({
       }}
     >
       {/* Total - Prominent */}
-      <div style={{ marginBottom: 4 }}>
+      <div style={{ marginBottom: 16 }}>
         <div
           style={{
             fontSize: 24,
@@ -33,10 +33,11 @@ export function IntegratedStats({
         </div>
         <div
           style={{
-            fontSize: 10,
-            color: "#999",
-            fontWeight: 500,
-            marginTop: 2,
+            fontSize: 11,
+            color: "#666",
+            fontWeight: 600,
+            marginTop: 3,
+            letterSpacing: "0.3px",
           }}
         >
           This Week
@@ -50,7 +51,7 @@ export function IntegratedStats({
             fontSize: 9,
             color: "#999",
             textTransform: "uppercase",
-            fontWeight: 600,
+            fontWeight: 500,
             letterSpacing: "0.5px",
             marginBottom: 2,
           }}
@@ -86,7 +87,7 @@ export function IntegratedStats({
             fontSize: 9,
             color: "#999",
             textTransform: "uppercase",
-            fontWeight: 600,
+            fontWeight: 500,
             letterSpacing: "0.5px",
             marginBottom: 2,
           }}

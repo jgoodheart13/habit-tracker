@@ -31,7 +31,7 @@ export default function RingProgressGraph({
   const outerR = center - strokeOuter / 2 - 6
   const innerR = center - strokeOuter - strokeInner / 2 - 10
   const diamondOrbitR = outerR + strokeOuter / 2 + 12 // Orbit outside the rings
-  const textArcR = outerR + strokeOuter / 2 + 8 // Slightly outside the outer ring stroke
+  const textArcR = outerR + strokeOuter / 2 + 13 // Further outside for breathing room from red marker
   const diamondSize = 6
   const expandedSize = size + diamondSize * 4 + 30 // Extra space for diamonds and glow
   const expandedCenter = expandedSize / 2
@@ -46,6 +46,7 @@ export default function RingProgressGraph({
   const controls = useAnimation()
   const glowControls = useAnimation()
   const diamondSpinControls = useAnimation()
+  const diamondGlowControls = useAnimation()
   const prevDailyRef = useRef(daily)
   const prevWasBelow100 = useRef(daily < 100)
   const prevP2CountRef = useRef(p2Count)
@@ -134,9 +135,21 @@ export default function RingProgressGraph({
           ease: [0.34, 1.56, 0.64, 1], // Bouncy easing
         },
       })
+      
+      // Animate glow during spin
+      diamondGlowControls.start({
+        filter: [
+          `drop-shadow(0 0 3px ${theme.colors.reachColor}) drop-shadow(0 0 6px ${theme.colors.reachColor})`,
+          `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
+        ],
+        transition: {
+          duration: 0.8,
+          ease: "easeOut",
+        },
+      })
     }
     prevP2CountRef.current = p2Count
-  }, [p2Count, diamondSpinControls])
+  }, [p2Count, diamondSpinControls, diamondGlowControls])
 
   return (
     <div style={{ textAlign: "center", isolation: "isolate" }}>
@@ -231,7 +244,7 @@ export default function RingProgressGraph({
                 x2={expandedCenter}
                 y2={expandedCenter - outerR - strokeOuter / 2 + 1}
                 stroke="red"
-                strokeWidth={2.5}
+                strokeWidth={2}
                 strokeLinecap="round"
                 transform={`rotate(${
                   90 + (paceMarker / 100) * 360
@@ -343,7 +356,8 @@ export default function RingProgressGraph({
                       overflow: "visible",
                     }}
                   >
-                    <div
+                    <motion.div
+                      animate={diamondGlowControls}
                       style={{
                         width: 20,
                         height: 20,
@@ -351,12 +365,12 @@ export default function RingProgressGraph({
                         alignItems: "center",
                         justifyContent: "center",
                         color: theme.colors.reachColor,
-                        filter: `drop-shadow(0 0 3px ${theme.colors.reachColor}) drop-shadow(0 0 6px ${theme.colors.reachColor})`,
+                        filter: `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
                         transform: "rotate(90deg)",
                       }}
                     >
                       <FontAwesomeIcon icon={faGem} size="sm" />
-                    </div>
+                    </motion.div>
                   </foreignObject>
                 </motion.g>
               )
@@ -376,12 +390,12 @@ export default function RingProgressGraph({
             return (
               <g transform={`translate(${textX}, ${textY}) rotate(90)`}>
                 <text
-                  fill="#000"
+                  fill="rgba(0, 0, 0, 0.7)"
                   fontSize="13"
                   textAnchor="middle"
                   dominantBaseline="middle"
                 >
-                  <tspan fontWeight="600">{Math.round(weekly)}</tspan>
+                  <tspan fontWeight="500">{Math.round(weekly)}</tspan>
                   <tspan fontWeight="400">%</tspan>
                 </text>
               </g>
