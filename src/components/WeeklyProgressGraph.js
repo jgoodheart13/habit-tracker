@@ -162,7 +162,7 @@ export default function WeeklyProgressGraph({
       }}
     >
       {/* Stats - Absolute positioned left */}
-      <div style={{ position: "absolute", left: 16 }}>
+      <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
         <IntegratedStats
           coreWeekly={P1_done}
           coreWeeklyTotal={P1_total}
@@ -175,12 +175,14 @@ export default function WeeklyProgressGraph({
       </div>
 
       {/* Ring Graph - True center */}
-      <RingProgressGraph
-        dailyP1={dailyP1Percent} // INNER RING
-        weeklyP1={weeklyP1Percent} // OUTER RING
-        p2Count={P2_done} // P2 diamonds
-        weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
-      />
+      <div style={{ position: "relative", zIndex: 2 }}>
+        <RingProgressGraph
+          dailyP1={dailyP1Percent} // INNER RING
+          weeklyP1={weeklyP1Percent} // OUTER RING
+          p2Count={P2_done} // P2 diamonds
+          weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+        />
+      </div>
 
       {/* Floating +XP Feedback */}
       <AnimatePresence>

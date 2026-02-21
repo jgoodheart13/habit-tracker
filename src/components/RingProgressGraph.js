@@ -76,9 +76,9 @@ export default function RingProgressGraph({
       // Big burst glow when first hitting 100%, then smooth fade to no glow
       glowControls.start({
         filter: [
-          `drop-shadow(0 0 8px ${theme.colors.completeColor}) drop-shadow(0 0 16px ${theme.colors.completeColor})`,
-          `drop-shadow(0 0 20px ${theme.colors.completeColor}) drop-shadow(0 0 40px ${theme.colors.completeColor})`,
-          `drop-shadow(0 0 4px ${theme.colors.completeColor}) drop-shadow(0 0 8px ${theme.colors.completeColor})`,
+          `drop-shadow(0 0 6px ${theme.colors.completeColor}) drop-shadow(0 0 12px ${theme.colors.completeColor})`,
+          `drop-shadow(0 0 15px ${theme.colors.completeColor}) drop-shadow(0 0 30px ${theme.colors.completeColor})`,
+          `drop-shadow(0 0 3px ${theme.colors.completeColor}) drop-shadow(0 0 6px ${theme.colors.completeColor})`,
           "drop-shadow(0 0 0px transparent)",
         ],
         transition: {
