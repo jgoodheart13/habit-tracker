@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import theme from "../styles/theme";
 import WeeklyProgressGraph from "../components/WeeklyProgressGraph"
+import LevelProgress from "../components/LevelProgress"
 import {
   getHabits,
   markHabitComplete,
@@ -15,7 +16,6 @@ import { AuthContext } from "../components/AuthenticationWrapper"
 import HabitModal from "../components/HabitModal"
 import { addHabit, updateHabit } from "../services/habitService"
 import DateChanger from "../components/DateChanger"
-import ProgressTabs from "../components/ProgressTabs"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faEye, faTimes, faBars, faPlus, faSort } from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
@@ -52,6 +52,11 @@ export default function DailyViewPage() {
     isDeleting: false,
   })
   const [menuOpen, setMenuOpen] = useState(false)
+  const [newlyAddedHabitId, setNewlyAddedHabitId] = useState(null)
+  const [totalWeeklyXP, setTotalWeeklyXP] = useState(0)
+  const [coreWeeklyXP, setCoreWeeklyXP] = useState(0)
+  const [reachWeeklyXP, setReachWeeklyXP] = useState(0)
+  const [showStats, setShowStats] = useState(false)
 
   function openSheet(habit) {
     setSheetContent(
@@ -293,9 +298,15 @@ export default function DailyViewPage() {
     // Close modal
     handleCloseHabitModal()
     newHabit.startDate = activeDate
-    addHabit(newHabit).then(async () => {
+    addHabit(newHabit).then(async (addedHabit) => {
+      console.log("Added habit:", addedHabit)
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
+      // Track the newly added habit for scrolling
+      if (addedHabit?.id) {
+        console.log("Setting newlyAddedHabitId:", addedHabit.id)
+        setNewlyAddedHabitId(addedHabit.id)
+      }
     })
   }
 
@@ -380,6 +391,14 @@ export default function DailyViewPage() {
             activeTab={activeTab}
           />
 
+          {/* Level Progress Bar */}
+          <LevelProgress
+            currentXP={totalWeeklyXP}
+            coreXP={coreWeeklyXP}
+            reachXP={reachWeeklyXP}
+            onToggleStats={() => setShowStats(!showStats)}
+          />
+
           <div
             style={{
               paddingTop: 8,
@@ -390,6 +409,12 @@ export default function DailyViewPage() {
               activeWeekRange={activeWeekRange}
               showHeader={false}
               activeDate={activeDate}
+              showStats={showStats}
+              onXPUpdate={(xp) => {
+                setTotalWeeklyXP(xp.total)
+                setCoreWeeklyXP(xp.core)
+                setReachWeeklyXP(xp.reach)
+              }}
             />
           </div>
 
@@ -466,6 +491,8 @@ export default function DailyViewPage() {
               weekDays={weekDays}
               openSheet={openSheet}
               searchQuery={searchQuery}
+              newlyAddedHabitId={newlyAddedHabitId}
+              onScrollComplete={() => setNewlyAddedHabitId(null)}
             />
           </div>
         </div>

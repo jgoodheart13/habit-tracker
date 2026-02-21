@@ -10,6 +10,8 @@ export default function WeeklyProgressGraph({
   habits,
   activeWeekRange,
   activeDate,
+  onXPUpdate,
+  showStats = true,
 }) {
   const [floatingXP, setFloatingXP] = useState(null)
   const prevTotalPointsRef = useRef(0)
@@ -146,7 +148,16 @@ export default function WeeklyProgressGraph({
     prevTotalPointsRef.current = currentTotal
     prevCorePointsRef.current = currentCore
     prevReachPointsRef.current = currentReach
-  }, [totalPoints, P1_points, P2_points])
+
+    // Notify parent of XP update with breakdown
+    if (onXPUpdate) {
+      onXPUpdate({
+        total: currentTotal,
+        core: currentCore,
+        reach: currentReach,
+      })
+    }
+  }, [totalPoints, P1_points, P2_points, onXPUpdate])
 
   return (
     <div
@@ -162,25 +173,29 @@ export default function WeeklyProgressGraph({
       }}
     >
       {/* Stats - Absolute positioned left */}
-      <div style={{ position: "absolute", left: 16 }}>
-        <IntegratedStats
-          coreWeekly={P1_done}
-          coreWeeklyTotal={P1_total}
-          corePoints={P1_points.toFixed(1)}
-          reachWeekly={P2_done}
-          reachPoints={P2_points.toFixed(1)}
-          totalPoints={totalPoints.toFixed(1)}
-          weeklyP1Percent={weeklyP1Percent}
-        />
-      </div>
+      {showStats && (
+        <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
+          <IntegratedStats
+            coreWeekly={P1_done}
+            coreWeeklyTotal={P1_total}
+            corePoints={P1_points.toFixed(1)}
+            reachWeekly={P2_done}
+            reachPoints={P2_points.toFixed(1)}
+            basePoints={basePoints}
+            multiplier={P2_scale}
+          />
+        </div>
+      )}
 
       {/* Ring Graph - True center */}
-      <RingProgressGraph
-        dailyP1={dailyP1Percent} // INNER RING
-        weeklyP1={weeklyP1Percent} // OUTER RING
-        p2Count={P2_done} // P2 diamonds
-        weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
-      />
+      <div style={{ position: "relative", zIndex: 2 }}>
+        <RingProgressGraph
+          dailyP1={dailyP1Percent} // INNER RING
+          weeklyP1={weeklyP1Percent} // OUTER RING
+          p2Count={P2_done} // P2 diamonds
+          weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+        />
+      </div>
 
       {/* Floating +XP Feedback */}
       <AnimatePresence>
