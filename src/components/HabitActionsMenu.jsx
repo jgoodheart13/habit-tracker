@@ -1,4 +1,6 @@
-export default function HabitActionsMenu({ habit, onEdit, onDelete, onClose }) {
+export default function HabitActionsMenu({ habit, onEdit, onDelete, onPause, onResume, onClose }) {
+  const isPaused = habit.frequency?.timesPerWeek === 0
+  
   return (
     <div>
       <h3 style={{ fontSize: 18, marginBottom: 10 }}>{habit.name}</h3>
@@ -12,14 +14,30 @@ export default function HabitActionsMenu({ habit, onEdit, onDelete, onClose }) {
         }}
       >
         <button
-          onClick={() => { onEdit(habit); onClose(); }}
+          onClick={() => { onEdit(); onClose(); }}
           style={itemStyle}
         >
           Edit Habit
         </button>
 
+        {isPaused ? (
+          <button
+            onClick={() => { onResume(); onClose(); }}
+            style={itemStyle}
+          >
+            Resume Habit
+          </button>
+        ) : (
+          <button
+            onClick={() => { onPause(); onClose(); }}
+            style={itemStyle}
+          >
+            Pause Habit
+          </button>
+        )}
+
         <button
-          onClick={() => { onDelete(habit.id); onClose(); }}
+          onClick={() => { onDelete(); onClose(); }}
           style={itemStyle}
         >
           Delete Habit
