@@ -10,6 +10,8 @@ export default function WeeklyProgressGraph({
   habits,
   activeWeekRange,
   activeDate,
+  onXPUpdate,
+  showStats = true,
 }) {
   const [floatingXP, setFloatingXP] = useState(null)
   const prevTotalPointsRef = useRef(0)
@@ -146,7 +148,16 @@ export default function WeeklyProgressGraph({
     prevTotalPointsRef.current = currentTotal
     prevCorePointsRef.current = currentCore
     prevReachPointsRef.current = currentReach
-  }, [totalPoints, P1_points, P2_points])
+
+    // Notify parent of XP update with breakdown
+    if (onXPUpdate) {
+      onXPUpdate({
+        total: currentTotal,
+        core: currentCore,
+        reach: currentReach,
+      })
+    }
+  }, [totalPoints, P1_points, P2_points, onXPUpdate])
 
   return (
     <div
@@ -162,17 +173,19 @@ export default function WeeklyProgressGraph({
       }}
     >
       {/* Stats - Absolute positioned left */}
-      <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
-        <IntegratedStats
-          coreWeekly={P1_done}
-          coreWeeklyTotal={P1_total}
-          corePoints={P1_points.toFixed(1)}
-          reachWeekly={P2_done}
-          reachPoints={P2_points.toFixed(1)}
-          totalPoints={totalPoints.toFixed(1)}
-          weeklyP1Percent={weeklyP1Percent}
-        />
-      </div>
+      {showStats && (
+        <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
+          <IntegratedStats
+            coreWeekly={P1_done}
+            coreWeeklyTotal={P1_total}
+            corePoints={P1_points.toFixed(1)}
+            reachWeekly={P2_done}
+            reachPoints={P2_points.toFixed(1)}
+            basePoints={basePoints}
+            multiplier={P2_scale}
+          />
+        </div>
+      )}
 
       {/* Ring Graph - True center */}
       <div style={{ position: "relative", zIndex: 2 }}>
