@@ -16,29 +16,31 @@ export default function HabitModal({ show, onClose, onAdd, onEdit, habit }) {
         top: 0,
         left: 0,
         width: "100vw",
-        height: "100vh",
+        // Use dvh (dynamic viewport height) on mobile to account for keyboard
+        height: isMobile ? "100dvh" : "100vh",
         background: "rgba(0,0,0,0.18)",
         display: "flex",
-        // On mobile, the on-screen keyboard can cover focused inputs.
-        // Top-align + allow scrolling so users can bring inputs into view.
-        alignItems: isMobile ? "flex-start" : "center",
+        // Center on mobile to keep content in visible area when keyboard appears
+        alignItems: "center",
         justifyContent: "center",
         zIndex: 1000,
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
-        padding: isMobile ? "24px 12px" : 0,
+        padding: 0,
       }}
     >
       <div
         style={{
           background: theme.colors.background,
-          padding: 32,
-          borderRadius: 16,
-          minWidth: 340,
+          padding: isMobile ? "20px" : 32,
+          borderRadius: isMobile ? 12 : 16,
+          width: isMobile ? "calc(100% - 0px)" : "auto",
+          minWidth: isMobile ? "unset" : 340,
+          maxWidth: isMobile ? "calc(100% - 0px)" : 500,
           boxShadow: theme.colors.shadow,
-          // Constrain height so the form can scroll within the viewport on mobile.
-          maxHeight: isMobile ? "calc(100vh - 48px)" : undefined,
-          overflowY: isMobile ? "auto" : undefined,
+          // Constrain height so the form can scroll within visible viewport
+          maxHeight: isMobile ? "calc(100dvh - 24px)" : "90vh",
+          overflowY: "auto",
         }}
       >
         <h2
