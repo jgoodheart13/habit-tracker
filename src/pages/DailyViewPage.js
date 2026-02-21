@@ -52,6 +52,7 @@ export default function DailyViewPage() {
     isDeleting: false,
   })
   const [menuOpen, setMenuOpen] = useState(false)
+  const [newlyAddedHabitId, setNewlyAddedHabitId] = useState(null)
 
   function openSheet(habit) {
     setSheetContent(
@@ -293,9 +294,15 @@ export default function DailyViewPage() {
     // Close modal
     handleCloseHabitModal()
     newHabit.startDate = activeDate
-    addHabit(newHabit).then(async () => {
+    addHabit(newHabit).then(async (addedHabit) => {
+      console.log("Added habit:", addedHabit)
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
+      // Track the newly added habit for scrolling
+      if (addedHabit?.id) {
+        console.log("Setting newlyAddedHabitId:", addedHabit.id)
+        setNewlyAddedHabitId(addedHabit.id)
+      }
     })
   }
 
@@ -466,6 +473,8 @@ export default function DailyViewPage() {
               weekDays={weekDays}
               openSheet={openSheet}
               searchQuery={searchQuery}
+              newlyAddedHabitId={newlyAddedHabitId}
+              onScrollComplete={() => setNewlyAddedHabitId(null)}
             />
           </div>
         </div>

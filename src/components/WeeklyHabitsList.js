@@ -18,11 +18,42 @@ export default function WeeklyHabitsList({
   weekDays,
   openSheet,
   searchQuery = "",
+  newlyAddedHabitId = null,
+  onScrollComplete = () => {},
 }) {
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
+  const habitRefs = React.useRef({})
 
   const [groupedHabits, setGroupedHabits] = React.useState([])
+
+  // Scroll to newly added habit
+  useEffect(() => {
+    console.log('Scroll effect triggered:', {
+      newlyAddedHabitId,
+      hasRef: !!habitRefs.current[newlyAddedHabitId],
+      allRefs: Object.keys(habitRefs.current)
+    })
+    if (newlyAddedHabitId) {
+      // Add a small delay to ensure DOM is updated
+      const timeoutId = setTimeout(() => {
+        if (habitRefs.current[newlyAddedHabitId]) {
+          const element = habitRefs.current[newlyAddedHabitId]
+          console.log('Scrolling to element:', element)
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          })
+          // Clear the ID after scrolling
+          setTimeout(() => onScrollComplete(), 500)
+        } else {
+          console.log('Ref not found for habit:', newlyAddedHabitId)
+        }
+      }, 100)
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [newlyAddedHabitId, groupedHabits, onScrollComplete])
 
   // Extract tags safely
   const getTags = (habit, sortMode) =>
@@ -79,7 +110,10 @@ export default function WeeklyHabitsList({
 
     habits.forEach((habit) => {
       // Filter by search query
-      if (searchQuery && !habit.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (
+        searchQuery &&
+        !habit.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
         return // Skip habits that don't match search
       }
 
@@ -339,7 +373,10 @@ export default function WeeklyHabitsList({
 
     habits.forEach((h) => {
       // Filter by search query
-      if (searchQuery && !h.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (
+        searchQuery &&
+        !h.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
         return
       }
 
@@ -434,16 +471,22 @@ export default function WeeklyHabitsList({
       return (
         <div key={group.label} className="group-level" data-level={level}>
           {group.habits?.map((habit) => (
-            <WeeklyHabitRow
+            <div
               key={habit._id || habit.id}
-              habit={habit}
-              activeDate={activeDate}
-              handleComplete={handleComplete}
-              handleDelete={handleDelete}
-              onEdit={onEdit}
-              weekDays={weekDays}
-              openSheet={openSheet}
-            />
+              ref={(el) => {
+                if (el) habitRefs.current[habit.id] = el
+              }}
+            >
+              <WeeklyHabitRow
+                habit={habit}
+                activeDate={activeDate}
+                handleComplete={handleComplete}
+                handleDelete={handleDelete}
+                onEdit={onEdit}
+                weekDays={weekDays}
+                openSheet={openSheet}
+              />
+            </div>
           ))}
         </div>
       )
@@ -455,7 +498,7 @@ export default function WeeklyHabitsList({
       margin: level === 1 ? "0px 0px" : `0px ${level * 4}px`,
       color:
         level === 1
-          ? group.color ?? theme.colors.accent
+          ? (group.color ?? theme.colors.accent)
           : theme.colors.textSecondary,
       fontSize: level <= 2 ? 20 : 16,
       fontWeight: level <= 2 ? 600 : 500,
@@ -490,22 +533,28 @@ export default function WeeklyHabitsList({
           <>
             {Array.isArray(group.habits) &&
               group.habits.map((habit) => (
-                <WeeklyHabitRow
+                <div
                   key={habit._id || habit.id}
-                  habit={habit}
-                  activeDate={activeDate}
-                  handleComplete={handleComplete}
-                  handleDelete={handleDelete}
-                  onEdit={onEdit}
-                  weekDays={weekDays}
-                  openSheet={openSheet}
-                />
+                  ref={(el) => {
+                    if (el) habitRefs.current[habit.id] = el
+                  }}
+                >
+                  <WeeklyHabitRow
+                    habit={habit}
+                    activeDate={activeDate}
+                    handleComplete={handleComplete}
+                    handleDelete={handleDelete}
+                    onEdit={onEdit}
+                    weekDays={weekDays}
+                    openSheet={openSheet}
+                  />
+                </div>
               ))}
 
             {/* Recurse into child groups if present */}
             {Array.isArray(group.groups) &&
               group.groups.map((child) =>
-                renderGroup(child, level + 1, thisPath)
+                renderGroup(child, level + 1, thisPath),
               )}
           </>
         )}

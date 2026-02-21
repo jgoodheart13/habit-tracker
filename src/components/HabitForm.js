@@ -25,6 +25,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     return { category: null, time: null }
   })
   const [tagInput, setTagInput] = useState({ label: "", type: "category" })
+  const [selectedTagIndex, setSelectedTagIndex] = useState(0)
   const [allTags, setAllTags] = useState([])
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
@@ -99,6 +100,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     if (name === "tagValue") {
       setTagInput((t) => ({ ...t, label: value }))
       setTagDropdownOpen(true)
+      setSelectedTagIndex(0) // Reset to first item when typing
     } else if (name === "tagType") {
       setTagInput((t) => ({ ...t, type: value }))
     }
@@ -566,6 +568,26 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               name="tagValue"
               value={tagInput.label}
               onChange={handleTagInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault() // Prevent form submission
+                  // Use the selected tag from dropdown
+                  if (filteredTags.length > 0) {
+                    handleTagSelect(filteredTags[selectedTagIndex])
+                  } else if (tagInput.label.trim()) {
+                    // Otherwise, add as new tag
+                    handleTagAdd()
+                  }
+                } else if (e.key === "ArrowDown") {
+                  e.preventDefault()
+                  setSelectedTagIndex((prev) =>
+                    Math.min(prev + 1, filteredTags.length - 1),
+                  )
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault()
+                  setSelectedTagIndex((prev) => Math.max(prev - 1, 0))
+                }
+              }}
               placeholder="Add category"
               autoComplete="off"
               autoFocus
@@ -648,11 +670,11 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                       padding: "8px 12px",
                       cursor: "pointer",
                       background:
-                        t.label === tagInput.label
+                        idx === selectedTagIndex
                           ? theme.colors.accent
                           : theme.colors.background,
                       color:
-                        t.label === tagInput.label
+                        idx === selectedTagIndex
                           ? theme.colors.background
                           : theme.colors.text,
                       display: "flex",
