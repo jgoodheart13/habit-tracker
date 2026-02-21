@@ -328,7 +328,10 @@ export default function RingProgressGraph({
           {/* P2 DIAMONDS ORBITING THE RINGS */}
           <motion.g
             animate={diamondSpinControls}
-            transform-origin={`${expandedCenter} ${expandedCenter}`}
+            style={{
+              originX: 0.5,
+              originY: 0.5,
+            }}
           >
             {Array.from({ length: p2Count }).map((_, i) => {
               const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
@@ -378,29 +381,30 @@ export default function RingProgressGraph({
           </motion.g>
 
           {/* WEEKLY PERCENTAGE TEXT ALONG ARC - Rendered last for top z-index */}
-          {weekly > 0 && (() => {
-            // Calculate position at the end of the weekly arc
-            // In SVG coordinates (before rotation), 0° is at 3 o'clock
-            // Progress starts at 0° and moves clockwise
-            const progressAngle = (Math.min(weekly, 100) / 100) * 360
-            const angleInRadians = (progressAngle * Math.PI) / 180
-            const textX = expandedCenter + textArcR * Math.cos(angleInRadians)
-            const textY = expandedCenter + textArcR * Math.sin(angleInRadians)
-            
-            return (
-              <g transform={`translate(${textX}, ${textY}) rotate(90)`}>
-                <text
-                  fill="rgba(0, 0, 0, 0.7)"
-                  fontSize="13"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                >
-                  <tspan fontWeight="500">{Math.round(weekly)}</tspan>
-                  <tspan fontWeight="400">%</tspan>
-                </text>
-              </g>
-            )
-          })()}
+          {weekly > 0 &&
+            (() => {
+              // Calculate position at the end of the weekly arc
+              // In SVG coordinates (before rotation), 0° is at 3 o'clock
+              // Progress starts at 0° and moves clockwise
+              const progressAngle = (Math.min(weekly, 100) / 100) * 360
+              const angleInRadians = (progressAngle * Math.PI) / 180
+              const textX = expandedCenter + textArcR * Math.cos(angleInRadians)
+              const textY = expandedCenter + textArcR * Math.sin(angleInRadians)
+
+              return (
+                <g transform={`translate(${textX}, ${textY}) rotate(90)`}>
+                  <text
+                    fill="rgba(0, 0, 0, 0.7)"
+                    fontSize="13"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    <tspan fontWeight="500">{Math.round(weekly)}</tspan>
+                    <tspan fontWeight="400">%</tspan>
+                  </text>
+                </g>
+              )
+            })()}
         </motion.svg>
 
         {showNumbers && (
