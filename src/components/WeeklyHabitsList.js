@@ -272,17 +272,31 @@ export default function WeeklyHabitsList({
   const groupByPriority = (habits) => {
     // Filter by search query
     const filteredHabits = searchQuery
-      ? habits.filter((h) => h.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      ? habits.filter((h) =>
+          h.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        )
       : habits
 
     const p1 = filteredHabits.filter((h) => h.type === "P1")
     const p2 = filteredHabits.filter((h) => h.type === "P2")
 
     // Identify urgent habits using shared utility
-    const urgentHabits = sortUrgentHabits(
+    let urgentHabits = sortUrgentHabits(
       getUrgentHabits(filteredHabits, activeDate, weekDays),
+      activeDate,
       weekDays,
     )
+
+    // Apply completedVisibility filter to urgent habits (same as other groups)
+    if (!completedVisibility) {
+      urgentHabits = urgentHabits.filter((habit) => {
+        const isCompleted = habit.completedDates.includes(activeDate)
+        const weekCompleted =
+          weekDays?.filter((d) => habit.completedDates.includes(d)).length >=
+          habit.frequency.timesPerWeek
+        return !isCompleted && !weekCompleted
+      })
+    }
 
     // Build Core groups with Time Sensitive subcategory if applicable
     const coreGroups = groupByCategoryTree(p1)
@@ -387,7 +401,7 @@ export default function WeeklyHabitsList({
       setGroupedHabits(groupedHabits)
     }
     if (weekDays.length > 0 && habits) sortHabits()
-  }, [sortMode, habits, weekDays, completedVisibility, searchQuery])
+  }, [sortMode, habits, weekDays, completedVisibility, searchQuery, activeDate])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
