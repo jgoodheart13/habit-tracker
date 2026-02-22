@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import RingProgressGraph from "./RingProgressGraph"
-import { IntegratedStats } from "./StatsDisplay"
+import DetailedStats from "./DetailedStats"
+import VerticalXPBar from "./VerticalXPBar"
 import theme from "../styles/theme"
 
 // NEW PROPS:
@@ -172,17 +173,15 @@ export default function WeeklyProgressGraph({
         isolation: "isolate",
       }}
     >
-      {/* Stats - Absolute positioned left */}
+      {/* Detailed Stats - Absolute positioned left */}
       {showStats && (
         <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
-          <IntegratedStats
+          <DetailedStats
             coreWeekly={P1_done}
             coreWeeklyTotal={P1_total}
             corePoints={P1_points.toFixed(1)}
             reachWeekly={P2_done}
             reachPoints={P2_points.toFixed(1)}
-            basePoints={basePoints}
-            multiplier={P2_scale}
           />
         </div>
       )}
@@ -194,6 +193,15 @@ export default function WeeklyProgressGraph({
           weeklyP1={weeklyP1Percent} // OUTER RING
           p2Count={P2_done} // P2 diamonds
           weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+        />
+      </div>
+
+      {/* Vertical XP Bar - Absolute positioned right */}
+      <div style={{ position: "absolute", right: 16, zIndex: 1 }}>
+        <VerticalXPBar
+          currentXP={parseFloat(totalPoints.toFixed(1))}
+          coreXP={parseFloat(P1_points.toFixed(1))}
+          reachXP={parseFloat(P2_points.toFixed(1))}
         />
       </div>
 

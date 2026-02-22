@@ -391,18 +391,11 @@ export default function DailyViewPage() {
             activeTab={activeTab}
           />
 
-          {/* Level Progress Bar */}
-          <LevelProgress
-            currentXP={totalWeeklyXP}
-            coreXP={coreWeeklyXP}
-            reachXP={reachWeeklyXP}
-            onToggleStats={() => setShowStats(!showStats)}
-          />
-
           <div
             style={{
               paddingTop: 8,
             }}
+            onClick={() => setShowStats(!showStats)}
           >
             <WeeklyProgressGraph
               habits={habits}
