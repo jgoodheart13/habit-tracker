@@ -22,7 +22,6 @@ export default function RingProgressGraph({
   isLockedIn = false,
   animatingLockIn = false,
   onAnimationComplete,
-  onSegmentPhaseChange, // NEW: Callback for parent to render segments
 }) {
   // Allow values above 100% to show full progress
   const daily = Math.max(0, dailyP1)
@@ -50,28 +49,14 @@ export default function RingProgressGraph({
   const glowControls = useAnimation()
   const diamondSpinControls = useAnimation()
   const diamondGlowControls = useAnimation()
-  const xpSegmentControls = useAnimation()
+  const arcSegmentControls = useAnimation()
   const prevDailyRef = useRef(daily)
   const prevWasBelow100 = useRef(daily < 100)
   const prevP2CountRef = useRef(p2Count)
   const dashProgress = useMotionValue(daily)
-  const [showXPSegment, setShowXPSegment] = useState(false)
+  const [showArcSegment, setShowArcSegment] = useState(false)
   const [lockedInProgress, setLockedInProgress] = useState(0)
   const isAnimatingRef = useRef(false) // Prevent animation re-runs
-
-  // Three separate segments for the morph animation
-  const [showArcSegment, setShowArcSegment] = useState(false)
-  const [showVerticalBar, setShowVerticalBar] = useState(false)
-  const [showHorizontalBar, setShowHorizontalBar] = useState(false)
-
-  const arcSegmentControls = useAnimation()
-  const verticalBarControls = useAnimation()
-  const horizontalBarControls = useAnimation()
-
-  // DEBUG: Log when segment visibility changes
-  useEffect(() => {
-    console.log("🔴 showXPSegment changed:", showXPSegment)
-  }, [showXPSegment])
 
   const dashArray = useTransform(dashProgress, (v) => {
     const filled = arcInner(v)
@@ -172,40 +157,29 @@ export default function RingProgressGraph({
     prevP2CountRef.current = p2Count
   }, [p2Count, diamondSpinControls, diamondGlowControls])
 
-  // Lock-in animation sequence with morphing segments
+  // Lock-in animation - spin arc to 12 o'clock and fill XP bar
   useEffect(() => {
-    if (animatingLockIn && onSegmentPhaseChange && !isAnimatingRef.current) {
+    if (animatingLockIn && !isAnimatingRef.current) {
       isAnimatingRef.current = true
-      console.log("🔵 Lock-in animation starting!", { daily, animatingLockIn })
       const runAnimation = async () => {
-        // Capture the current progress for the segment
+        // Capture current progress
         setLockedInProgress(daily)
-
-        // Phase 1: Arc spins inside the ring
         setShowArcSegment(true)
-        onSegmentPhaseChange({ phase: "arc", progress: daily })
         await new Promise((resolve) => setTimeout(resolve, 50))
 
-        // Spin the arc 270 degrees
+        // Calculate rotation to move tip to 0° (12 o'clock)
+        // Tip is currently at daily% of 360°
+        // Rotate so tip reaches 0°: rotate by (100 - daily)% of circle
+        const rotationDegrees = (100 - daily) * 3.6
+
+        // Spin arc so tip reaches 12 o'clock and disappears
         await arcSegmentControls.start({
-          rotate: 270,
-          transition: { duration: 0.6, ease: "easeInOut" },
+          rotate: rotationDegrees,
+          opacity: 0,
+          transition: { duration: 1.0, ease: "easeInOut" },
         })
 
-        // Hide arc as vertical appears
         setShowArcSegment(false)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-
-        // Phase 2: Vertical bar grows
-        onSegmentPhaseChange({ phase: "vertical", progress: daily })
-        await new Promise((resolve) => setTimeout(resolve, 450))
-
-        // Phase 3: Horizontal bar grows and slithers
-        onSegmentPhaseChange({ phase: "horizontal", progress: daily })
-        await new Promise((resolve) => setTimeout(resolve, 850))
-
-        // Done
-        onSegmentPhaseChange({ phase: "none", progress: 0 })
         isAnimatingRef.current = false
         if (onAnimationComplete) {
           onAnimationComplete()
@@ -216,7 +190,7 @@ export default function RingProgressGraph({
     } else if (!animatingLockIn) {
       isAnimatingRef.current = false
     }
-  }, [animatingLockIn, daily, onSegmentPhaseChange, onAnimationComplete])
+  }, [animatingLockIn, daily, arcSegmentControls, onAnimationComplete])
 
   return (
     <div style={{ textAlign: "center", isolation: "isolate" }}>
@@ -231,135 +205,6 @@ export default function RingProgressGraph({
           justifyContent: "center",
         }}
       >
-        {/* Animated XP Segment - Arc Phase */}
-        {showArcSegment && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: expandedSize,
-              height: expandedSize,
-              pointerEvents: "none",
-              zIndex: 10,
-            }}
-          >
-            <svg
-              width={expandedSize}
-              height={expandedSize}
-              viewBox={`0 0 ${expandedSize} ${expandedSize}`}
-              style={{ overflow: "visible" }}
-            >
-              <defs>
-                <linearGradient
-                  id="dailyGradSegment"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor={theme.colors.coreColor} />
-                  <stop offset="100%" stopColor={theme.colors.coreColor} />
-                </linearGradient>
-              </defs>
-              <motion.g
-                animate={arcSegmentControls}
-                initial={{ rotate: -90, opacity: 1 }}
-              >
-                <circle
-                  cx={expandedCenter}
-                  cy={expandedCenter}
-                  r={innerR}
-                  fill="none"
-                  stroke="url(#dailyGradSegment)"
-                  strokeWidth={strokeInner}
-                  strokeLinecap="round"
-                  strokeDasharray={arcInner(lockedInProgress)}
-                  transform={`rotate(-90 ${expandedCenter} ${expandedCenter})`}
-                />
-              </motion.g>
-            </svg>
-          </div>
-        )}
-
-        {/* Animated XP Segment - Vertical Bar Phase */}
-        {showVerticalBar && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: expandedSize,
-              height: expandedSize,
-              pointerEvents: "none",
-              zIndex: 10,
-            }}
-          >
-            <svg
-              width={expandedSize}
-              height={expandedSize}
-              viewBox={`0 0 ${expandedSize} ${expandedSize}`}
-              style={{ overflow: "visible" }}
-            >
-              <motion.g
-                animate={verticalBarControls}
-                initial={{ scaleY: 0 }}
-                style={{
-                  transformOrigin: `${expandedCenter}px ${expandedCenter + innerR}px`,
-                }}
-              >
-                <rect
-                  x={expandedCenter - strokeInner / 2}
-                  y={expandedCenter + innerR}
-                  width={strokeInner}
-                  height={80}
-                  fill={theme.colors.coreColor}
-                  rx={strokeInner / 2}
-                />
-              </motion.g>
-            </svg>
-          </div>
-        )}
-
-        {/* Animated XP Segment - Horizontal Bar Phase */}
-        {showHorizontalBar && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: expandedSize,
-              height: expandedSize,
-              pointerEvents: "none",
-              zIndex: 10,
-            }}
-          >
-            <svg
-              width={expandedSize}
-              height={expandedSize}
-              viewBox={`0 0 ${expandedSize} ${expandedSize}`}
-              style={{ overflow: "visible" }}
-            >
-              <motion.g
-                animate={horizontalBarControls}
-                initial={{ scaleX: 0, x: 0, opacity: 1 }}
-                style={{
-                  transformOrigin: `${expandedCenter}px ${expandedCenter + innerR + 80}px`,
-                }}
-              >
-                <rect
-                  x={expandedCenter}
-                  y={expandedCenter + innerR + 80 - strokeInner / 2}
-                  width={100}
-                  height={strokeInner}
-                  fill={theme.colors.coreColor}
-                  rx={strokeInner / 2}
-                />
-              </motion.g>
-            </svg>
-          </div>
-        )}
-
         <motion.svg
           animate={glowControls}
           width={expandedSize}

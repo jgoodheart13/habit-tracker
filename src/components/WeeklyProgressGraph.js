@@ -17,10 +17,6 @@ export default function WeeklyProgressGraph({
   const [floatingXP, setFloatingXP] = useState(null)
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
-  const [segmentPhase, setSegmentPhase] = useState({
-    phase: "none",
-    progress: 0,
-  })
   const prevTotalPointsRef = useRef(0)
   const prevCorePointsRef = useRef(0)
   const prevReachPointsRef = useRef(0)
@@ -199,43 +195,8 @@ export default function WeeklyProgressGraph({
           isLockedIn={isLockedIn}
           animatingLockIn={animatingLockIn}
           onAnimationComplete={() => setAnimatingLockIn(false)}
-          onSegmentPhaseChange={setSegmentPhase}
         />
       </div>
-
-      {/* Animation Segments - Rendered in parent container */}
-      {segmentPhase.phase === "vertical" && (
-        <motion.div
-          initial={{ height: 0 }}
-          animate={{ height: "calc(50% - 10px)" }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "calc(50% - 5px)",
-            width: 10,
-            background: theme.colors.coreColor,
-            borderRadius: 5,
-            zIndex: 3,
-          }}
-        />
-      )}
-
-      {segmentPhase.phase === "horizontal" && (
-        <motion.div
-          initial={{ width: 0, left: "50%" }}
-          animate={{ width: 120, left: "calc(50% + 60px)" }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
-          style={{
-            position: "absolute",
-            bottom: 60,
-            height: 10,
-            background: theme.colors.coreColor,
-            borderRadius: 5,
-            zIndex: 3,
-          }}
-        />
-      )}
 
       {/* Vertical XP Bar - Absolute positioned right */}
       <div style={{ position: "absolute", right: 16, zIndex: 1 }}>
