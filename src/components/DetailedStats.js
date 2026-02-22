@@ -1,9 +1,40 @@
-import React from "react"
-import { motion } from "framer-motion"
+import React, { useEffect, useRef, useState } from "react"
+import { motion, useSpring } from "framer-motion"
 import theme from "../styles/theme"
 
 function AnimatedNumber({ value }) {
-  return <>{Math.round(value)}</>
+  const [displayValue, setDisplayValue] = useState(value)
+  const prevValueRef = useRef(value)
+  
+  useEffect(() => {
+    if (prevValueRef.current !== value) {
+      const startValue = prevValueRef.current
+      const endValue = value
+      const startTime = Date.now()
+      const duration = 2000 // 2 seconds
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        
+        // Ease out function
+        const easedProgress = 1 - Math.pow(1 - progress, 3)
+        const currentValue = startValue + (endValue - startValue) * easedProgress
+        
+        setDisplayValue(currentValue)
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          prevValueRef.current = value
+        }
+      }
+      
+      animate()
+    }
+  }, [value])
+  
+  return <>{Math.round(displayValue)}</>
 }
 
 export default function DetailedStats({
@@ -28,7 +59,7 @@ export default function DetailedStats({
       <div>
         <div
           style={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#999",
             textTransform: "uppercase",
             fontWeight: 500,
@@ -40,7 +71,7 @@ export default function DetailedStats({
         </div>
         <div
           style={{
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: 700,
             color: theme.colors.text,
             lineHeight: 1.2,
@@ -51,7 +82,7 @@ export default function DetailedStats({
         </div>
         <div
           style={{
-            fontSize: 12,
+            fontSize: 14,
             color: theme.colors.coreColor,
             fontWeight: 600,
           }}
@@ -64,7 +95,7 @@ export default function DetailedStats({
       <div>
         <div
           style={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#999",
             textTransform: "uppercase",
             fontWeight: 500,
@@ -76,7 +107,7 @@ export default function DetailedStats({
         </div>
         <div
           style={{
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: 700,
             color: theme.colors.text,
             lineHeight: 1.2,
@@ -87,7 +118,7 @@ export default function DetailedStats({
         </div>
         <div
           style={{
-            fontSize: 12,
+            fontSize: 14,
             color: theme.colors.reachColor,
             fontWeight: 600,
           }}

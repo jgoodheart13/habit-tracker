@@ -250,39 +250,38 @@ export default function WeeklyProgressGraph({
         {isLockedIn ? "Reset" : "Lock In Week"}
       </button>
 
-      {/* Floating +XP Feedback */}
+      {/* Floating +XP Feedback - positioned next to Core or Reach stats */}
       <AnimatePresence>
         {floatingXP && (
           <motion.div
             key={floatingXP.id}
-            initial={{ opacity: 0, x: -20, y: -20, scale: 0.8 }}
+            initial={{ opacity: 0, x: 0, scale: 0.8 }}
             animate={{
               opacity: 1,
-              x: -20,
-              y: -35,
+              x: 3,
+              y: -10,
               scale: 1,
               transition: { duration: 0.3, ease: "easeOut" },
             }}
             exit={{
               opacity: 0,
-              x: -20,
-              y: -50,
+              y: -25,
               scale: 0.8,
               transition: { duration: 1, ease: "easeOut" },
             }}
             style={{
               position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              fontSize: 13,
+              left: 85, // Right after "+X XP" text (stats at 16px + padding 8px + text ~60px)
+              top: floatingXP.color === theme.colors.coreColor ? 91 : 165, // Align with Core or Reach "+X XP" line
+              fontSize: 12,
               fontWeight: 600,
               color: floatingXP.color,
               pointerEvents: "none",
               textShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              whiteSpace: "nowrap",
             }}
           >
-            +{floatingXP.amount} XP
+            +{floatingXP.amount}
           </motion.div>
         )}
       </AnimatePresence>

@@ -174,13 +174,13 @@ export default function RingProgressGraph({
         setLockedInProgress(weekly)
         segmentDashProgress.set(weekly) // Set initial dash to current weekly progress
         setShowArcSegment(true)
-        
+
         // Fade out inner ring to 40% opacity
         animate(innerRingOpacity, 0.4, {
           duration: 0.3,
           ease: "easeOut",
         })
-        
+
         await new Promise((resolve) => setTimeout(resolve, 50))
 
         // Calculate timing:
@@ -239,7 +239,7 @@ export default function RingProgressGraph({
     innerRingOpacity,
     onAnimationComplete,
   ])
-  
+
   // Reset inner ring opacity when lock-in is cancelled/reset
   useEffect(() => {
     if (!isLockedIn) {
