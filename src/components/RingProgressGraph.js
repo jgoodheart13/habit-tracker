@@ -185,8 +185,12 @@ export default function RingProgressGraph({
         const timeToDrain = (percentToDrain / 100) * totalDuration
 
         // Notify parent of XP bar delay (when draining starts)
+        // Make XP bar animation 2x slower for better visibility
         if (onXPBarDelayCalculated) {
-          onXPBarDelayCalculated({ delay: timeToNoon, duration: timeToDrain })
+          onXPBarDelayCalculated({
+            delay: timeToNoon,
+            duration: timeToDrain * 2,
+          })
         }
 
         // Start both animations, but delay the drain
