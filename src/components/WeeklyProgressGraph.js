@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import RingProgressGraph from "./RingProgressGraph"
-import { IntegratedStats } from "./StatsDisplay"
+import DetailedStats from "./DetailedStats"
+import VerticalXPBar from "./VerticalXPBar"
+import { BASE_POINTS } from "../constants/habitDefaults"
 import theme from "../styles/theme"
 
 // NEW PROPS:
@@ -11,9 +13,12 @@ export default function WeeklyProgressGraph({
   activeWeekRange,
   activeDate,
   onXPUpdate,
-  showStats = true,
 }) {
   const [floatingXP, setFloatingXP] = useState(null)
+  const [isLockedIn, setIsLockedIn] = useState(false)
+  const [animatingLockIn, setAnimatingLockIn] = useState(false)
+  const [xpBarTiming, setXpBarTiming] = useState({ delay: 0, duration: 0 }) // Timing for XP bar
+  const [xpBeforeLockIn, setXpBeforeLockIn] = useState(0) // Track XP before lock-in starts
   const prevTotalPointsRef = useRef(0)
   const prevCorePointsRef = useRef(0)
   const prevReachPointsRef = useRef(0)
@@ -108,11 +113,10 @@ export default function WeeklyProgressGraph({
 
   P2_done += P1s_counted_as_p2
 
-  const basePoints = 5
   const P2_scale = 0.5 + 0.5 * (weeklyP1Percent / 100)
-  const P2_points = P2_done * basePoints * P2_scale
+  const P2_points = P2_done * BASE_POINTS * P2_scale
 
-  const P1_points = weeklyP1Percent * basePoints
+  const P1_points = weeklyP1Percent * BASE_POINTS
   const totalPoints = P1_points + P2_points
 
   // Detect XP gain and show floating feedback
@@ -166,26 +170,22 @@ export default function WeeklyProgressGraph({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        padding: "10px 16px",
+        padding: "10px 16px 60px 16px",
         boxSizing: "border-box",
         position: "relative",
         isolation: "isolate",
       }}
     >
-      {/* Stats - Absolute positioned left */}
-      {showStats && (
-        <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
-          <IntegratedStats
-            coreWeekly={P1_done}
-            coreWeeklyTotal={P1_total}
-            corePoints={P1_points.toFixed(1)}
-            reachWeekly={P2_done}
-            reachPoints={P2_points.toFixed(1)}
-            basePoints={basePoints}
-            multiplier={P2_scale}
-          />
-        </div>
-      )}
+      {/* Detailed Stats - Absolute positioned left */}
+      <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
+        <DetailedStats
+          coreWeekly={P1_done}
+          coreWeeklyTotal={P1_total}
+          corePoints={P1_points.toFixed(1)}
+          reachWeekly={P2_done}
+          reachPoints={P2_points.toFixed(1)}
+        />
+      </div>
 
       {/* Ring Graph - True center */}
       <div style={{ position: "relative", zIndex: 2 }}>
@@ -194,42 +194,94 @@ export default function WeeklyProgressGraph({
           weeklyP1={weeklyP1Percent} // OUTER RING
           p2Count={P2_done} // P2 diamonds
           weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+          isLockedIn={isLockedIn}
+          animatingLockIn={animatingLockIn}
+          onAnimationComplete={() => setAnimatingLockIn(false)}
+          onXPBarDelayCalculated={setXpBarTiming}
         />
       </div>
 
-      {/* Floating +XP Feedback */}
+      {/* Vertical XP Bar - Absolute positioned right */}
+      <div style={{ position: "absolute", right: 16, zIndex: 1 }}>
+        <VerticalXPBar
+          currentXP={xpBeforeLockIn}
+          coreXP={xpBeforeLockIn + parseFloat(P1_points.toFixed(1))}
+          reachXP={xpBeforeLockIn + parseFloat(totalPoints.toFixed(1))}
+          animatingLockIn={animatingLockIn}
+          isLockedIn={isLockedIn}
+          animationDelay={xpBarTiming.delay}
+          animationDuration={xpBarTiming.duration}
+        />
+      </div>
+
+      {/* Lock In Test Button */}
+      <button
+        onClick={() => {
+          if (isLockedIn) {
+            // Reset
+            setIsLockedIn(false)
+            setAnimatingLockIn(false)
+            setXpBeforeLockIn(0)
+          } else {
+            // Lock in - for testing, start from 0 XP (or could be a test value like 100)
+            // In production, this would be the user's actual accumulated XP
+            setXpBeforeLockIn(0) // TODO: Replace with actual user XP from database
+            setIsLockedIn(true)
+            setAnimatingLockIn(true)
+          }
+        }}
+        style={{
+          position: "absolute",
+          bottom: 10,
+          left: "50%",
+          transform: "translateX(-50%)",
+          padding: "8px 16px",
+          background: isLockedIn ? "#666" : theme.colors.coreColor,
+          color: "white",
+          border: "none",
+          borderRadius: 8,
+          cursor: "pointer",
+          fontSize: 14,
+          fontWeight: 600,
+          zIndex: 10,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        }}
+      >
+        {isLockedIn ? "Reset" : "Lock In Week"}
+      </button>
+
+      {/* Floating +XP Feedback - positioned next to Core or Reach stats */}
       <AnimatePresence>
         {floatingXP && (
           <motion.div
             key={floatingXP.id}
-            initial={{ opacity: 0, x: -20, y: -20, scale: 0.8 }}
+            initial={{ opacity: 0, x: 0, scale: 0.8 }}
             animate={{
               opacity: 1,
-              x: -20,
-              y: -35,
+              x: 3,
+              y: -10,
               scale: 1,
               transition: { duration: 0.3, ease: "easeOut" },
             }}
             exit={{
               opacity: 0,
-              x: -20,
-              y: -50,
+              y: -25,
               scale: 0.8,
               transition: { duration: 1, ease: "easeOut" },
             }}
             style={{
               position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              fontSize: 13,
+              left: 85, // Right after "+X XP" text (stats at 16px + padding 8px + text ~60px)
+              top: floatingXP.color === theme.colors.coreColor ? 91 : 165, // Align with Core or Reach "+X XP" line
+              fontSize: 12,
               fontWeight: 600,
               color: floatingXP.color,
               pointerEvents: "none",
               textShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              whiteSpace: "nowrap",
             }}
           >
-            +{floatingXP.amount} XP
+            +{floatingXP.amount}
           </motion.div>
         )}
       </AnimatePresence>

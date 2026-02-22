@@ -56,7 +56,6 @@ export default function DailyViewPage() {
   const [totalWeeklyXP, setTotalWeeklyXP] = useState(0)
   const [coreWeeklyXP, setCoreWeeklyXP] = useState(0)
   const [reachWeeklyXP, setReachWeeklyXP] = useState(0)
-  const [showStats, setShowStats] = useState(false)
 
   function openSheet(habit) {
     setSheetContent(
@@ -391,14 +390,6 @@ export default function DailyViewPage() {
             activeTab={activeTab}
           />
 
-          {/* Level Progress Bar */}
-          <LevelProgress
-            currentXP={totalWeeklyXP}
-            coreXP={coreWeeklyXP}
-            reachXP={reachWeeklyXP}
-            onToggleStats={() => setShowStats(!showStats)}
-          />
-
           <div
             style={{
               paddingTop: 8,
@@ -409,7 +400,6 @@ export default function DailyViewPage() {
               activeWeekRange={activeWeekRange}
               showHeader={false}
               activeDate={activeDate}
-              showStats={showStats}
               onXPUpdate={(xp) => {
                 setTotalWeeklyXP(xp.total)
                 setCoreWeeklyXP(xp.core)

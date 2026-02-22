@@ -396,6 +396,81 @@ export default function HelpPage() {
           </div>
         </Section>
 
+        {/* XP System Explained */}
+        <Section
+          title="Understanding XP Calculations"
+          expanded={expandedSection === 3}
+          onToggle={() => setExpandedSection(expandedSection === 3 ? null : 3)}
+        >
+          <p style={styles.text}>
+            Your habit progress earns you Experience Points (XP) that contribute
+            to your level. Here's how it works:
+          </p>
+
+          <div style={{ marginTop: 16 }}>
+            <h4 style={styles.subheading}>Core Habits XP</h4>
+            <p style={styles.text}>
+              Core habits earn XP based on your weekly completion percentage:
+            </p>
+            <div style={styles.highlight}>
+              <strong>Formula:</strong> 7 base points × Weekly Completion %
+            </div>
+            <ul style={styles.list}>
+              <li>Complete 0% of your weekly core goals = 0 XP</li>
+              <li>Complete 50% of your weekly core goals = 350 XP (7 × 50)</li>
+              <li>
+                Complete 100% of your weekly core goals = 700 XP (7 × 100)
+              </li>
+            </ul>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <h4 style={styles.subheading}>Reach Habits XP</h4>
+            <p style={styles.text}>
+              Reach habits earn bonus XP with a multiplier based on your core
+              completion:
+            </p>
+            <div style={styles.highlight}>
+              <strong>Formula:</strong> 7 base points × Number of completions ×
+              Multiplier
+              <br />
+              <strong>Multiplier:</strong> 0.5 + (Core % × 0.5)
+            </div>
+            <ul style={styles.list}>
+              <li>At 0% core completion: multiplier = 0.5 (minimum)</li>
+              <li>At 50% core completion: multiplier = 0.75</li>
+              <li>At 100% core completion: multiplier = 1.0 (maximum)</li>
+            </ul>
+            <p style={styles.text}>
+              This means reach habits become more valuable as you complete more
+              of your core habits!
+            </p>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <h4 style={styles.subheading}>Example</h4>
+            <div style={styles.colorGuide}>
+              <p style={styles.text}>
+                If you complete 80% of core habits (4/5) and 3 reach habits:
+              </p>
+              <ul style={styles.nestedList}>
+                <li>
+                  <strong>Core XP:</strong> 7 × 80 = 560 XP
+                </li>
+                <li>
+                  <strong>Reach Multiplier:</strong> 0.5 + (0.8 × 0.5) = 0.9
+                </li>
+                <li>
+                  <strong>Reach XP:</strong> 7 × 3 × 0.9 = 18.9 XP
+                </li>
+                <li>
+                  <strong>Total Weekly XP:</strong> 578.9 XP
+                </li>
+              </ul>
+            </div>
+          </div>
+        </Section>
+
         {/* Creating Habits */}
         <Section
           title="Creating Your First Habit 📝"
