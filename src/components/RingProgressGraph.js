@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useRef, useState } from "react"
 import theme from "../styles/theme"
 import {
   motion,
@@ -7,7 +7,6 @@ import {
   useTransform,
   animate,
 } from "framer-motion"
-import { useEffect, useRef } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGem } from "@fortawesome/free-solid-svg-icons"
 
@@ -20,6 +19,10 @@ export default function RingProgressGraph({
   strokeOuter = 10,
   showNumbers = true,
   weeklyPaceMarker = 0,
+  isLockedIn = false,
+  animatingLockIn = false,
+  onAnimationComplete,
+  onSegmentPhaseChange, // NEW: Callback for parent to render segments
 }) {
   // Allow values above 100% to show full progress
   const daily = Math.max(0, dailyP1)
@@ -47,10 +50,28 @@ export default function RingProgressGraph({
   const glowControls = useAnimation()
   const diamondSpinControls = useAnimation()
   const diamondGlowControls = useAnimation()
+  const xpSegmentControls = useAnimation()
   const prevDailyRef = useRef(daily)
   const prevWasBelow100 = useRef(daily < 100)
   const prevP2CountRef = useRef(p2Count)
   const dashProgress = useMotionValue(daily)
+  const [showXPSegment, setShowXPSegment] = useState(false)
+  const [lockedInProgress, setLockedInProgress] = useState(0)
+  const isAnimatingRef = useRef(false) // Prevent animation re-runs
+
+  // Three separate segments for the morph animation
+  const [showArcSegment, setShowArcSegment] = useState(false)
+  const [showVerticalBar, setShowVerticalBar] = useState(false)
+  const [showHorizontalBar, setShowHorizontalBar] = useState(false)
+
+  const arcSegmentControls = useAnimation()
+  const verticalBarControls = useAnimation()
+  const horizontalBarControls = useAnimation()
+
+  // DEBUG: Log when segment visibility changes
+  useEffect(() => {
+    console.log("🔴 showXPSegment changed:", showXPSegment)
+  }, [showXPSegment])
 
   const dashArray = useTransform(dashProgress, (v) => {
     const filled = arcInner(v)
@@ -135,7 +156,7 @@ export default function RingProgressGraph({
           ease: [0.34, 1.56, 0.64, 1], // Bouncy easing
         },
       })
-      
+
       // Animate glow during spin
       diamondGlowControls.start({
         filter: [
@@ -151,6 +172,52 @@ export default function RingProgressGraph({
     prevP2CountRef.current = p2Count
   }, [p2Count, diamondSpinControls, diamondGlowControls])
 
+  // Lock-in animation sequence with morphing segments
+  useEffect(() => {
+    if (animatingLockIn && onSegmentPhaseChange && !isAnimatingRef.current) {
+      isAnimatingRef.current = true
+      console.log("🔵 Lock-in animation starting!", { daily, animatingLockIn })
+      const runAnimation = async () => {
+        // Capture the current progress for the segment
+        setLockedInProgress(daily)
+
+        // Phase 1: Arc spins inside the ring
+        setShowArcSegment(true)
+        onSegmentPhaseChange({ phase: "arc", progress: daily })
+        await new Promise((resolve) => setTimeout(resolve, 50))
+
+        // Spin the arc 270 degrees
+        await arcSegmentControls.start({
+          rotate: 270,
+          transition: { duration: 0.6, ease: "easeInOut" },
+        })
+
+        // Hide arc as vertical appears
+        setShowArcSegment(false)
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
+        // Phase 2: Vertical bar grows
+        onSegmentPhaseChange({ phase: "vertical", progress: daily })
+        await new Promise((resolve) => setTimeout(resolve, 450))
+
+        // Phase 3: Horizontal bar grows and slithers
+        onSegmentPhaseChange({ phase: "horizontal", progress: daily })
+        await new Promise((resolve) => setTimeout(resolve, 850))
+
+        // Done
+        onSegmentPhaseChange({ phase: "none", progress: 0 })
+        isAnimatingRef.current = false
+        if (onAnimationComplete) {
+          onAnimationComplete()
+        }
+      }
+
+      runAnimation()
+    } else if (!animatingLockIn) {
+      isAnimatingRef.current = false
+    }
+  }, [animatingLockIn, daily, onSegmentPhaseChange, onAnimationComplete])
+
   return (
     <div style={{ textAlign: "center", isolation: "isolate" }}>
       <motion.div
@@ -164,6 +231,135 @@ export default function RingProgressGraph({
           justifyContent: "center",
         }}
       >
+        {/* Animated XP Segment - Arc Phase */}
+        {showArcSegment && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: expandedSize,
+              height: expandedSize,
+              pointerEvents: "none",
+              zIndex: 10,
+            }}
+          >
+            <svg
+              width={expandedSize}
+              height={expandedSize}
+              viewBox={`0 0 ${expandedSize} ${expandedSize}`}
+              style={{ overflow: "visible" }}
+            >
+              <defs>
+                <linearGradient
+                  id="dailyGradSegment"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor={theme.colors.coreColor} />
+                  <stop offset="100%" stopColor={theme.colors.coreColor} />
+                </linearGradient>
+              </defs>
+              <motion.g
+                animate={arcSegmentControls}
+                initial={{ rotate: -90, opacity: 1 }}
+              >
+                <circle
+                  cx={expandedCenter}
+                  cy={expandedCenter}
+                  r={innerR}
+                  fill="none"
+                  stroke="url(#dailyGradSegment)"
+                  strokeWidth={strokeInner}
+                  strokeLinecap="round"
+                  strokeDasharray={arcInner(lockedInProgress)}
+                  transform={`rotate(-90 ${expandedCenter} ${expandedCenter})`}
+                />
+              </motion.g>
+            </svg>
+          </div>
+        )}
+
+        {/* Animated XP Segment - Vertical Bar Phase */}
+        {showVerticalBar && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: expandedSize,
+              height: expandedSize,
+              pointerEvents: "none",
+              zIndex: 10,
+            }}
+          >
+            <svg
+              width={expandedSize}
+              height={expandedSize}
+              viewBox={`0 0 ${expandedSize} ${expandedSize}`}
+              style={{ overflow: "visible" }}
+            >
+              <motion.g
+                animate={verticalBarControls}
+                initial={{ scaleY: 0 }}
+                style={{
+                  transformOrigin: `${expandedCenter}px ${expandedCenter + innerR}px`,
+                }}
+              >
+                <rect
+                  x={expandedCenter - strokeInner / 2}
+                  y={expandedCenter + innerR}
+                  width={strokeInner}
+                  height={80}
+                  fill={theme.colors.coreColor}
+                  rx={strokeInner / 2}
+                />
+              </motion.g>
+            </svg>
+          </div>
+        )}
+
+        {/* Animated XP Segment - Horizontal Bar Phase */}
+        {showHorizontalBar && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: expandedSize,
+              height: expandedSize,
+              pointerEvents: "none",
+              zIndex: 10,
+            }}
+          >
+            <svg
+              width={expandedSize}
+              height={expandedSize}
+              viewBox={`0 0 ${expandedSize} ${expandedSize}`}
+              style={{ overflow: "visible" }}
+            >
+              <motion.g
+                animate={horizontalBarControls}
+                initial={{ scaleX: 0, x: 0, opacity: 1 }}
+                style={{
+                  transformOrigin: `${expandedCenter}px ${expandedCenter + innerR + 80}px`,
+                }}
+              >
+                <rect
+                  x={expandedCenter}
+                  y={expandedCenter + innerR + 80 - strokeInner / 2}
+                  width={100}
+                  height={strokeInner}
+                  fill={theme.colors.coreColor}
+                  rx={strokeInner / 2}
+                />
+              </motion.g>
+            </svg>
+          </div>
+        )}
+
         <motion.svg
           animate={glowControls}
           width={expandedSize}
@@ -275,7 +471,7 @@ export default function RingProgressGraph({
           />
 
           {/* INNER DAILY PROGRESS (gradient) */}
-          {daily > 0 && (
+          {daily > 0 && !showArcSegment && (
             <motion.circle
               cx={expandedCenter}
               cy={expandedCenter}
@@ -287,6 +483,22 @@ export default function RingProgressGraph({
               style={{
                 strokeDasharray: dashArray,
               }}
+            />
+          )}
+
+          {/* Arc segment that spins during lock-in */}
+          {showArcSegment && (
+            <motion.circle
+              cx={expandedCenter}
+              cy={expandedCenter}
+              r={innerR}
+              fill="none"
+              stroke="url(#dailyGrad)"
+              strokeWidth={strokeInner}
+              strokeLinecap="round"
+              strokeDasharray={arcInner(lockedInProgress)}
+              animate={arcSegmentControls}
+              initial={{ rotate: 0 }}
             />
           )}
 
@@ -326,59 +538,59 @@ export default function RingProgressGraph({
           </defs>
 
           {/* P2 DIAMONDS ORBITING THE RINGS */}
-          {Array.from({ length: p2Count }).map((_, i) => {
-            const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
-            const rad = (angle * Math.PI) / 180
-            const x = expandedCenter + diamondOrbitR * Math.cos(rad)
-            const y = expandedCenter + diamondOrbitR * Math.sin(rad)
+          <motion.g
+            animate={diamondSpinControls}
+            style={{
+              transformOrigin: `${expandedCenter}px ${expandedCenter}px`,
+              transformBox: "fill-box",
+            }}
+          >
+            {Array.from({ length: p2Count }).map((_, i) => {
+              const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
+              const rad = (angle * Math.PI) / 180
+              const x = expandedCenter + diamondOrbitR * Math.cos(rad)
+              const y = expandedCenter + diamondOrbitR * Math.sin(rad)
 
-            return (
-              <motion.g
-                key={i}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  rotate: diamondSpinControls,
-                }}
-                transition={{
-                  delay: i * 0.05,
-                  duration: 0.3,
-                  ease: "backOut",
-                }}
-                style={{
-                  transformOrigin: `${expandedCenter}px ${expandedCenter}px`,
-                  transformBox: "fill-box",
-                }}
-              >
-                <foreignObject
-                  x={x - 10}
-                  y={y - 10}
-                  width={20}
-                  height={20}
-                  style={{
-                    overflow: "visible",
+              return (
+                <motion.g
+                  key={i}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{
+                    delay: i * 0.05,
+                    duration: 0.3,
+                    ease: "backOut",
                   }}
                 >
-                  <motion.div
-                    animate={diamondGlowControls}
+                  <foreignObject
+                    x={x - 10}
+                    y={y - 10}
+                    width={20}
+                    height={20}
                     style={{
-                      width: 20,
-                      height: 20,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: theme.colors.reachColor,
-                      filter: `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
-                      transform: "rotate(90deg)",
+                      overflow: "visible",
                     }}
                   >
-                    <FontAwesomeIcon icon={faGem} size="sm" />
-                  </motion.div>
-                </foreignObject>
-              </motion.g>
-            )
-          })}
+                    <motion.div
+                      animate={diamondGlowControls}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: theme.colors.reachColor,
+                        filter: `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
+                        transform: "rotate(90deg)",
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faGem} size="sm" />
+                    </motion.div>
+                  </foreignObject>
+                </motion.g>
+              )
+            })}
+          </motion.g>
 
           {/* WEEKLY PERCENTAGE TEXT ALONG ARC - Rendered last for top z-index */}
           {weekly > 0 &&

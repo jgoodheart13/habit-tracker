@@ -2,18 +2,26 @@ import React from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import theme from "../styles/theme"
 
-export default function VerticalXPBar({ currentXP = 0, coreXP = 0, reachXP = 0 }) {
+export default function VerticalXPBar({
+  currentXP = 0,
+  coreXP = 0,
+  reachXP = 0,
+  animatingLockIn = false,
+}) {
   const prefersReducedMotion = useReducedMotion()
-  
+
   // Simple scaffolding: Level 1 always, 500 XP to Level 2
   const level = 1
   const nextLevel = 2
   const xpToNextLevel = 500
-  
+
   // Progress calculation (percentages from bottom)
   const corePercent = Math.min((coreXP / xpToNextLevel) * 100, 100)
   const reachPercent = Math.min((reachXP / xpToNextLevel) * 100, 100)
-  
+
+  // Delay XP bar fill animation if lock-in animation is running
+  const animationDelay = animatingLockIn ? 1.5 : 0
+
   return (
     <div
       style={{
@@ -36,7 +44,7 @@ export default function VerticalXPBar({ currentXP = 0, coreXP = 0, reachXP = 0 }
       >
         {Math.round(currentXP)} / {xpToNextLevel}
       </div>
-      
+
       {/* Level label */}
       <div
         style={{
@@ -62,11 +70,13 @@ export default function VerticalXPBar({ currentXP = 0, coreXP = 0, reachXP = 0 }
       >
         {/* Core XP portion (from bottom) */}
         <motion.div
+          initial={{ height: "0%" }}
           animate={{
             height: `${corePercent}%`,
           }}
           transition={{
             duration: prefersReducedMotion ? 0 : 0.35,
+            delay: animationDelay,
             ease: "easeOut",
           }}
           style={{
@@ -80,11 +90,13 @@ export default function VerticalXPBar({ currentXP = 0, coreXP = 0, reachXP = 0 }
         />
         {/* Reach XP portion (stacked on top of core) */}
         <motion.div
+          initial={{ height: "0%" }}
           animate={{
             height: `${reachPercent}%`,
           }}
           transition={{
             duration: prefersReducedMotion ? 0 : 0.35,
+            delay: animationDelay,
             ease: "easeOut",
           }}
           style={{
