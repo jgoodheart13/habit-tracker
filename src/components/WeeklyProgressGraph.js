@@ -17,6 +17,7 @@ export default function WeeklyProgressGraph({
   const [floatingXP, setFloatingXP] = useState(null)
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
+  const [xpBarTiming, setXpBarTiming] = useState({ delay: 0, duration: 0 }) // Timing for XP bar
   const prevTotalPointsRef = useRef(0)
   const prevCorePointsRef = useRef(0)
   const prevReachPointsRef = useRef(0)
@@ -195,6 +196,7 @@ export default function WeeklyProgressGraph({
           isLockedIn={isLockedIn}
           animatingLockIn={animatingLockIn}
           onAnimationComplete={() => setAnimatingLockIn(false)}
+          onXPBarDelayCalculated={setXpBarTiming}
         />
       </div>
 
@@ -205,6 +207,8 @@ export default function WeeklyProgressGraph({
           coreXP={isLockedIn ? parseFloat(P1_points.toFixed(1)) : 0}
           reachXP={isLockedIn ? parseFloat(P2_points.toFixed(1)) : 0}
           animatingLockIn={animatingLockIn}
+          animationDelay={xpBarTiming.delay}
+          animationDuration={xpBarTiming.duration}
         />
       </div>
 

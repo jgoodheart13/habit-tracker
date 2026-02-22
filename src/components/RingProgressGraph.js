@@ -22,6 +22,7 @@ export default function RingProgressGraph({
   isLockedIn = false,
   animatingLockIn = false,
   onAnimationComplete,
+  onXPBarDelayCalculated,
 }) {
   // Allow values above 100% to show full progress
   const daily = Math.max(0, dailyP1)
@@ -57,8 +58,14 @@ export default function RingProgressGraph({
   const [showArcSegment, setShowArcSegment] = useState(false)
   const [lockedInProgress, setLockedInProgress] = useState(0)
   const isAnimatingRef = useRef(false) // Prevent animation re-runs
+  const segmentDashProgress = useMotionValue(100) // For draining animation
 
   const dashArray = useTransform(dashProgress, (v) => {
+    const filled = arcInner(v)
+    return `${filled} ${C_inner - filled}`
+  })
+
+  const segmentDashArray = useTransform(segmentDashProgress, (v) => {
     const filled = arcInner(v)
     return `${filled} ${C_inner - filled}`
   })
@@ -164,20 +171,42 @@ export default function RingProgressGraph({
       const runAnimation = async () => {
         // Capture current progress
         setLockedInProgress(daily)
+        segmentDashProgress.set(daily) // Set initial dash to current progress
         setShowArcSegment(true)
         await new Promise((resolve) => setTimeout(resolve, 50))
 
-        // Calculate rotation to move tip to 0° (12 o'clock)
-        // Tip is currently at daily% of 360°
-        // Rotate so tip reaches 0°: rotate by (100 - daily)% of circle
-        const rotationDegrees = (100 - daily) * 3.6
+        // Calculate timing:
+        // - Tip is at daily% position, needs to rotate (100-daily)% to reach noon
+        // - Then drain the remaining daily% while rotating
+        const percentToNoon = 100 - daily // e.g., 100 - 63 = 37%
+        const percentToDrain = daily // e.g., 63%
+        const totalDuration = 1.2
+        const timeToNoon = (percentToNoon / 100) * totalDuration
+        const timeToDrain = (percentToDrain / 100) * totalDuration
 
-        // Spin arc so tip reaches 12 o'clock and disappears
-        await arcSegmentControls.start({
-          rotate: rotationDegrees,
-          opacity: 0,
-          transition: { duration: 1.0, ease: "easeInOut" },
-        })
+        // Notify parent of XP bar delay (when draining starts)
+        if (onXPBarDelayCalculated) {
+          onXPBarDelayCalculated({ delay: timeToNoon, duration: timeToDrain })
+        }
+
+        // Start both animations, but delay the drain
+        await Promise.all([
+          // Rotate full 360° clockwise
+          arcSegmentControls.start({
+            rotate: 360,
+            transition: { duration: totalDuration, ease: "linear" },
+          }),
+          // Wait until tip reaches noon, then drain
+          (async () => {
+            await new Promise((resolve) =>
+              setTimeout(resolve, timeToNoon * 1000),
+            )
+            await animate(segmentDashProgress, 0, {
+              duration: timeToDrain,
+              ease: "linear",
+            })
+          })(),
+        ])
 
         setShowArcSegment(false)
         isAnimatingRef.current = false
@@ -190,7 +219,13 @@ export default function RingProgressGraph({
     } else if (!animatingLockIn) {
       isAnimatingRef.current = false
     }
-  }, [animatingLockIn, daily, arcSegmentControls, onAnimationComplete])
+  }, [
+    animatingLockIn,
+    daily,
+    arcSegmentControls,
+    segmentDashProgress,
+    onAnimationComplete,
+  ])
 
   return (
     <div style={{ textAlign: "center", isolation: "isolate" }}>
@@ -316,7 +351,7 @@ export default function RingProgressGraph({
           />
 
           {/* INNER DAILY PROGRESS (gradient) */}
-          {daily > 0 && !showArcSegment && (
+          {daily > 0 && !showArcSegment && !isLockedIn && (
             <motion.circle
               cx={expandedCenter}
               cy={expandedCenter}
@@ -333,18 +368,20 @@ export default function RingProgressGraph({
 
           {/* Arc segment that spins during lock-in */}
           {showArcSegment && (
-            <motion.circle
-              cx={expandedCenter}
-              cy={expandedCenter}
-              r={innerR}
-              fill="none"
-              stroke="url(#dailyGrad)"
-              strokeWidth={strokeInner}
-              strokeLinecap="round"
-              strokeDasharray={arcInner(lockedInProgress)}
-              animate={arcSegmentControls}
-              initial={{ rotate: 0 }}
-            />
+            <motion.g animate={arcSegmentControls} initial={{ rotate: 0 }}>
+              <motion.circle
+                cx={expandedCenter}
+                cy={expandedCenter}
+                r={innerR}
+                fill="none"
+                stroke="url(#dailyGrad)"
+                strokeWidth={strokeInner}
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: segmentDashArray,
+                }}
+              />
+            </motion.g>
           )}
 
           {/* GRADIENT DEFINITIONS */}

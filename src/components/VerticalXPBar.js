@@ -7,6 +7,8 @@ export default function VerticalXPBar({
   coreXP = 0,
   reachXP = 0,
   animatingLockIn = false,
+  animationDelay = 0,
+  animationDuration = 0.35,
 }) {
   const prefersReducedMotion = useReducedMotion()
 
@@ -19,8 +21,9 @@ export default function VerticalXPBar({
   const corePercent = Math.min((coreXP / xpToNextLevel) * 100, 100)
   const reachPercent = Math.min((reachXP / xpToNextLevel) * 100, 100)
 
-  // Delay XP bar fill animation if lock-in animation is running
-  const animationDelay = animatingLockIn ? 1.5 : 0
+  // Use the calculated delay and duration from parent
+  const fillDelay = animationDelay
+  const fillDuration = animationDuration > 0 ? animationDuration : 0.35
 
   return (
     <div
@@ -75,8 +78,8 @@ export default function VerticalXPBar({
             height: `${corePercent}%`,
           }}
           transition={{
-            duration: prefersReducedMotion ? 0 : 0.35,
-            delay: animationDelay,
+            duration: prefersReducedMotion ? 0 : fillDuration,
+            delay: fillDelay,
             ease: "easeOut",
           }}
           style={{
@@ -95,8 +98,8 @@ export default function VerticalXPBar({
             height: `${reachPercent}%`,
           }}
           transition={{
-            duration: prefersReducedMotion ? 0 : 0.35,
-            delay: animationDelay,
+            duration: prefersReducedMotion ? 0 : fillDuration,
+            delay: fillDelay,
             ease: "easeOut",
           }}
           style={{
