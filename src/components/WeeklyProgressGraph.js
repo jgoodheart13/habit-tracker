@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import RingProgressGraph from "./RingProgressGraph"
 import DetailedStats from "./DetailedStats"
 import VerticalXPBar from "./VerticalXPBar"
+import { BASE_POINTS } from "../constants/habitDefaults"
 import theme from "../styles/theme"
 
 // NEW PROPS:
@@ -109,11 +110,10 @@ export default function WeeklyProgressGraph({
 
   P2_done += P1s_counted_as_p2
 
-  const basePoints = 5
   const P2_scale = 0.5 + 0.5 * (weeklyP1Percent / 100)
-  const P2_points = P2_done * basePoints * P2_scale
+  const P2_points = P2_done * BASE_POINTS * P2_scale
 
-  const P1_points = weeklyP1Percent * basePoints
+  const P1_points = weeklyP1Percent * BASE_POINTS
   const totalPoints = P1_points + P2_points
 
   // Detect XP gain and show floating feedback

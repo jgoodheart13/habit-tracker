@@ -413,13 +413,13 @@ export default function HelpPage() {
               Core habits earn XP based on your weekly completion percentage:
             </p>
             <div style={styles.highlight}>
-              <strong>Formula:</strong> 5 base points × Weekly Completion %
+              <strong>Formula:</strong> 7 base points × Weekly Completion %
             </div>
             <ul style={styles.list}>
               <li>Complete 0% of your weekly core goals = 0 XP</li>
-              <li>Complete 50% of your weekly core goals = 250 XP (5 × 50)</li>
+              <li>Complete 50% of your weekly core goals = 350 XP (7 × 50)</li>
               <li>
-                Complete 100% of your weekly core goals = 500 XP (5 × 100)
+                Complete 100% of your weekly core goals = 700 XP (7 × 100)
               </li>
             </ul>
           </div>
@@ -431,7 +431,7 @@ export default function HelpPage() {
               completion:
             </p>
             <div style={styles.highlight}>
-              <strong>Formula:</strong> 5 base points × Number of completions ×
+              <strong>Formula:</strong> 7 base points × Number of completions ×
               Multiplier
               <br />
               <strong>Multiplier:</strong> 0.5 + (Core % × 0.5)
@@ -455,16 +455,16 @@ export default function HelpPage() {
               </p>
               <ul style={styles.nestedList}>
                 <li>
-                  <strong>Core XP:</strong> 5 × 80 = 400 XP
+                  <strong>Core XP:</strong> 7 × 80 = 560 XP
                 </li>
                 <li>
                   <strong>Reach Multiplier:</strong> 0.5 + (0.8 × 0.5) = 0.9
                 </li>
                 <li>
-                  <strong>Reach XP:</strong> 5 × 3 × 0.9 = 13.5 XP
+                  <strong>Reach XP:</strong> 7 × 3 × 0.9 = 18.9 XP
                 </li>
                 <li>
-                  <strong>Total Weekly XP:</strong> 413.5 XP
+                  <strong>Total Weekly XP:</strong> 578.9 XP
                 </li>
               </ul>
             </div>
