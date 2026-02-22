@@ -59,6 +59,7 @@ export default function RingProgressGraph({
   const [lockedInProgress, setLockedInProgress] = useState(0)
   const isAnimatingRef = useRef(false) // Prevent animation re-runs
   const segmentDashProgress = useMotionValue(100) // For draining animation
+  const innerRingOpacity = useMotionValue(1) // For fading out inner ring
 
   const dashArray = useTransform(dashProgress, (v) => {
     const filled = arcInner(v)
@@ -66,8 +67,8 @@ export default function RingProgressGraph({
   })
 
   const segmentDashArray = useTransform(segmentDashProgress, (v) => {
-    const filled = arcInner(v)
-    return `${filled} ${C_inner - filled}`
+    const filled = arcOuter(v)
+    return `${filled} ${C_outer - filled}`
   })
 
   // Pulse animation on daily progress increase
@@ -164,22 +165,29 @@ export default function RingProgressGraph({
     prevP2CountRef.current = p2Count
   }, [p2Count, diamondSpinControls, diamondGlowControls])
 
-  // Lock-in animation - spin arc to 12 o'clock and fill XP bar
+  // Lock-in animation - fade out inner ring, spin outer ring to 12 o'clock and drain
   useEffect(() => {
     if (animatingLockIn && !isAnimatingRef.current) {
       isAnimatingRef.current = true
       const runAnimation = async () => {
-        // Capture current progress
-        setLockedInProgress(daily)
-        segmentDashProgress.set(daily) // Set initial dash to current progress
+        // Capture current weekly progress
+        setLockedInProgress(weekly)
+        segmentDashProgress.set(weekly) // Set initial dash to current weekly progress
         setShowArcSegment(true)
+        
+        // Fade out inner ring to 40% opacity
+        animate(innerRingOpacity, 0.4, {
+          duration: 0.3,
+          ease: "easeOut",
+        })
+        
         await new Promise((resolve) => setTimeout(resolve, 50))
 
         // Calculate timing:
-        // - Tip is at daily% position, needs to rotate (100-daily)% to reach noon
-        // - Then drain the remaining daily% while rotating
-        const percentToNoon = 100 - daily // e.g., 100 - 63 = 37%
-        const percentToDrain = daily // e.g., 63%
+        // - Tip is at weekly% position, needs to rotate (100-weekly)% to reach noon
+        // - Then drain the remaining weekly% while rotating
+        const percentToNoon = 100 - weekly // e.g., 100 - 63 = 37%
+        const percentToDrain = weekly // e.g., 63%
         const totalDuration = 1.2
         const timeToNoon = (percentToNoon / 100) * totalDuration
         const timeToDrain = (percentToDrain / 100) * totalDuration
@@ -225,11 +233,19 @@ export default function RingProgressGraph({
     }
   }, [
     animatingLockIn,
-    daily,
+    weekly,
     arcSegmentControls,
     segmentDashProgress,
+    innerRingOpacity,
     onAnimationComplete,
   ])
+  
+  // Reset inner ring opacity when lock-in is cancelled/reset
+  useEffect(() => {
+    if (!isLockedIn) {
+      innerRingOpacity.set(1)
+    }
+  }, [isLockedIn, innerRingOpacity])
 
   return (
     <div style={{ textAlign: "center", isolation: "isolate" }}>
@@ -298,7 +314,7 @@ export default function RingProgressGraph({
           })}
 
           {/* OUTER WEEKLY PROGRESS (gradient) */}
-          {weekly > 0 && (
+          {weekly > 0 && !showArcSegment && !isLockedIn && (
             <circle
               cx={expandedCenter}
               cy={expandedCenter}
@@ -354,8 +370,8 @@ export default function RingProgressGraph({
             strokeLinecap="round"
           />
 
-          {/* INNER DAILY PROGRESS (gradient) */}
-          {daily > 0 && !showArcSegment && !isLockedIn && (
+          {/* INNER DAILY PROGRESS (gradient) - always visible but fades during animation */}
+          {daily > 0 && (
             <motion.circle
               cx={expandedCenter}
               cy={expandedCenter}
@@ -366,20 +382,21 @@ export default function RingProgressGraph({
               strokeLinecap="round"
               style={{
                 strokeDasharray: dashArray,
+                opacity: innerRingOpacity,
               }}
             />
           )}
 
-          {/* Arc segment that spins during lock-in */}
+          {/* Arc segment that spins during lock-in - uses outer ring with core color */}
           {showArcSegment && (
             <motion.g animate={arcSegmentControls} initial={{ rotate: 0 }}>
               <motion.circle
                 cx={expandedCenter}
                 cy={expandedCenter}
-                r={innerR}
+                r={outerR}
                 fill="none"
-                stroke="url(#dailyGrad)"
-                strokeWidth={strokeInner}
+                stroke={theme.colors.coreColor}
+                strokeWidth={strokeOuter - 3}
                 strokeLinecap="round"
                 style={{
                   strokeDasharray: segmentDashArray,
