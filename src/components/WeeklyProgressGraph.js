@@ -13,7 +13,6 @@ export default function WeeklyProgressGraph({
   activeWeekRange,
   activeDate,
   onXPUpdate,
-  showStats = true,
 }) {
   const [floatingXP, setFloatingXP] = useState(null)
   const prevTotalPointsRef = useRef(0)
@@ -174,17 +173,15 @@ export default function WeeklyProgressGraph({
       }}
     >
       {/* Detailed Stats - Absolute positioned left */}
-      {showStats && (
-        <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
-          <DetailedStats
-            coreWeekly={P1_done}
-            coreWeeklyTotal={P1_total}
-            corePoints={P1_points.toFixed(1)}
-            reachWeekly={P2_done}
-            reachPoints={P2_points.toFixed(1)}
-          />
-        </div>
-      )}
+      <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
+        <DetailedStats
+          coreWeekly={P1_done}
+          coreWeeklyTotal={P1_total}
+          corePoints={P1_points.toFixed(1)}
+          reachWeekly={P2_done}
+          reachPoints={P2_points.toFixed(1)}
+        />
+      </div>
 
       {/* Ring Graph - True center */}
       <div style={{ position: "relative", zIndex: 2 }}>

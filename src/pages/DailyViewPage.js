@@ -56,7 +56,6 @@ export default function DailyViewPage() {
   const [totalWeeklyXP, setTotalWeeklyXP] = useState(0)
   const [coreWeeklyXP, setCoreWeeklyXP] = useState(0)
   const [reachWeeklyXP, setReachWeeklyXP] = useState(0)
-  const [showStats, setShowStats] = useState(false)
 
   function openSheet(habit) {
     setSheetContent(
@@ -395,14 +394,12 @@ export default function DailyViewPage() {
             style={{
               paddingTop: 8,
             }}
-            onClick={() => setShowStats(!showStats)}
           >
             <WeeklyProgressGraph
               habits={habits}
               activeWeekRange={activeWeekRange}
               showHeader={false}
               activeDate={activeDate}
-              showStats={showStats}
               onXPUpdate={(xp) => {
                 setTotalWeeklyXP(xp.total)
                 setCoreWeeklyXP(xp.core)
