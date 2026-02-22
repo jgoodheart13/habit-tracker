@@ -18,6 +18,7 @@ export default function WeeklyProgressGraph({
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
   const [xpBarTiming, setXpBarTiming] = useState({ delay: 0, duration: 0 }) // Timing for XP bar
+  const [xpBeforeLockIn, setXpBeforeLockIn] = useState(0) // Track XP before lock-in starts
   const prevTotalPointsRef = useRef(0)
   const prevCorePointsRef = useRef(0)
   const prevReachPointsRef = useRef(0)
@@ -203,10 +204,11 @@ export default function WeeklyProgressGraph({
       {/* Vertical XP Bar - Absolute positioned right */}
       <div style={{ position: "absolute", right: 16, zIndex: 1 }}>
         <VerticalXPBar
-          currentXP={isLockedIn ? parseFloat(totalPoints.toFixed(1)) : 0}
-          coreXP={isLockedIn ? parseFloat(P1_points.toFixed(1)) : 0}
-          reachXP={isLockedIn ? parseFloat(P2_points.toFixed(1)) : 0}
+          currentXP={xpBeforeLockIn}
+          coreXP={xpBeforeLockIn + parseFloat(P1_points.toFixed(1))}
+          reachXP={xpBeforeLockIn + parseFloat(totalPoints.toFixed(1))}
           animatingLockIn={animatingLockIn}
+          isLockedIn={isLockedIn}
           animationDelay={xpBarTiming.delay}
           animationDuration={xpBarTiming.duration}
         />
@@ -219,8 +221,11 @@ export default function WeeklyProgressGraph({
             // Reset
             setIsLockedIn(false)
             setAnimatingLockIn(false)
+            setXpBeforeLockIn(0)
           } else {
-            // Lock in
+            // Lock in - for testing, start from 0 XP (or could be a test value like 100)
+            // In production, this would be the user's actual accumulated XP
+            setXpBeforeLockIn(0) // TODO: Replace with actual user XP from database
             setIsLockedIn(true)
             setAnimatingLockIn(true)
           }
