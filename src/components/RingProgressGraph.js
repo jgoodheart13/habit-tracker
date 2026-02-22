@@ -326,59 +326,59 @@ export default function RingProgressGraph({
           </defs>
 
           {/* P2 DIAMONDS ORBITING THE RINGS */}
-          <motion.g
-            animate={diamondSpinControls}
-            style={{
-              originX: 0.5,
-              originY: 0.5,
-            }}
-          >
-            {Array.from({ length: p2Count }).map((_, i) => {
-              const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
-              const rad = (angle * Math.PI) / 180
-              const x = expandedCenter + diamondOrbitR * Math.cos(rad)
-              const y = expandedCenter + diamondOrbitR * Math.sin(rad)
+          {Array.from({ length: p2Count }).map((_, i) => {
+            const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
+            const rad = (angle * Math.PI) / 180
+            const x = expandedCenter + diamondOrbitR * Math.cos(rad)
+            const y = expandedCenter + diamondOrbitR * Math.sin(rad)
 
-              return (
-                <motion.g
-                  key={i}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{
-                    delay: i * 0.05,
-                    duration: 0.3,
-                    ease: "backOut",
+            return (
+              <motion.g
+                key={i}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: 1,
+                  opacity: 1,
+                  rotate: diamondSpinControls,
+                }}
+                transition={{
+                  delay: i * 0.05,
+                  duration: 0.3,
+                  ease: "backOut",
+                }}
+                style={{
+                  transformOrigin: `${expandedCenter}px ${expandedCenter}px`,
+                  transformBox: "fill-box",
+                }}
+              >
+                <foreignObject
+                  x={x - 10}
+                  y={y - 10}
+                  width={20}
+                  height={20}
+                  style={{
+                    overflow: "visible",
                   }}
                 >
-                  <foreignObject
-                    x={x - 10}
-                    y={y - 10}
-                    width={20}
-                    height={20}
+                  <motion.div
+                    animate={diamondGlowControls}
                     style={{
-                      overflow: "visible",
+                      width: 20,
+                      height: 20,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: theme.colors.reachColor,
+                      filter: `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
+                      transform: "rotate(90deg)",
                     }}
                   >
-                    <motion.div
-                      animate={diamondGlowControls}
-                      style={{
-                        width: 20,
-                        height: 20,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: theme.colors.reachColor,
-                        filter: `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
-                        transform: "rotate(90deg)",
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faGem} size="sm" />
-                    </motion.div>
-                  </foreignObject>
-                </motion.g>
-              )
-            })}
-          </motion.g>
+                    <FontAwesomeIcon icon={faGem} size="sm" />
+                  </motion.div>
+                </foreignObject>
+              </motion.g>
+            )
+          })}
 
           {/* WEEKLY PERCENTAGE TEXT ALONG ARC - Rendered last for top z-index */}
           {weekly > 0 &&
