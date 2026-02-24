@@ -17,7 +17,15 @@ import HabitModal from "../components/HabitModal"
 import { addHabit, updateHabit } from "../services/habitService"
 import DateChanger from "../components/DateChanger"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faEyeSlash, faEye, faTimes, faBars, faPlus, faSort } from "@fortawesome/free-solid-svg-icons"
+import {
+  faEyeSlash,
+  faEye,
+  faTimes,
+  faBars,
+  faPlus,
+  faSort,
+  faLock,
+} from "@fortawesome/free-solid-svg-icons"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
@@ -27,12 +35,17 @@ export default function DailyViewPage() {
   // Supabase authentication status
   const { isAuthenticated } = useSupabaseAuth()
   const { tokenReady } = useContext(AuthContext)
+  // Enriched user context
+  const { user } = require("../contexts/UserContext").useUserContext()
+  // Lock/reset state for WeeklyProgressGraph
+  const [isLockedIn, setIsLockedIn] = useState(false)
+  const [animatingLockIn, setAnimatingLockIn] = useState(false)
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([])
   const [habitsLoading, setHabitsLoading] = useState(true)
   const [activeDate, setActiveDate] = useState(() =>
-    new Date().toLocaleDateString("en-CA")
+    new Date().toLocaleDateString("en-CA"),
   )
   const [showHabitModal, setShowHabitModal] = useState(false)
   const [editingHabit, setEditingHabit] = useState(null)
@@ -155,8 +168,8 @@ export default function DailyViewPage() {
                 [date]: isChecked,
               },
             }
-          : h
-      )
+          : h,
+      ),
     )
 
     // 2️⃣ Increment request ID
@@ -193,10 +206,10 @@ export default function DailyViewPage() {
                     } else if (!isChecked) {
                       // Remove the pending un-completion
                       completedDates = completedDates.filter(
-                        (d) => d !== pendingDate
+                        (d) => d !== pendingDate,
                       )
                     }
-                  }
+                  },
                 )
 
                 return {
@@ -219,7 +232,7 @@ export default function DailyViewPage() {
                   }
                 }
                 return h
-              })
+              }),
             )
           } catch (err) {
             console.error("Refresh failed:", err)
@@ -405,6 +418,10 @@ export default function DailyViewPage() {
                 setCoreWeeklyXP(xp.core)
                 setReachWeeklyXP(xp.reach)
               }}
+              isLockedIn={isLockedIn}
+              animatingLockIn={animatingLockIn}
+              setIsLockedIn={setIsLockedIn}
+              setAnimatingLockIn={setAnimatingLockIn}
             />
           </div>
 
@@ -564,6 +581,41 @@ export default function DailyViewPage() {
                   />
                   {completedVisibility ? "Hide Completed" : "Show Completed"}
                 </button>
+                {/* Admin-only Lock In Week entry */}
+                {user?.is_admin && (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false)
+                      if (isLockedIn) {
+                        setIsLockedIn(false)
+                        setAnimatingLockIn(false)
+                      } else {
+                        setIsLockedIn(true)
+                        setAnimatingLockIn(true)
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 16px",
+                      border: "none",
+                      background: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: 15,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      color: theme.colors.coreColor,
+                      fontWeight: 700,
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faLock}
+                      color={theme.colors.coreColor}
+                    />
+                    {isLockedIn ? "Reset" : "Lock In Week"}
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { useUserContext } from "../contexts/UserContext"
 import { motion, AnimatePresence } from "framer-motion"
 import RingProgressGraph from "./RingProgressGraph"
 import DetailedStats from "./DetailedStats"
@@ -13,10 +14,12 @@ export default function WeeklyProgressGraph({
   activeWeekRange,
   activeDate,
   onXPUpdate,
+  isLockedIn,
+  animatingLockIn,
+  setIsLockedIn,
+  setAnimatingLockIn,
 }) {
   const [floatingXP, setFloatingXP] = useState(null)
-  const [isLockedIn, setIsLockedIn] = useState(false)
-  const [animatingLockIn, setAnimatingLockIn] = useState(false)
   const [xpBarTiming, setXpBarTiming] = useState({ delay: 0, duration: 0 }) // Timing for XP bar
   const [xpBeforeLockIn, setXpBeforeLockIn] = useState(0) // Track XP before lock-in starts
   const prevTotalPointsRef = useRef(0)
@@ -170,7 +173,7 @@ export default function WeeklyProgressGraph({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        padding: "10px 16px 60px 16px",
+        padding: "10px 16px 16px 16px",
         boxSizing: "border-box",
         position: "relative",
         isolation: "isolate",
@@ -186,7 +189,6 @@ export default function WeeklyProgressGraph({
           reachPoints={P2_points.toFixed(1)}
         />
       </div>
-
       {/* Ring Graph - True center */}
       <div style={{ position: "relative", zIndex: 2 }}>
         <RingProgressGraph
@@ -200,7 +202,6 @@ export default function WeeklyProgressGraph({
           onXPBarDelayCalculated={setXpBarTiming}
         />
       </div>
-
       {/* Vertical XP Bar - Absolute positioned right */}
       <div style={{ position: "absolute", right: 16, zIndex: 1 }}>
         <VerticalXPBar
@@ -213,43 +214,8 @@ export default function WeeklyProgressGraph({
           animationDuration={xpBarTiming.duration}
         />
       </div>
-
-      {/* Lock In Test Button */}
-      <button
-        onClick={() => {
-          if (isLockedIn) {
-            // Reset
-            setIsLockedIn(false)
-            setAnimatingLockIn(false)
-            setXpBeforeLockIn(0)
-          } else {
-            // Lock in - for testing, start from 0 XP (or could be a test value like 100)
-            // In production, this would be the user's actual accumulated XP
-            setXpBeforeLockIn(0) // TODO: Replace with actual user XP from database
-            setIsLockedIn(true)
-            setAnimatingLockIn(true)
-          }
-        }}
-        style={{
-          position: "absolute",
-          bottom: 10,
-          left: "50%",
-          transform: "translateX(-50%)",
-          padding: "8px 16px",
-          background: isLockedIn ? "#666" : theme.colors.coreColor,
-          color: "white",
-          border: "none",
-          borderRadius: 8,
-          cursor: "pointer",
-          fontSize: 14,
-          fontWeight: 600,
-          zIndex: 10,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        }}
-      >
-        {isLockedIn ? "Reset" : "Lock In Week"}
-      </button>
-
+      {/* Lock In Test Button for Admins */}
+      {/* Button removed; now controlled via menu in DailyViewPage */}
       {/* Floating +XP Feedback - positioned next to Core or Reach stats */}
       <AnimatePresence>
         {floatingXP && (
@@ -285,7 +251,6 @@ export default function WeeklyProgressGraph({
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Right space reserved for future content */}
     </div>
   )
