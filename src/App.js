@@ -2,12 +2,16 @@ import React from "react"
 import AppRouter from "./AppRouter"
 import { AuthenticationWrapper } from "./components/AuthenticationWrapper"
 import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext"
+import { UserProvider } from "./contexts/UserContext"
 import { isMobile } from "react-device-detect"
+
 
 export default function App() {
   return (
     <SupabaseAuthProvider>
-      <AppContent />
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
     </SupabaseAuthProvider>
   )
 }

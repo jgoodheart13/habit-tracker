@@ -1,5 +1,6 @@
 import React from "react"
 import { useSupabaseAuth } from "../contexts/SupabaseAuthContext"
+import { useUserContext } from "../contexts/UserContext"
 import { useNavigate } from "react-router-dom"
 import theme from "../styles/theme"
 
@@ -99,8 +100,9 @@ function DropdownMenu({ userInfo, onClose }) {
 }
 
 export default function Header() {
-  const { isAuthenticated, getUserMetadata } = useSupabaseAuth()
-  const userInfo = getUserMetadata()
+
+  const { isAuthenticated } = useSupabaseAuth()
+  const { user: userInfo } = useUserContext()
   const [showDropdown, setShowDropdown] = React.useState(false)
   const dropdownRootRef = React.useRef(null)
 
