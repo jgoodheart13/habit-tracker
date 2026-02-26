@@ -30,6 +30,8 @@ import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import { useWeekGuard } from "../contexts/WeekGuardContext"
+import { useWeekGuardOnFocus } from "../hooks/useWeekGuardOnFocus"
 
 export default function DailyViewPage() {
   // Supabase authentication status
@@ -40,6 +42,12 @@ export default function DailyViewPage() {
   // Lock/reset state for WeeklyProgressGraph
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
+
+  // Week guard for rollover protection
+  const { ensureWeekStateFresh, requestLockIn } = useWeekGuard()
+
+  // Enable passive week checks on focus/visibility (only when authenticated)
+  useWeekGuardOnFocus(isAuthenticated && tokenReady)
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([])
@@ -148,7 +156,24 @@ export default function DailyViewPage() {
   // Track the most recent completion request
   const latestRequestRef = React.useRef(0)
 
-  function handleComplete(id, date, isChecked) {
+  async function handleComplete(id, date, isChecked) {
+    // 🔒 Week guard check before write (only if authenticated)
+    if (isAuthenticated && tokenReady) {
+      console.log("[handleComplete] Checking week state before completion...")
+      try {
+        const { requiresLock } = await ensureWeekStateFresh()
+        console.log("[handleComplete] Week check result:", { requiresLock })
+        if (requiresLock) {
+          console.log("[handleComplete] Opening lock modal...")
+          await requestLockIn()
+          console.log("[handleComplete] Lock confirmed, proceeding...")
+        }
+      } catch (error) {
+        console.error("Week guard check failed or user cancelled:", error)
+        return // Abort operation
+      }
+    }
+
     const prevHabits = habits
 
     // 1️⃣ Optimistic UI update - immediately update the UI before API confirms
@@ -246,6 +271,30 @@ export default function DailyViewPage() {
           alert("Failed to update habit. Please try again.")
         }
       })
+      .catch((error) => {
+        // Handle 409 LOCK_REQUIRED from server
+        if (error.response?.status === 409) {
+          ;(async () => {
+            try {
+              await requestLockIn()
+              // Retry the operation
+              handleComplete(id, date, isChecked)
+            } catch (lockError) {
+              console.error("Lock-in failed or cancelled:", lockError)
+              // Rollback optimistic update
+              if (requestId === latestRequestRef.current) {
+                setHabits(prevHabits)
+              }
+            }
+          })()
+        } else {
+          // rollback only if still latest (avoid undoing newer actions)
+          if (requestId === latestRequestRef.current) {
+            setHabits(prevHabits)
+            alert("Failed to update habit. Please try again.")
+          }
+        }
+      })
   }
 
   function handleDelete(id, name) {
@@ -260,6 +309,14 @@ export default function DailyViewPage() {
     setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: true }))
     ;(async () => {
       try {
+        // 🔒 Week guard check before write (only if authenticated)
+        if (isAuthenticated && tokenReady) {
+          const { requiresLock } = await ensureWeekStateFresh()
+          if (requiresLock) {
+            await requestLockIn()
+          }
+        }
+
         await deleteHabit(deleteConfirmModal.habitId, activeDate)
         const updated = await getHabits(activeWeekRange.end)
         setHabits(updated)
@@ -271,7 +328,28 @@ export default function DailyViewPage() {
         })
       } catch (err) {
         console.error("Error deleting habit:", err)
-        setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
+
+        // Handle 409 LOCK_REQUIRED from server
+        if (err.response?.status === 409) {
+          try {
+            await requestLockIn()
+            // Retry the operation
+            await deleteHabit(deleteConfirmModal.habitId, activeDate)
+            const updated = await getHabits(activeWeekRange.end)
+            setHabits(updated)
+            setDeleteConfirmModal({
+              show: false,
+              habitId: null,
+              habitName: "",
+              isDeleting: false,
+            })
+          } catch (retryErr) {
+            console.error("Retry delete failed:", retryErr)
+            setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
+          }
+        } else {
+          setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
+        }
       }
     })()
   }
@@ -306,11 +384,21 @@ export default function DailyViewPage() {
     setShowHabitModal(false)
   }
 
-  function handleAddHabit(newHabit) {
+  async function handleAddHabit(newHabit) {
     // Close modal
     handleCloseHabitModal()
-    newHabit.startDate = activeDate
-    addHabit(newHabit).then(async (addedHabit) => {
+
+    try {
+      // 🔒 Week guard check before write (only if authenticated)
+      if (isAuthenticated && tokenReady) {
+        const { requiresLock } = await ensureWeekStateFresh()
+        if (requiresLock) {
+          await requestLockIn()
+        }
+      }
+
+      newHabit.startDate = activeDate
+      const addedHabit = await addHabit(newHabit)
       console.log("Added habit:", addedHabit)
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
@@ -319,16 +407,64 @@ export default function DailyViewPage() {
         console.log("Setting newlyAddedHabitId:", addedHabit.id)
         setNewlyAddedHabitId(addedHabit.id)
       }
-    })
+    } catch (error) {
+      console.error("Error adding habit:", error)
+
+      // Handle 409 LOCK_REQUIRED from server
+      if (error.response?.status === 409) {
+        try {
+          await requestLockIn()
+          // Retry the operation
+          newHabit.startDate = activeDate
+          const addedHabit = await addHabit(newHabit)
+          const updated = await getHabits(activeWeekRange.end)
+          setHabits(updated)
+          if (addedHabit?.id) {
+            setNewlyAddedHabitId(addedHabit.id)
+          }
+        } catch (retryErr) {
+          console.error("Retry add habit failed:", retryErr)
+          alert("Failed to add habit. Please try again.")
+        }
+      } else {
+        alert("Failed to add habit. Please try again.")
+      }
+    }
   }
 
-  function handleUpdateHabit(updatedHabit) {
+  async function handleUpdateHabit(updatedHabit) {
     // Update habit in backend and refresh list
-    ;(async () => {
+    try {
+      // 🔒 Week guard check before write (only if authenticated)
+      if (isAuthenticated && tokenReady) {
+        const { requiresLock } = await ensureWeekStateFresh()
+        if (requiresLock) {
+          await requestLockIn()
+        }
+      }
+
       await updateHabit(updatedHabit.id, updatedHabit)
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
-    })()
+    } catch (error) {
+      console.error("Error updating habit:", error)
+
+      // Handle 409 LOCK_REQUIRED from server
+      if (error.response?.status === 409) {
+        try {
+          await requestLockIn()
+          // Retry the operation
+          await updateHabit(updatedHabit.id, updatedHabit)
+          const updated = await getHabits(activeWeekRange.end)
+          setHabits(updated)
+        } catch (retryErr) {
+          console.error("Retry update habit failed:", retryErr)
+          alert("Failed to update habit. Please try again.")
+        }
+      } else {
+        alert("Failed to update habit. Please try again.")
+      }
+    }
   }
 
   function handlePauseHabit(habit) {
