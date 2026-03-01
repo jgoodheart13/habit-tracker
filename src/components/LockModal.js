@@ -1,32 +1,45 @@
-import React, { useState } from "react";
-import { useWeekGuard } from "../contexts/WeekGuardContext";
-import theme from "../styles/theme";
+import React, { useState, useMemo } from "react"
+import { useWeekGuard } from "../contexts/WeekGuardContext"
+import { calculateWeekTotals } from "../utils/weekTotalsCalculator"
+import theme from "../styles/theme"
 
 /**
  * Minimal modal for week lock-in confirmation
  * Shows pending week info and allows user to confirm or cancel
  */
 export default function LockModal() {
-  const { isLockModalOpen, serverPendingInfo, lockIn, cancelLock } = useWeekGuard();
-  const [isLocking, setIsLocking] = useState(false);
+  const { isLockModalOpen, serverPendingInfo, lockIn, cancelLock } =
+    useWeekGuard()
+  const [isLocking, setIsLocking] = useState(false)
 
-  if (!isLockModalOpen) return null;
+  // Calculate totals from habits and weekDays
+  const totals = useMemo(() => {
+    if (!serverPendingInfo?.habits || !serverPendingInfo?.weekDays) {
+      return null
+    }
+    return calculateWeekTotals(
+      serverPendingInfo.habits,
+      serverPendingInfo.weekDays,
+    )
+  }, [serverPendingInfo])
+
+  if (!isLockModalOpen) return null
 
   const handleConfirm = async () => {
-    setIsLocking(true);
+    setIsLocking(true)
     try {
-      await lockIn();
+      await lockIn()
     } catch (error) {
-      console.error("Lock failed:", error);
-      alert("Failed to lock week. Please try again.");
+      console.error("Lock failed:", error)
+      alert("Failed to lock week. Please try again.")
     } finally {
-      setIsLocking(false);
+      setIsLocking(false)
     }
-  };
+  }
 
   const handleCancel = () => {
-    cancelLock();
-  };
+    cancelLock()
+  }
 
   return (
     <div
@@ -45,7 +58,7 @@ export default function LockModal() {
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !isLocking) {
-          handleCancel();
+          handleCancel()
         }
       }}
     >
@@ -78,11 +91,11 @@ export default function LockModal() {
             lineHeight: 1.5,
           }}
         >
-          A new week has begun. Confirm to lock in your previous week's progress and
-          start fresh.
+          A new week has begun. Confirm to lock in your previous week's progress
+          and start fresh.
         </p>
 
-        {serverPendingInfo?.totals && (
+        {totals && (
           <div
             style={{
               background: theme.colors.cardBackground,
@@ -104,52 +117,49 @@ export default function LockModal() {
               Previous Week Summary
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {serverPendingInfo.totals.coreCompletions !== undefined && (
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: theme.colors.text, fontSize: 14 }}>
-                    Core Completions:
-                  </span>
-                  <span
-                    style={{
-                      color: theme.colors.completeColor,
-                      fontSize: 14,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {serverPendingInfo.totals.coreCompletions}
-                  </span>
-                </div>
-              )}
-              {serverPendingInfo.totals.reachCompletions !== undefined && (
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: theme.colors.text, fontSize: 14 }}>
-                    Reach Completions:
-                  </span>
-                  <span
-                    style={{
-                      color: theme.colors.reachColor,
-                      fontSize: 14,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {serverPendingInfo.totals.reachCompletions}
-                  </span>
-                </div>
-              )}
-              {serverPendingInfo.totals.totalXP !== undefined && (
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: theme.colors.text, fontSize: 14 }}>Total XP:</span>
-                  <span
-                    style={{
-                      color: theme.colors.accent,
-                      fontSize: 14,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {serverPendingInfo.totals.totalXP}
-                  </span>
-                </div>
-              )}
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: theme.colors.text, fontSize: 14 }}>
+                  Core Completions:
+                </span>
+                <span
+                  style={{
+                    color: theme.colors.completeColor,
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}
+                >
+                  {totals.coreCompletions}
+                  {totals.coreTotal ? ` / ${totals.coreTotal}` : ""}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: theme.colors.text, fontSize: 14 }}>
+                  Reach Completions:
+                </span>
+                <span
+                  style={{
+                    color: theme.colors.reachColor,
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}
+                >
+                  {totals.reachCompletions}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: theme.colors.text, fontSize: 14 }}>
+                  Total XP:
+                </span>
+                <span
+                  style={{
+                    color: theme.colors.accent,
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}
+                >
+                  {totals.totalXP}
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -192,5 +202,5 @@ export default function LockModal() {
         </div>
       </div>
     </div>
-  );
+  )
 }

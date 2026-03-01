@@ -44,10 +44,75 @@ export default function DailyViewPage() {
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
 
   // Week guard for rollover protection
-  const { ensureWeekStateFresh, requestLockIn } = useWeekGuard()
+  const {
+    ensureWeekStateFresh,
+    requestLockIn,
+    pendingWeekStart,
+    actualCurrentWeek,
+  } = useWeekGuard()
 
   // Enable passive week checks on focus/visibility (only when authenticated)
   useWeekGuardOnFocus(isAuthenticated && tokenReady)
+
+  // Check for week lock on mount
+  useEffect(() => {
+    async function checkWeekLockOnMount() {
+      if (isAuthenticated && tokenReady) {
+        console.log("[DailyViewPage] Checking week lock on mount...")
+        try {
+          const { requiresLock, activeWeekStart } = await ensureWeekStateFresh()
+          console.log("[DailyViewPage] Mount check result:", {
+            requiresLock,
+            activeWeekStart,
+          })
+
+          if (requiresLock && activeWeekStart) {
+            // Set activeDate to the frozen week (old week that needs locking)
+            const mondayOfFrozenWeek = activeWeekStart
+            console.log(
+              "[DailyViewPage] Setting activeDate to frozen week:",
+              mondayOfFrozenWeek,
+            )
+            setActiveDate(mondayOfFrozenWeek)
+
+            // Immediately show modal
+            console.log("[DailyViewPage] Opening lock modal on mount...")
+            try {
+              // Need to fetch habits for the pending week first
+              const pendingWeekRange = getWeekRange(mondayOfFrozenWeek)
+              const pendingHabits = await getHabits(pendingWeekRange.end)
+              const pendingWeekDays = Array.from({ length: 7 }, (_, i) => {
+                const d = new Date(pendingWeekRange.start)
+                d.setDate(d.getDate() + i)
+                return d.toISOString().slice(0, 10)
+              })
+
+              await requestLockIn(pendingHabits, pendingWeekDays)
+              console.log(
+                "[DailyViewPage] Lock confirmed! Updating to current week...",
+              )
+
+              // After lock, update to actual current week
+              if (actualCurrentWeek) {
+                setActiveDate(actualCurrentWeek)
+                console.log(
+                  "[DailyViewPage] Updated to current week:",
+                  actualCurrentWeek,
+                )
+              }
+            } catch (error) {
+              console.log("[DailyViewPage] Lock cancelled by user")
+            }
+          }
+        } catch (error) {
+          console.error("[DailyViewPage] Week lock check failed:", error)
+        }
+      }
+    }
+
+    checkWeekLockOnMount()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, tokenReady]) // Only run on auth change
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([])
@@ -165,8 +230,17 @@ export default function DailyViewPage() {
         console.log("[handleComplete] Week check result:", { requiresLock })
         if (requiresLock) {
           console.log("[handleComplete] Opening lock modal...")
-          await requestLockIn()
+          await requestLockIn(habits, weekDays)
           console.log("[handleComplete] Lock confirmed, proceeding...")
+
+          // After lock, update UI to current week
+          if (actualCurrentWeek) {
+            console.log(
+              "[handleComplete] Updating to current week:",
+              actualCurrentWeek,
+            )
+            setActiveDate(actualCurrentWeek)
+          }
         }
       } catch (error) {
         console.error("Week guard check failed or user cancelled:", error)
@@ -264,20 +338,14 @@ export default function DailyViewPage() {
           }
         }
       })
-      .catch(() => {
-        // rollback only if still latest (avoid undoing newer actions)
-        if (requestId === latestRequestRef.current) {
-          setHabits(prevHabits)
-          alert("Failed to update habit. Please try again.")
-        }
-      })
       .catch((error) => {
-        // Handle 409 LOCK_REQUIRED from server
+        // Handle 409 LOCK_REQUIRED from server first
         if (error.response?.status === 409) {
+          console.log("[handleComplete] Server requires lock (409), opening modal...")
           ;(async () => {
             try {
-              await requestLockIn()
-              // Retry the operation
+              await requestLockIn(habits, weekDays)
+              // Retry the operation after lock
               handleComplete(id, date, isChecked)
             } catch (lockError) {
               console.error("Lock-in failed or cancelled:", lockError)
@@ -288,7 +356,7 @@ export default function DailyViewPage() {
             }
           })()
         } else {
-          // rollback only if still latest (avoid undoing newer actions)
+          // For all other errors, rollback only if still latest (avoid undoing newer actions)
           if (requestId === latestRequestRef.current) {
             setHabits(prevHabits)
             alert("Failed to update habit. Please try again.")
@@ -313,7 +381,7 @@ export default function DailyViewPage() {
         if (isAuthenticated && tokenReady) {
           const { requiresLock } = await ensureWeekStateFresh()
           if (requiresLock) {
-            await requestLockIn()
+            await requestLockIn(habits, weekDays)
           }
         }
 
@@ -332,7 +400,7 @@ export default function DailyViewPage() {
         // Handle 409 LOCK_REQUIRED from server
         if (err.response?.status === 409) {
           try {
-            await requestLockIn()
+            await requestLockIn(habits, weekDays)
             // Retry the operation
             await deleteHabit(deleteConfirmModal.habitId, activeDate)
             const updated = await getHabits(activeWeekRange.end)
@@ -393,7 +461,7 @@ export default function DailyViewPage() {
       if (isAuthenticated && tokenReady) {
         const { requiresLock } = await ensureWeekStateFresh()
         if (requiresLock) {
-          await requestLockIn()
+          await requestLockIn(habits, weekDays)
         }
       }
 
@@ -413,7 +481,7 @@ export default function DailyViewPage() {
       // Handle 409 LOCK_REQUIRED from server
       if (error.response?.status === 409) {
         try {
-          await requestLockIn()
+          await requestLockIn(habits, weekDays)
           // Retry the operation
           newHabit.startDate = activeDate
           const addedHabit = await addHabit(newHabit)
@@ -439,7 +507,7 @@ export default function DailyViewPage() {
       if (isAuthenticated && tokenReady) {
         const { requiresLock } = await ensureWeekStateFresh()
         if (requiresLock) {
-          await requestLockIn()
+          await requestLockIn(habits, weekDays)
         }
       }
 
@@ -452,7 +520,7 @@ export default function DailyViewPage() {
       // Handle 409 LOCK_REQUIRED from server
       if (error.response?.status === 409) {
         try {
-          await requestLockIn()
+          await requestLockIn(habits, weekDays)
           // Retry the operation
           await updateHabit(updatedHabit.id, updatedHabit)
           const updated = await getHabits(activeWeekRange.end)

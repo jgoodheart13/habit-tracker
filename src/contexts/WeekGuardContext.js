@@ -22,122 +22,166 @@ export function WeekGuardProvider({ children }) {
   const [needsLock, setNeedsLock] = useState(false);
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [serverPendingInfo, setServerPendingInfo] = useState(null);
-  
+  const [pendingWeekStart, setPendingWeekStart] = useState(null) // Week that needs locking
+  const [actualCurrentWeek, setActualCurrentWeek] = useState(null) // Real current week
+
   // Promise resolution for requestLockIn()
-  const pendingResolveRef = useRef(null);
-  const pendingRejectRef = useRef(null);
+  const pendingResolveRef = useRef(null)
+  const pendingRejectRef = useRef(null)
 
   /**
    * Ensure week state is fresh - short-circuit if cache matches current week
    * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart?, totals? }
    */
   const ensureWeekStateFresh = useCallback(async () => {
-    const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10));
-    const cache = getWeekStateCache();
+    const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10))
+    const cache = getWeekStateCache()
 
     // Normalize cached value to date-only (remove time component if present)
-    const cachedWeekStart = cache?.activeWeekStart?.slice(0, 10);
+    const cachedWeekStart = cache?.activeWeekStart?.slice(0, 10)
 
     // Short-circuit: cache matches current week, no server call needed
     if (cachedWeekStart === currentWeekStart) {
-      console.log("[WeekGuard] ✓ Week state fresh (cached):", currentWeekStart);
+      console.log("[WeekGuard] ✓ Week state fresh (cached):", currentWeekStart)
       return {
         requiresLock: false,
         activeWeekStart: cachedWeekStart,
-      };
+      }
     }
 
     // Cache miss or week changed - call backend
-    console.log("[WeekGuard] 🔍 Cache miss, checking server. Current:", currentWeekStart, "Cached:", cachedWeekStart);
+    console.log(
+      "[WeekGuard] 🔍 Cache miss, checking server. Current:",
+      currentWeekStart,
+      "Cached:",
+      cachedWeekStart,
+    )
     try {
-      const result = await checkWeekRollover();
-      console.log("[WeekGuard] Server response:", result);
-      
+      const result = await checkWeekRollover()
+      console.log("[WeekGuard] Server response:", result)
+
       // Update cache with server's activeWeekStart
       if (result.activeWeekStart) {
-        setWeekStateCache({ activeWeekStart: result.activeWeekStart });
+        setWeekStateCache({ activeWeekStart: result.activeWeekStart })
       }
 
       // Set internal flag if lock is required
       if (result.requiresLock) {
-        console.log("[WeekGuard] 🔒 Lock required!");
-        setNeedsLock(true);
+        console.log("[WeekGuard] 🔒 Lock required!")
+        setNeedsLock(true)
+        setPendingWeekStart(result.pendingWeekStart || result.activeWeekStart)
+        setActualCurrentWeek(result.activeWeekStart) // Current week for after lock
         setServerPendingInfo({
-          pendingWeekStart: result.pendingWeekStart,
-          totals: result.totals,
-        });
+          pendingWeekStart: result.pendingWeekStart || result.activeWeekStart,
+        })
+      } else {
+        setPendingWeekStart(null)
+        setActualCurrentWeek(null)
       }
 
-      return result;
+      return result
     } catch (error) {
-      console.error("Week state check failed:", error);
+      console.error("Week state check failed:", error)
       // Fail gracefully - don't hard-block, server will enforce with 409
-      return { requiresLock: false };
+      return { requiresLock: false }
     }
-  }, []);
+  }, [])
 
   /**
    * Request lock-in (opens modal and returns promise that resolves when lock completes)
+   * @param {Array} habits - All habits for the pending week
+   * @param {Array} weekDays - Array of dates for the pending week
    * @returns {Promise<void>}
    */
-  const requestLockIn = useCallback(() => {
-    return new Promise((resolve, reject) => {
-      pendingResolveRef.current = resolve;
-      pendingRejectRef.current = reject;
-      setIsLockModalOpen(true);
-    });
-  }, []);
+  const requestLockIn = useCallback(
+    (habits, weekDays) => {
+      return new Promise((resolve, reject) => {
+        pendingResolveRef.current = resolve
+        pendingRejectRef.current = reject
+
+        // Store habits and weekDays for lockIn to use
+        setServerPendingInfo({
+          pendingWeekStart: pendingWeekStart,
+          habits,
+          weekDays,
+        })
+
+        setIsLockModalOpen(true)
+      })
+    },
+    [pendingWeekStart],
+  )
 
   /**
    * Lock in the week (called when user confirms in modal)
+   * Calculates totals from stored habits/weekDays and sends to backend
    */
   const lockIn = useCallback(async () => {
     try {
-      const result = await lockWeek();
-      
-      // Update cache with new activeWeekStart
-      if (result.activeWeekStart) {
-        setWeekStateCache({ activeWeekStart: result.activeWeekStart });
+      // Import calculator dynamically to avoid circular deps
+      const { calculateWeekTotals } =
+        await import("../utils/weekTotalsCalculator")
+
+      const habits = serverPendingInfo?.habits || []
+      const weekDays = serverPendingInfo?.weekDays || []
+
+      // Calculate totals on frontend
+      const totals = calculateWeekTotals(habits, weekDays)
+      console.log("[WeekGuard] Calculated totals:", totals)
+
+      const payload = {
+        weekStart: pendingWeekStart,
+        totals,
       }
 
-      // Clear lock state
-      setNeedsLock(false);
-      setServerPendingInfo(null);
-      setIsLockModalOpen(false);
+      console.log("[WeekGuard] Locking week with payload:", payload)
+      const result = await lockWeek(payload)
+
+      // Update cache with new activeWeekStart (should be current week now)
+      if (result.activeWeekStart) {
+        setWeekStateCache({ activeWeekStart: result.activeWeekStart })
+      }
+
+      // Clear lock state and unfreeze to current week
+      setNeedsLock(false)
+      setServerPendingInfo(null)
+      setPendingWeekStart(null)
+      setActualCurrentWeek(null)
+      setIsLockModalOpen(false)
 
       // Resolve pending promise
       if (pendingResolveRef.current) {
-        pendingResolveRef.current();
-        pendingResolveRef.current = null;
-        pendingRejectRef.current = null;
+        pendingResolveRef.current()
+        pendingResolveRef.current = null
+        pendingRejectRef.current = null
       }
     } catch (error) {
-      console.error("Week lock failed:", error);
-      
+      console.error("Week lock failed:", error)
+
       // Reject pending promise
       if (pendingRejectRef.current) {
-        pendingRejectRef.current(error);
-        pendingResolveRef.current = null;
-        pendingRejectRef.current = null;
+        pendingRejectRef.current(error)
+        pendingResolveRef.current = null
+        pendingRejectRef.current = null
       }
-      
-      throw error;
+
+      throw error
     }
-  }, []);
+  }, [])
 
   /**
    * Cancel lock-in (closes modal and rejects promise)
    */
   const cancelLock = useCallback(() => {
-    setIsLockModalOpen(false);
-    
+    setIsLockModalOpen(false)
+
     // Reject pending promise
     if (pendingRejectRef.current) {
-      pendingRejectRef.current(new Error("Lock cancelled by user"));
-      pendingResolveRef.current = null;
-      pendingRejectRef.current = null;
+      pendingRejectRef.current(new Error("Lock cancelled by user"))
+      pendingResolveRef.current = null
+      pendingRejectRef.current = null
     }
-  }, []);
+  }, [])
 
   const value = {
     ensureWeekStateFresh,
@@ -147,7 +191,9 @@ export function WeekGuardProvider({ children }) {
     needsLock,
     isLockModalOpen,
     serverPendingInfo,
-  };
+    pendingWeekStart, // Week that needs locking (null if not needed)
+    actualCurrentWeek, // Real current week (null if not frozen)
+  }
 
   return (
     <WeekGuardContext.Provider value={value}>

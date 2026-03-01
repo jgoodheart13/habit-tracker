@@ -18,11 +18,12 @@ export async function checkWeekRollover() {
 /**
  * Lock the week (commit to the new week)
  * POST /week/lock
+ * @param {Object} payload - { weekStart, totals }
  * @returns {Promise<Object>} { activeWeekStart, message? }
  */
-export async function lockWeek() {
+export async function lockWeek(payload) {
   try {
-    const response = await api.post("habits/week/lock");
+    const response = await api.post("habits/week/lock", payload);
     return response.data;
   } catch (error) {
     console.error("Error locking week:", error);
