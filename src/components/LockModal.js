@@ -8,7 +8,7 @@ import theme from "../styles/theme"
  * Shows pending week info and allows user to confirm or cancel
  */
 export default function LockModal() {
-  const { isLockModalOpen, serverPendingInfo, lockIn, cancelLock } =
+  const { isLockModalOpen, serverPendingInfo, lockIn, startReview } =
     useWeekGuard()
   const [isLocking, setIsLocking] = useState(false)
 
@@ -37,8 +37,8 @@ export default function LockModal() {
     }
   }
 
-  const handleCancel = () => {
-    cancelLock()
+  const handleReview = () => {
+    startReview()
   }
 
   return (
@@ -58,7 +58,7 @@ export default function LockModal() {
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !isLocking) {
-          handleCancel()
+          handleReview()
         }
       }}
     >
@@ -166,7 +166,7 @@ export default function LockModal() {
 
         <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
           <button
-            onClick={handleCancel}
+            onClick={handleReview}
             disabled={isLocking}
             style={{
               padding: "10px 20px",
@@ -180,7 +180,7 @@ export default function LockModal() {
               opacity: isLocking ? 0.5 : 1,
             }}
           >
-            Cancel
+            Review Week
           </button>
           <button
             onClick={handleConfirm}

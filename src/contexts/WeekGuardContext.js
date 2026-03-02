@@ -26,6 +26,7 @@ export function WeekGuardProvider({ children }) {
   const [serverPendingInfo, setServerPendingInfo] = useState(null)
   const [pendingWeekStart, setPendingWeekStart] = useState(null) // Week that needs locking
   const [actualCurrentWeek, setActualCurrentWeek] = useState(null) // Real current week
+  const [isReviewingPendingWeek, setIsReviewingPendingWeek] = useState(false) // User is reviewing week before lock
 
   // Promise resolution for requestLockIn()
   const pendingResolveRef = useRef(null)
@@ -180,10 +181,21 @@ export function WeekGuardProvider({ children }) {
   }, [pendingWeekStart, serverPendingInfo, refetchUser])
 
   /**
-   * Cancel lock-in (closes modal and rejects promise)
+   * Start review mode - closes modal without rejecting, allows user to review week
+   */
+  const startReview = useCallback(() => {
+    console.log("[WeekGuard] Entering review mode")
+    setIsLockModalOpen(false)
+    setIsReviewingPendingWeek(true)
+    // Don't reject promise - keep it pending until user decides to lock or navigates away
+  }, [])
+
+  /**
+   * Cancel lock-in completely (closes modal and rejects promise)
    */
   const cancelLock = useCallback(() => {
     setIsLockModalOpen(false)
+    setIsReviewingPendingWeek(false)
 
     // Reject pending promise
     if (pendingRejectRef.current) {
@@ -193,16 +205,28 @@ export function WeekGuardProvider({ children }) {
     }
   }, [])
 
+  /**
+   * Complete review and show lock modal again
+   */
+  const finishReview = useCallback(() => {
+    console.log("[WeekGuard] Finishing review, showing lock modal")
+    setIsReviewingPendingWeek(false)
+    setIsLockModalOpen(true)
+  }, [])
+
   const value = {
     ensureWeekStateFresh,
     requestLockIn,
     lockIn,
     cancelLock,
+    startReview,
+    finishReview,
     needsLock,
     isLockModalOpen,
     serverPendingInfo,
     pendingWeekStart, // Week that needs locking (null if not needed)
     actualCurrentWeek, // Real current week (null if not frozen)
+    isReviewingPendingWeek, // User is currently reviewing pending week
   }
 
   return (

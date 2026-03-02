@@ -49,6 +49,8 @@ export default function DailyViewPage() {
     requestLockIn,
     pendingWeekStart,
     actualCurrentWeek,
+    isReviewingPendingWeek,
+    finishReview,
   } = useWeekGuard()
 
   // Enable passive week checks on focus/visibility (only when authenticated)
@@ -57,7 +59,7 @@ export default function DailyViewPage() {
   // Check for week lock on mount
   useEffect(() => {
     async function checkWeekLockOnMount() {
-      if (isAuthenticated && tokenReady) {
+      if (isAuthenticated && tokenReady && !isReviewingPendingWeek) {
         console.log("[DailyViewPage] Checking week lock on mount...")
         try {
           const { requiresLock, activeWeekStart } = await ensureWeekStateFresh()
@@ -101,7 +103,7 @@ export default function DailyViewPage() {
                 )
               }
             } catch (error) {
-              console.log("[DailyViewPage] Lock cancelled by user")
+              console.log("[DailyViewPage] Lock cancelled or review started")
             }
           }
         } catch (error) {
@@ -112,7 +114,7 @@ export default function DailyViewPage() {
 
     checkWeekLockOnMount()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, tokenReady]) // Only run on auth change
+  }, [isAuthenticated, tokenReady, isReviewingPendingWeek]) // Re-run if review mode changes
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
   const [habits, setHabits] = useState([])
@@ -224,6 +226,15 @@ export default function DailyViewPage() {
   async function handleComplete(id, date, isChecked) {
     // 🔒 Week guard check before write (only if authenticated)
     if (isAuthenticated && tokenReady) {
+      // If already reviewing, just show the lock modal again
+      if (isReviewingPendingWeek) {
+        console.log(
+          "[handleComplete] Already in review mode, finishing review...",
+        )
+        finishReview()
+        return // User will need to re-attempt the operation after locking
+      }
+
       console.log("[handleComplete] Checking week state before completion...")
       try {
         const { requiresLock } = await ensureWeekStateFresh()
@@ -341,7 +352,9 @@ export default function DailyViewPage() {
       .catch((error) => {
         // Handle 409 LOCK_REQUIRED from server first
         if (error.response?.status === 409) {
-          console.log("[handleComplete] Server requires lock (409), opening modal...")
+          console.log(
+            "[handleComplete] Server requires lock (409), opening modal...",
+          )
           ;(async () => {
             try {
               await requestLockIn(habits, weekDays)
@@ -379,6 +392,16 @@ export default function DailyViewPage() {
       try {
         // 🔒 Week guard check before write (only if authenticated)
         if (isAuthenticated && tokenReady) {
+          // If already reviewing, just show the lock modal again
+          if (isReviewingPendingWeek) {
+            console.log(
+              "[confirmDelete] Already in review mode, finishing review...",
+            )
+            finishReview()
+            setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
+            return // User will need to re-attempt the operation after locking
+          }
+
           const { requiresLock } = await ensureWeekStateFresh()
           if (requiresLock) {
             await requestLockIn(habits, weekDays)
@@ -426,7 +449,45 @@ export default function DailyViewPage() {
     const currentDate = new Date(activeDate)
     const newDate = new Date(currentDate)
     newDate.setUTCDate(currentDate.getUTCDate() + offset) // Use UTC methods to avoid timezone drift
-    setActiveDate(newDate.toISOString().slice(0, 10))
+    const newDateStr = newDate.toISOString().slice(0, 10)
+    setActiveDate(newDateStr)
+
+    // If reviewing and user navigates to actual current week, trigger lock modal
+    if (isReviewingPendingWeek && actualCurrentWeek) {
+      const newDateWeekStart = getWeekStart(newDateStr)
+      const currentWeekStart = getWeekStart(
+        new Date().toISOString().slice(0, 10),
+      )
+      if (newDateWeekStart === currentWeekStart) {
+        console.log(
+          "[DailyViewPage] User navigated to current week, finishing review",
+        )
+        finishReview()
+      }
+    }
+  }
+
+  function handleSetActiveDate(dateStr) {
+    setActiveDate(dateStr)
+
+    // If reviewing and user clicks Today, trigger lock modal
+    if (isReviewingPendingWeek) {
+      const todayStr = new Date().toLocaleDateString("en-CA")
+      if (dateStr === todayStr) {
+        console.log(
+          "[DailyViewPage] User clicked Today during review, finishing review",
+        )
+        finishReview()
+      }
+    }
+  }
+
+  function getWeekStart(dateStr) {
+    const inputDate = new Date(dateStr)
+    const dayOfWeek = inputDate.getUTCDay()
+    const monday = new Date(inputDate)
+    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
+    return monday.toISOString().slice(0, 10)
   }
 
   function getWeekRange(date) {
@@ -459,6 +520,15 @@ export default function DailyViewPage() {
     try {
       // 🔒 Week guard check before write (only if authenticated)
       if (isAuthenticated && tokenReady) {
+        // If already reviewing, just show the lock modal again
+        if (isReviewingPendingWeek) {
+          console.log(
+            "[handleAddHabit] Already in review mode, finishing review...",
+          )
+          finishReview()
+          return // User will need to re-attempt the operation after locking
+        }
+
         const { requiresLock } = await ensureWeekStateFresh()
         if (requiresLock) {
           await requestLockIn(habits, weekDays)
@@ -505,6 +575,15 @@ export default function DailyViewPage() {
     try {
       // 🔒 Week guard check before write (only if authenticated)
       if (isAuthenticated && tokenReady) {
+        // If already reviewing, just show the lock modal again
+        if (isReviewingPendingWeek) {
+          console.log(
+            "[handleUpdateHabit] Already in review mode, finishing review...",
+          )
+          finishReview()
+          return // User will need to re-attempt the operation after locking
+        }
+
         const { requiresLock } = await ensureWeekStateFresh()
         if (requiresLock) {
           await requestLockIn(habits, weekDays)
@@ -603,7 +682,7 @@ export default function DailyViewPage() {
           <DateChanger
             activeDate={activeDate}
             changeDate={changeDate}
-            setActiveDate={setActiveDate}
+            setActiveDate={handleSetActiveDate}
             activeTab={activeTab}
           />
 
@@ -628,6 +707,45 @@ export default function DailyViewPage() {
               setAnimatingLockIn={setAnimatingLockIn}
             />
           </div>
+
+          {/* Lock-in button when reviewing pending week */}
+          {isReviewingPendingWeek && (
+            <div
+              style={{
+                padding: "12px 16px",
+                background: theme.colors.accent + "15",
+                borderBottom: `2px solid ${theme.colors.accent}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 14,
+                  color: theme.colors.text,
+                  fontWeight: 600,
+                }}
+              >
+                Reviewing Week for Lock-In
+              </div>
+              <button
+                onClick={finishReview}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderRadius: 6,
+                  border: "none",
+                  background: theme.colors.accent,
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                Lock In Week
+              </button>
+            </div>
+          )}
 
           {/* Search bar */}
           <div
