@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from "react";
 import { getWeekStateCache, setWeekStateCache } from "../utils/weekStateCache";
 import { checkWeekRollover, lockWeek } from "../api/weekStateApi";
+import { useUserContext } from "./UserContext"
 
 /**
  * Calculate the Monday (start of week) for a given date
@@ -9,19 +10,20 @@ import { checkWeekRollover, lockWeek } from "../api/weekStateApi";
  * @returns {string} Monday ISO date "YYYY-MM-DD"
  */
 function getWeekStart(date) {
-  const inputDate = new Date(date);
-  const dayOfWeek = inputDate.getUTCDay();
-  const monday = new Date(inputDate);
-  monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7));
-  return monday.toISOString().slice(0, 10);
+  const inputDate = new Date(date)
+  const dayOfWeek = inputDate.getUTCDay()
+  const monday = new Date(inputDate)
+  monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
+  return monday.toISOString().slice(0, 10)
 }
 
-const WeekGuardContext = createContext(null);
+const WeekGuardContext = createContext(null)
 
 export function WeekGuardProvider({ children }) {
-  const [needsLock, setNeedsLock] = useState(false);
-  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-  const [serverPendingInfo, setServerPendingInfo] = useState(null);
+  const { refetchUser } = useUserContext()
+  const [needsLock, setNeedsLock] = useState(false)
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false)
+  const [serverPendingInfo, setServerPendingInfo] = useState(null)
   const [pendingWeekStart, setPendingWeekStart] = useState(null) // Week that needs locking
   const [actualCurrentWeek, setActualCurrentWeek] = useState(null) // Real current week
 
@@ -114,7 +116,7 @@ export function WeekGuardProvider({ children }) {
 
   /**
    * Lock in the week (called when user confirms in modal)
-   * Calculates totals from stored habits/weekDays and sends to backend
+   * Calculates totals from stored habits/weekDays and sends xpEarned to backend
    */
   const lockIn = useCallback(async () => {
     try {
@@ -129,17 +131,25 @@ export function WeekGuardProvider({ children }) {
       const totals = calculateWeekTotals(habits, weekDays)
       console.log("[WeekGuard] Calculated totals:", totals)
 
+      // Backend expects just weekStart and xpEarned (totalXP as integer)
       const payload = {
         weekStart: pendingWeekStart,
-        totals,
+        xpEarned: totals.totalXP,
       }
 
       console.log("[WeekGuard] Locking week with payload:", payload)
       const result = await lockWeek(payload)
+      console.log("[WeekGuard] Lock result:", result)
 
-      // Update cache with new activeWeekStart (should be current week now)
+      // Update cache with new activeWeekStart from response
       if (result.activeWeekStart) {
         setWeekStateCache({ activeWeekStart: result.activeWeekStart })
+      }
+
+      // Refresh user profile to get updated lifetimeXP and level
+      if (refetchUser) {
+        console.log("[WeekGuard] Refreshing user profile to get updated XP...")
+        await refetchUser()
       }
 
       // Clear lock state and unfreeze to current week
@@ -167,7 +177,7 @@ export function WeekGuardProvider({ children }) {
 
       throw error
     }
-  }, [])
+  }, [pendingWeekStart, serverPendingInfo, refetchUser])
 
   /**
    * Cancel lock-in (closes modal and rejects promise)
@@ -199,7 +209,7 @@ export function WeekGuardProvider({ children }) {
     <WeekGuardContext.Provider value={value}>
       {children}
     </WeekGuardContext.Provider>
-  );
+  )
 }
 
 /**

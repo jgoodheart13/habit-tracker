@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react"
 import { motion, useReducedMotion, useAnimation } from "framer-motion"
 import theme from "../styles/theme"
+import { useUserContext } from "../contexts/UserContext"
 
 export default function VerticalXPBar({
-  currentXP = 0,
+  currentXP = 0, // Deprecated - kept for backward compatibility
   coreXP = 0,
   reachXP = 0,
   animatingLockIn = false,
@@ -11,118 +12,145 @@ export default function VerticalXPBar({
   animationDelay = 0,
   animationDuration = 0.35,
 }) {
+  const { user } = useUserContext()
+  const lifetimeXP = user?.lifetimeXP || 0
   const prefersReducedMotion = useReducedMotion()
   const coreControls = useAnimation()
   const reachControls = useAnimation()
 
   // Level progression logic
-  const xpThresholds = useRef([0, 500, 1200, 2000, 3000, 4200, 5600, 7200, 9000])
-  
+  const xpThresholds = useRef([
+    0, 500, 1200, 2000, 3000, 4200, 5600, 7200, 9000,
+  ])
+
   // Helper function to calculate level from XP - memoized to avoid recreating
   const getLevelInfo = React.useCallback((xp) => {
     let level = 1
     let xpForLevel = 0
     let xpForNextLevel = xpThresholds.current[1]
-    
+
     for (let i = 0; i < xpThresholds.current.length - 1; i++) {
       if (xp >= xpThresholds.current[i + 1]) {
         level = i + 2
         xpForLevel = xpThresholds.current[i + 1]
-        xpForNextLevel = xpThresholds.current[i + 2] || xpThresholds.current[i + 1] + 2000
+        xpForNextLevel =
+          xpThresholds.current[i + 2] || xpThresholds.current[i + 1] + 2000
       } else {
         break
       }
     }
-    
+
     return { level, xpForLevel, xpForNextLevel }
   }, [])
-  
+
   // State for displaying current animation segment
-  const [displayLevel, setDisplayLevel] = useState(() => getLevelInfo(currentXP).level)
-  const [displayXpForLevel, setDisplayXpForLevel] = useState(() => getLevelInfo(currentXP).xpForLevel)
-  const [displayXpForNextLevel, setDisplayXpForNextLevel] = useState(() => getLevelInfo(currentXP).xpForNextLevel)
+  const [displayLevel, setDisplayLevel] = useState(
+    () => getLevelInfo(lifetimeXP).level,
+  )
+  const [displayXpForLevel, setDisplayXpForLevel] = useState(
+    () => getLevelInfo(lifetimeXP).xpForLevel,
+  )
+  const [displayXpForNextLevel, setDisplayXpForNextLevel] = useState(
+    () => getLevelInfo(lifetimeXP).xpForNextLevel,
+  )
   const [currentBarPercent, setCurrentBarPercent] = useState(0)
   const [displayXpInLevel, setDisplayXpInLevel] = useState(() => {
-    const info = getLevelInfo(currentXP)
-    return currentXP - info.xpForLevel
+    const info = getLevelInfo(lifetimeXP)
+    return lifetimeXP - info.xpForLevel
   })
-  
+
   // Track if we've initialized the bar position
   const hasInitialized = useRef(false)
   const prevIsLockedIn = useRef(isLockedIn)
-  
+
   // Detect reset (when isLockedIn changes from true to false)
   useEffect(() => {
     if (prevIsLockedIn.current && !isLockedIn) {
       // Reset detected - return to initial state
-      const initialLevelInfo = getLevelInfo(currentXP)
-      const initialXpInLevel = currentXP - initialLevelInfo.xpForLevel
-      const initialNeeded = initialLevelInfo.xpForNextLevel - initialLevelInfo.xpForLevel
-      const initialPercent = Math.min((initialXpInLevel / initialNeeded) * 100, 100)
-      
+      const initialLevelInfo = getLevelInfo(lifetimeXP)
+      const initialXpInLevel = lifetimeXP - initialLevelInfo.xpForLevel
+      const initialNeeded =
+        initialLevelInfo.xpForNextLevel - initialLevelInfo.xpForLevel
+      const initialPercent = Math.min(
+        (initialXpInLevel / initialNeeded) * 100,
+        100,
+      )
+
       setDisplayLevel(initialLevelInfo.level)
       setDisplayXpForLevel(initialLevelInfo.xpForLevel)
       setDisplayXpForNextLevel(initialLevelInfo.xpForNextLevel)
       setDisplayXpInLevel(initialXpInLevel)
       setCurrentBarPercent(initialPercent)
       coreControls.set({ height: `${initialPercent}%` })
-      
-      console.log('[VerticalXPBar] Reset detected, bar reset to:', initialPercent + '%')
+
+      console.log(
+        "[VerticalXPBar] Reset detected, bar reset to:",
+        initialPercent + "%",
+      )
     }
     prevIsLockedIn.current = isLockedIn
-  }, [isLockedIn, currentXP, getLevelInfo, coreControls])
-  
+  }, [isLockedIn, lifetimeXP, getLevelInfo, coreControls])
+
   useEffect(() => {
-    const initialLevelInfo = getLevelInfo(currentXP)
-    const initialXpInLevel = currentXP - initialLevelInfo.xpForLevel
-    const initialNeeded = initialLevelInfo.xpForNextLevel - initialLevelInfo.xpForLevel
-    const initialPercent = Math.min((initialXpInLevel / initialNeeded) * 100, 100)
-    
-    console.log('[VerticalXPBar] Initialization check:', {
-      currentXP,
+    const initialLevelInfo = getLevelInfo(lifetimeXP)
+    const initialXpInLevel = lifetimeXP - initialLevelInfo.xpForLevel
+    const initialNeeded =
+      initialLevelInfo.xpForNextLevel - initialLevelInfo.xpForLevel
+    const initialPercent = Math.min(
+      (initialXpInLevel / initialNeeded) * 100,
+      100,
+    )
+
+    console.log("[VerticalXPBar] Initialization check:", {
+      lifetimeXP,
       initialXpInLevel,
       initialNeeded,
       initialPercent,
       hasInitialized: hasInitialized.current,
     })
-    
+
     if (!hasInitialized.current) {
       setCurrentBarPercent(initialPercent)
       coreControls.set({ height: `${initialPercent}%` })
       hasInitialized.current = true
-      console.log('[VerticalXPBar] Bar initialized to', initialPercent + '%')
+      console.log("[VerticalXPBar] Bar initialized to", initialPercent + "%")
     }
-  }, [currentXP, getLevelInfo, coreControls])
-  
+  }, [lifetimeXP, getLevelInfo, coreControls])
+
   // Handle the sequential level-up animations
   useEffect(() => {
-    console.log('[VerticalXPBar] Animation effect triggered:', {
+    console.log("[VerticalXPBar] Animation effect triggered:", {
       animatingLockIn,
       prefersReducedMotion,
-      currentXP,
+      lifetimeXP,
       coreXP,
     })
-    
+
     if (!animatingLockIn || prefersReducedMotion) return
-    
-    console.log('[VerticalXPBar] Starting animation:', { currentXP, coreXP, animationDelay, animationDuration })
-    
+
+    console.log("[VerticalXPBar] Starting animation:", {
+      lifetimeXP,
+      coreXP,
+      animationDelay,
+      animationDuration,
+    })
+
     const runLevelUpSequence = async () => {
       // Build animation sequence
       const segments = []
-      let currentAnimXP = currentXP
+      let currentAnimXP = lifetimeXP
       let targetAnimXP = coreXP
-      
+
       while (currentAnimXP < targetAnimXP) {
         const levelInfo = getLevelInfo(currentAnimXP)
         const xpInLevel = currentAnimXP - levelInfo.xpForLevel
         const xpNeeded = levelInfo.xpForNextLevel - levelInfo.xpForLevel
         const startPercent = (xpInLevel / xpNeeded) * 100
-        
+
         // Determine how much XP to add in this segment
         const remainingXP = targetAnimXP - currentAnimXP
         const xpToLevelUp = levelInfo.xpForNextLevel - currentAnimXP
-        
+
         if (remainingXP >= xpToLevelUp) {
           // Will level up - fill to 100%
           segments.push({
@@ -151,24 +179,25 @@ export default function VerticalXPBar({
           currentAnimXP = targetAnimXP
         }
       }
-      
-      console.log('[VerticalXPBar] Animation segments:', segments)
-      
+
+      console.log("[VerticalXPBar] Animation segments:", segments)
+
       // Execute animation sequence
       let cumulativeDelay = animationDelay
-      
+
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i]
-        
+
         // Update display values
         setDisplayLevel(segment.level)
         setDisplayXpForLevel(segment.xpForLevel)
         setDisplayXpForNextLevel(segment.xpForNextLevel)
-        
+
         // Calculate duration for this segment proportional to XP gained
-        const totalXPToGain = coreXP - currentXP
-        const segmentDuration = (segment.xpGained / totalXPToGain) * animationDuration
-        
+        const totalXPToGain = coreXP - lifetimeXP
+        const segmentDuration =
+          (segment.xpGained / totalXPToGain) * animationDuration
+
         console.log(`[VerticalXPBar] Segment ${i}:`, {
           level: segment.level,
           startPercent: segment.startPercent,
@@ -176,11 +205,16 @@ export default function VerticalXPBar({
           segmentDuration,
           cumulativeDelay,
         })
-        
+
         // Animate the XP numerator value
-        const startXpInLevel = segment.startPercent * (segment.xpForNextLevel - segment.xpForLevel) / 100
-        const endXpInLevel = segment.endPercent * (segment.xpForNextLevel - segment.xpForLevel) / 100
-        
+        const startXpInLevel =
+          (segment.startPercent *
+            (segment.xpForNextLevel - segment.xpForLevel)) /
+          100
+        const endXpInLevel =
+          (segment.endPercent * (segment.xpForNextLevel - segment.xpForLevel)) /
+          100
+
         // Animate this segment with both bar and text updates
         const animationPromise = coreControls.start({
           height: `${segment.endPercent}%`,
@@ -190,37 +224,38 @@ export default function VerticalXPBar({
             ease: "linear",
           },
         })
-        
+
         // Animate the XP text separately
-        const startTime = Date.now() + (cumulativeDelay * 1000)
-        const endTime = startTime + (segmentDuration * 1000)
-        
+        const startTime = Date.now() + cumulativeDelay * 1000
+        const endTime = startTime + segmentDuration * 1000
+
         const animateXpText = () => {
           const now = Date.now()
           if (now < startTime) {
             requestAnimationFrame(animateXpText)
             return
           }
-          
+
           if (now >= endTime) {
             setDisplayXpInLevel(Math.round(endXpInLevel))
             return
           }
-          
+
           const progress = (now - startTime) / (segmentDuration * 1000)
-          const currentXpValue = startXpInLevel + (endXpInLevel - startXpInLevel) * progress
+          const currentXpValue =
+            startXpInLevel + (endXpInLevel - startXpInLevel) * progress
           setDisplayXpInLevel(Math.round(currentXpValue))
           requestAnimationFrame(animateXpText)
         }
-        
+
         if (segmentDuration > 0) {
           animateXpText()
         }
-        
+
         await animationPromise
-        
+
         cumulativeDelay = 0 // Only first segment has initial delay
-        
+
         // If we leveled up, reset bar to 0 for next level
         if (segment.willLevelUp && i < segments.length - 1) {
           coreControls.set({ height: "0%" })
@@ -228,10 +263,19 @@ export default function VerticalXPBar({
         }
       }
     }
-    
+
     runLevelUpSequence()
-  }, [animatingLockIn, animationDelay, animationDuration, currentXP, coreXP, prefersReducedMotion, getLevelInfo, coreControls])
-  
+  }, [
+    animatingLockIn,
+    animationDelay,
+    animationDuration,
+    lifetimeXP,
+    coreXP,
+    prefersReducedMotion,
+    getLevelInfo,
+    coreControls,
+  ])
+
   // Calculate display values for XP text
   const xpNeededForLevel = displayXpForNextLevel - displayXpForLevel
 

@@ -29,11 +29,6 @@ export default function WeeklyHabitsList({
 
   // Scroll to newly added habit
   useEffect(() => {
-    console.log("Scroll effect triggered:", {
-      newlyAddedHabitId,
-      hasRef: !!habitRefs.current[newlyAddedHabitId],
-      allRefs: Object.keys(habitRefs.current),
-    })
     if (newlyAddedHabitId) {
       // Add a small delay to ensure DOM is updated
       const timeoutId = setTimeout(() => {

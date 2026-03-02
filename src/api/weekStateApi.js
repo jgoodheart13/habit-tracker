@@ -1,9 +1,9 @@
 import api from "../services/axios";
 
 /**
- * Check week rollover status with the backend
- * GET /week/state
- * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart?, totals? }
+ * Check week rollover status with backend
+ * GET /habits/week/state
+ * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart? }
  */
 export async function checkWeekRollover() {
   try {
@@ -16,10 +16,10 @@ export async function checkWeekRollover() {
 }
 
 /**
- * Lock the week (commit to the new week)
- * POST /week/lock
- * @param {Object} payload - { weekStart, totals }
- * @returns {Promise<Object>} { activeWeekStart, message? }
+ * Lock the week (commit XP for the week)
+ * POST /habits/week/lock
+ * @param {Object} payload - { weekStart: "YYYY-MM-DD", xpEarned: number }
+ * @returns {Promise<Object>} { lockedWeekStart, activeWeekStart, lifetimeXP, level, committed }
  */
 export async function lockWeek(payload) {
   try {

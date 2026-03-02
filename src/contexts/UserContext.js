@@ -14,36 +14,39 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        // Only fetch if authenticated AND token is ready in localStorage
-        if (isAuthenticated && tokenReady) {
-          console.log("[UserContext] Fetching user profile with auth token...")
-          const { data } = await api.get("/user/profile")
-          setUser(data)
-        } else {
-          setUser(null)
-        }
-      } catch (err) {
-        console.error("[UserContext] Error fetching user profile:", err)
-        setError(err)
+  const fetchUser = React.useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      // Only fetch if authenticated AND token is ready in localStorage
+      if (isAuthenticated && tokenReady) {
+        console.log("[UserContext] Fetching user profile with auth token...")
+        const { data } = await api.get("/user/profile")
+        console.log("[UserContext] Profile data:", data)
+        setUser(data)
+      } else {
         setUser(null)
-      } finally {
-        setLoading(false)
       }
+    } catch (err) {
+      console.error("[UserContext] Error fetching user profile:", err)
+      setError(err)
+      setUser(null)
+    } finally {
+      setLoading(false)
     }
+  }, [isAuthenticated, tokenReady])
 
+  useEffect(() => {
     // Wait for both authentication to complete AND token to be ready
     if (!isLoading) {
       fetchUser()
     }
-  }, [isAuthenticated, isLoading, tokenReady])
+  }, [isLoading, fetchUser])
 
   return (
-    <UserContext.Provider value={{ user, loading, error }}>
+    <UserContext.Provider
+      value={{ user, loading, error, refetchUser: fetchUser }}
+    >
       {children}
     </UserContext.Provider>
   )
