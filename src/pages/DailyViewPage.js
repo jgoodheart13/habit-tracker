@@ -201,6 +201,31 @@ export default function DailyViewPage() {
     })
   }, [activeDate])
 
+  // Helper function to get week start (Monday)
+  const getWeekStartForDate = React.useCallback((dateStr) => {
+    const inputDate = new Date(dateStr)
+    const dayOfWeek = inputDate.getUTCDay()
+    const monday = new Date(inputDate)
+    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
+    return monday.toISOString().slice(0, 10)
+  }, [])
+
+  // Determine if current week being viewed is editable
+  const isCurrentWeekEditable = React.useMemo(() => {
+    if (!activeWeekRange) return false
+    
+    const viewingWeekStart = activeWeekRange.start
+    const currentWeekStart = getWeekStartForDate(new Date().toISOString().slice(0, 10))
+    
+    if (isReviewingPendingWeek) {
+      // During review: only the pending week is editable
+      return viewingWeekStart === pendingWeekStart
+    } else {
+      // Normal mode: only current week is editable
+      return viewingWeekStart === currentWeekStart
+    }
+  }, [activeWeekRange, isReviewingPendingWeek, pendingWeekStart, getWeekStartForDate])
+
   useEffect(() => {
     // Fetch habits when authenticated and token is ready
     async function fetchHabits() {
@@ -822,6 +847,7 @@ export default function DailyViewPage() {
               searchQuery={searchQuery}
               newlyAddedHabitId={newlyAddedHabitId}
               onScrollComplete={() => setNewlyAddedHabitId(null)}
+              disabled={!isCurrentWeekEditable}
             />
           </div>
         </div>
@@ -987,21 +1013,23 @@ export default function DailyViewPage() {
           {/* RIGHT: Add Habit Button */}
           <button
             onClick={() => handleOpenHabitModal()}
+            disabled={!isCurrentWeekEditable}
             style={{
               width: 40,
               height: 40,
               borderRadius: 6,
               border: "none",
-              background: theme.colors.accent,
+              background: isCurrentWeekEditable ? theme.colors.accent : "#ccc",
               color: "#fff",
-              cursor: "pointer",
+              cursor: isCurrentWeekEditable ? "pointer" : "not-allowed",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: 20,
               fontWeight: "bold",
+              opacity: isCurrentWeekEditable ? 1 : 0.5,
             }}
-            title="Add Habit"
+            title={isCurrentWeekEditable ? "Add Habit" : "Cannot add habits to past/future weeks"}
           >
             <FontAwesomeIcon icon={faPlus} />
           </button>

@@ -20,6 +20,7 @@ export default function WeeklyHabitsList({
   searchQuery = "",
   newlyAddedHabitId = null,
   onScrollComplete = () => {},
+  disabled = false,
 }) {
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
@@ -480,6 +481,7 @@ export default function WeeklyHabitsList({
                 onEdit={onEdit}
                 weekDays={weekDays}
                 openSheet={openSheet}
+                disabled={disabled}
               />
             </div>
           ))}
@@ -542,6 +544,7 @@ export default function WeeklyHabitsList({
                     onEdit={onEdit}
                     weekDays={weekDays}
                     openSheet={openSheet}
+                    disabled={disabled}
                   />
                 </div>
               ))}
