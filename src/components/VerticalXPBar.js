@@ -109,13 +109,18 @@ export default function VerticalXPBar({
       hasInitialized: hasInitialized.current,
     })
 
-    if (!hasInitialized.current) {
+    // Skip re-initialization only if an animation is actively running
+    if (!hasInitialized.current || !animatingLockIn) {
       setCurrentBarPercent(initialPercent)
+      setDisplayLevel(initialLevelInfo.level)
+      setDisplayXpForLevel(initialLevelInfo.xpForLevel)
+      setDisplayXpForNextLevel(initialLevelInfo.xpForNextLevel)
+      setDisplayXpInLevel(initialXpInLevel)
       coreControls.set({ height: `${initialPercent}%` })
       hasInitialized.current = true
-      console.log("[VerticalXPBar] Bar initialized to", initialPercent + "%")
+      console.log("[VerticalXPBar] Bar initialized/updated to", initialPercent + "%")
     }
-  }, [lifetimeXP, getLevelInfo, coreControls])
+  }, [lifetimeXP, getLevelInfo, coreControls, animatingLockIn])
 
   // Handle the sequential level-up animations
   useEffect(() => {

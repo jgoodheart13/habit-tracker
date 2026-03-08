@@ -213,10 +213,12 @@ export default function DailyViewPage() {
   // Determine if current week being viewed is editable
   const isCurrentWeekEditable = React.useMemo(() => {
     if (!activeWeekRange) return false
-    
+
     const viewingWeekStart = activeWeekRange.start
-    const currentWeekStart = getWeekStartForDate(new Date().toISOString().slice(0, 10))
-    
+    const currentWeekStart = getWeekStartForDate(
+      new Date().toISOString().slice(0, 10),
+    )
+
     if (isReviewingPendingWeek) {
       // During review: only the pending week is editable
       return viewingWeekStart === pendingWeekStart
@@ -224,7 +226,12 @@ export default function DailyViewPage() {
       // Normal mode: only current week is editable
       return viewingWeekStart === currentWeekStart
     }
-  }, [activeWeekRange, isReviewingPendingWeek, pendingWeekStart, getWeekStartForDate])
+  }, [
+    activeWeekRange,
+    isReviewingPendingWeek,
+    pendingWeekStart,
+    getWeekStartForDate,
+  ])
 
   useEffect(() => {
     // Fetch habits when authenticated and token is ready
@@ -1029,7 +1036,11 @@ export default function DailyViewPage() {
               fontWeight: "bold",
               opacity: isCurrentWeekEditable ? 1 : 0.5,
             }}
-            title={isCurrentWeekEditable ? "Add Habit" : "Cannot add habits to past/future weeks"}
+            title={
+              isCurrentWeekEditable
+                ? "Add Habit"
+                : "Cannot add habits to past/future weeks"
+            }
           >
             <FontAwesomeIcon icon={faPlus} />
           </button>

@@ -11,36 +11,36 @@ import { isMobile } from "react-device-detect"
 export default function App() {
   return (
     <SupabaseAuthProvider>
-      <UserProvider>
-        <WeekGuardProvider>
-          <AppContent />
-          <LockModal />
-        </WeekGuardProvider>
-      </UserProvider>
+      <AuthenticationWrapper>
+        <UserProvider>
+          <WeekGuardProvider>
+            <AppContent />
+            <LockModal />
+          </WeekGuardProvider>
+        </UserProvider>
+      </AuthenticationWrapper>
     </SupabaseAuthProvider>
   )
 }
 
 function AppContent() {
   return (
-    <AuthenticationWrapper>
-      <div
-        className="App"
+    <div
+      className="App"
+      style={{
+        maxWidth: isMobile ? "100%" : 800,
+        margin: isMobile ? "0" : "0 auto",
+      }}
+    >
+      <main
         style={{
-          maxWidth: isMobile ? "100%" : 800, // Conditionally set maxWidth based on device
-          margin: isMobile ? "0" : "0 auto", // Center on desktop
+          flex: 1,
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
         }}
       >
-        <main
-          style={{
-            flex: 1,
-            overflowY: "auto", // ⬅️ main scrolls
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
-          <AppRouter />
-        </main>
-      </div>
-    </AuthenticationWrapper>
+        <AppRouter />
+      </main>
+    </div>
   )
 }
