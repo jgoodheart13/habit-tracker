@@ -25,7 +25,10 @@ import {
   faPlus,
   faSort,
   faLock,
+  faArrowRotateLeft,
 } from "@fortawesome/free-solid-svg-icons"
+import { resetXP } from "../api/weekStateApi"
+import { clearWeekStateCache } from "../utils/weekStateCache"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
 import Header from "../components/Header"
@@ -38,7 +41,8 @@ export default function DailyViewPage() {
   const { isAuthenticated } = useSupabaseAuth()
   const { tokenReady } = useContext(AuthContext)
   // Enriched user context
-  const { user } = require("../contexts/UserContext").useUserContext()
+  const { user, refetchUser } =
+    require("../contexts/UserContext").useUserContext()
   // Lock/reset state for WeeklyProgressGraph
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
@@ -51,7 +55,18 @@ export default function DailyViewPage() {
     actualCurrentWeek,
     isReviewingPendingWeek,
     finishReview,
+    lastLockedWeekStart,
+    clearLastLockedWeek,
+    lockCount,
   } = useWeekGuard()
+
+  // Trigger XP bar animation whenever a lock completes (from any call site)
+  useEffect(() => {
+    if (lockCount > 0) {
+      setIsLockedIn(true)
+      setAnimatingLockIn(true)
+    }
+  }, [lockCount])
 
   // Enable passive week checks on focus/visibility (only when authenticated)
   useWeekGuardOnFocus(isAuthenticated && tokenReady)
@@ -936,17 +951,45 @@ export default function DailyViewPage() {
                   />
                   {completedVisibility ? "Hide Completed" : "Show Completed"}
                 </button>
-                {/* Admin-only Lock In Week entry */}
+                {/* Admin-only: Lock In Week / Reset Lock toggle */}
                 {user?.is_admin && (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setMenuOpen(false)
-                      if (isLockedIn) {
-                        setIsLockedIn(false)
-                        setAnimatingLockIn(false)
+                      const activeWeekIsLocked =
+                        activeWeekRange?.start === lastLockedWeekStart
+                      if (activeWeekIsLocked) {
+                        // Reset last lock on backend, bust the cache, then re-trigger modal
+                        try {
+                          console.log("[Admin] Resetting last lock...")
+                          await resetXP()
+                          await refetchUser()
+                          clearWeekStateCache()
+                          clearLastLockedWeek()
+                          setIsLockedIn(false)
+                          setAnimatingLockIn(false)
+                          console.log("[Admin] Reset done — triggering week check...")
+                          const result = await ensureWeekStateFresh()
+                          if (result.requiresLock) {
+                            await requestLockIn(habits, weekDays)
+                          }
+                        } catch (err) {
+                          console.error("[Admin] Reset lock failed:", err)
+                        }
                       } else {
-                        setIsLockedIn(true)
-                        setAnimatingLockIn(true)
+                        // Bust the cache and let the server determine if a lock is needed
+                        try {
+                          console.log("[Admin] Forcing week state check...")
+                          clearWeekStateCache()
+                          const result = await ensureWeekStateFresh()
+                          if (result.requiresLock) {
+                            await requestLockIn(habits, weekDays)
+                          } else {
+                            console.log("[Admin] Server says no lock required for this week")
+                          }
+                        } catch (err) {
+                          console.error("[Admin] Week check failed:", err)
+                        }
                       }
                     }}
                     style={{
@@ -960,15 +1003,28 @@ export default function DailyViewPage() {
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
-                      color: theme.colors.coreColor,
+                      color:
+                        activeWeekRange?.start === lastLockedWeekStart
+                          ? "#e05c5c"
+                          : theme.colors.coreColor,
                       fontWeight: 700,
                     }}
                   >
                     <FontAwesomeIcon
-                      icon={faLock}
-                      color={theme.colors.coreColor}
+                      icon={
+                        activeWeekRange?.start === lastLockedWeekStart
+                          ? faArrowRotateLeft
+                          : faLock
+                      }
+                      color={
+                        activeWeekRange?.start === lastLockedWeekStart
+                          ? "#e05c5c"
+                          : theme.colors.coreColor
+                      }
                     />
-                    {isLockedIn ? "Reset" : "Lock In Week"}
+                    {activeWeekRange?.start === lastLockedWeekStart
+                      ? "Reset Lock (Admin)"
+                      : "Lock In Week"}
                   </button>
                 )}
               </div>

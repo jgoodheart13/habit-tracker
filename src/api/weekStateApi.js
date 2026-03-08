@@ -16,6 +16,21 @@ export async function checkWeekRollover() {
 }
 
 /**
+ * Reset the last locked week (admin/debug only)
+ * POST /user/reset-xp
+ * @returns {Promise<Object>} Updated user profile with reset lifetimeXP
+ */
+export async function resetXP() {
+  try {
+    const response = await api.post("user/reset-xp")
+    return response.data
+  } catch (error) {
+    console.error("Error resetting XP:", error)
+    throw error
+  }
+}
+
+/**
  * Lock the week (commit XP for the week)
  * POST /habits/week/lock
  * @param {Object} payload - { weekStart: "YYYY-MM-DD", xpEarned: number }

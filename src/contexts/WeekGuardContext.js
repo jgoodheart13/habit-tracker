@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useState, useRef, useCallback } from "react";
-import { getWeekStateCache, setWeekStateCache } from "../utils/weekStateCache";
-import { checkWeekRollover, lockWeek } from "../api/weekStateApi";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+} from "react"
+import { getWeekStateCache, setWeekStateCache } from "../utils/weekStateCache"
+import { checkWeekRollover, lockWeek } from "../api/weekStateApi"
 import { useUserContext } from "./UserContext"
 
 /**
@@ -20,13 +27,22 @@ function getWeekStart(date) {
 const WeekGuardContext = createContext(null)
 
 export function WeekGuardProvider({ children }) {
-  const { refetchUser } = useUserContext()
+  const { refetchUser, user } = useUserContext()
   const [needsLock, setNeedsLock] = useState(false)
   const [isLockModalOpen, setIsLockModalOpen] = useState(false)
   const [serverPendingInfo, setServerPendingInfo] = useState(null)
   const [pendingWeekStart, setPendingWeekStart] = useState(null) // Week that needs locking
   const [actualCurrentWeek, setActualCurrentWeek] = useState(null) // Real current week
   const [isReviewingPendingWeek, setIsReviewingPendingWeek] = useState(false) // User is reviewing week before lock
+  const [lastLockedWeekStart, setLastLockedWeekStart] = useState(null) // Most recently locked week
+  const [lockCount, setLockCount] = useState(0) // Increments on every successful lock; watchers use this to trigger animations
+
+  // Seed from user profile on load (persists across page reloads)
+  useEffect(() => {
+    if (user?.lastLockedWeek) {
+      setLastLockedWeekStart(user.lastLockedWeek)
+    }
+  }, [user?.lastLockedWeek])
 
   // Promise resolution for requestLockIn()
   const pendingResolveRef = useRef(null)
@@ -147,6 +163,11 @@ export function WeekGuardProvider({ children }) {
         setWeekStateCache({ activeWeekStart: result.activeWeekStart })
       }
 
+      // Track which week was just locked
+      if (result.lockedWeekStart) {
+        setLastLockedWeekStart(result.lockedWeekStart)
+      }
+
       // Refresh user profile to get updated lifetimeXP and level
       if (refetchUser) {
         console.log("[WeekGuard] Refreshing user profile to get updated XP...")
@@ -159,6 +180,7 @@ export function WeekGuardProvider({ children }) {
       setPendingWeekStart(null)
       setActualCurrentWeek(null)
       setIsLockModalOpen(false)
+      setLockCount((c) => c + 1)
 
       // Resolve pending promise
       if (pendingResolveRef.current) {
@@ -224,9 +246,12 @@ export function WeekGuardProvider({ children }) {
     needsLock,
     isLockModalOpen,
     serverPendingInfo,
-    pendingWeekStart, // Week that needs locking (null if not needed)
-    actualCurrentWeek, // Real current week (null if not frozen)
-    isReviewingPendingWeek, // User is currently reviewing pending week
+    pendingWeekStart,
+    actualCurrentWeek,
+    isReviewingPendingWeek,
+    lastLockedWeekStart,
+    clearLastLockedWeek: () => setLastLockedWeekStart(null),
+    lockCount,
   }
 
   return (
@@ -240,9 +265,9 @@ export function WeekGuardProvider({ children }) {
  * Hook to access week guard functionality
  */
 export function useWeekGuard() {
-  const context = useContext(WeekGuardContext);
+  const context = useContext(WeekGuardContext)
   if (!context) {
-    throw new Error("useWeekGuard must be used within WeekGuardProvider");
+    throw new Error("useWeekGuard must be used within WeekGuardProvider")
   }
-  return context;
+  return context
 }
