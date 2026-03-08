@@ -91,8 +91,30 @@ export default function WeeklyProgressGraph({
     )
   }).length
 
+  // Max P1 completions achievable today: habits that still have weekly budget remaining
+  // (whether already ticked today or not yet ticked — each counts as one possible credit)
+  const maxP1PossibleToday = P1_habits.filter((h) => {
+    const timesPerWeek = h.frequency?.timesPerWeek || 0
+    const completedThisWeek = weekDays.filter((d) =>
+      h.completedDates.includes(d),
+    ).length
+    const doneToday = h.completedDates.includes(activeDate)
+    // If done today: counts if within weekly budget (same gate as P1_done_today)
+    // If not done today: counts if there's still a budget slot to fill
+    return doneToday
+      ? completedThisWeek <= timesPerWeek
+      : completedThisWeek < timesPerWeek
+  }).length
+
+  // Cap the denominator at what's physically achievable today so falling behind
+  // can still yield 100% if all available habits are completed
+  const effectiveDailyTarget =
+    idealP1ForToday === 0 ? 0 : Math.min(idealP1ForToday, maxP1PossibleToday)
+
   const dailyP1Percent =
-    idealP1ForToday === 0 ? 100 : (P1_done_today / idealP1ForToday) * 100
+    effectiveDailyTarget === 0
+      ? 100
+      : (P1_done_today / effectiveDailyTarget) * 100
   const weeklyP1Percent = P1_total === 0 ? 0 : (P1_done / P1_total) * 100
 
   let P2_done = 0
@@ -199,7 +221,10 @@ export default function WeeklyProgressGraph({
           weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
           isLockedIn={isLockedIn}
           animatingLockIn={animatingLockIn}
-          onAnimationComplete={() => setAnimatingLockIn(false)}
+          onAnimationComplete={() => {
+            setAnimatingLockIn(false)
+            setIsLockedIn(false)
+          }}
           onXPBarDelayCalculated={setXpBarTiming}
         />
       </div>

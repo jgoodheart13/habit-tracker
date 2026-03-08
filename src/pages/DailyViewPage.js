@@ -273,13 +273,16 @@ export default function DailyViewPage() {
   async function handleComplete(id, date, isChecked) {
     // 🔒 Week guard check before write (only if authenticated)
     if (isAuthenticated && tokenReady) {
-      // If already reviewing, just show the lock modal again
+      // If already reviewing, only re-show modal if operating outside the pending week
       if (isReviewingPendingWeek) {
-        console.log(
-          "[handleComplete] Already in review mode, finishing review...",
-        )
-        finishReview()
-        return // User will need to re-attempt the operation after locking
+        if (getWeekStart(date) !== pendingWeekStart) {
+          console.log(
+            "[handleComplete] Operating outside pending week during review, finishing review...",
+          )
+          finishReview()
+          return // User will need to re-attempt the operation after locking
+        }
+        // Operating on pending week during review — fall through and allow the write
       }
 
       console.log("[handleComplete] Checking week state before completion...")
@@ -439,14 +442,17 @@ export default function DailyViewPage() {
       try {
         // 🔒 Week guard check before write (only if authenticated)
         if (isAuthenticated && tokenReady) {
-          // If already reviewing, just show the lock modal again
+          // If already reviewing, only re-show modal if operating outside the pending week
           if (isReviewingPendingWeek) {
-            console.log(
-              "[confirmDelete] Already in review mode, finishing review...",
-            )
-            finishReview()
-            setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
-            return // User will need to re-attempt the operation after locking
+            if (getWeekStart(activeDate) !== pendingWeekStart) {
+              console.log(
+                "[confirmDelete] Operating outside pending week during review, finishing review...",
+              )
+              finishReview()
+              setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
+              return // User will need to re-attempt the operation after locking
+            }
+            // Operating on pending week during review — fall through and allow the write
           }
 
           const { requiresLock } = await ensureWeekStateFresh()
@@ -499,15 +505,12 @@ export default function DailyViewPage() {
     const newDateStr = newDate.toISOString().slice(0, 10)
     setActiveDate(newDateStr)
 
-    // If reviewing and user navigates to actual current week, trigger lock modal
-    if (isReviewingPendingWeek && actualCurrentWeek) {
+    // If reviewing, only trigger lock modal when navigating OUT of the pending week
+    if (isReviewingPendingWeek) {
       const newDateWeekStart = getWeekStart(newDateStr)
-      const currentWeekStart = getWeekStart(
-        new Date().toISOString().slice(0, 10),
-      )
-      if (newDateWeekStart === currentWeekStart) {
+      if (newDateWeekStart !== pendingWeekStart) {
         console.log(
-          "[DailyViewPage] User navigated to current week, finishing review",
+          "[DailyViewPage] User navigated out of pending week during review, finishing review",
         )
         finishReview()
       }
@@ -517,12 +520,12 @@ export default function DailyViewPage() {
   function handleSetActiveDate(dateStr) {
     setActiveDate(dateStr)
 
-    // If reviewing and user clicks Today, trigger lock modal
+    // If reviewing, only trigger lock modal when navigating OUT of the pending week
     if (isReviewingPendingWeek) {
-      const todayStr = new Date().toLocaleDateString("en-CA")
-      if (dateStr === todayStr) {
+      const newDateWeekStart = getWeekStart(dateStr)
+      if (newDateWeekStart !== pendingWeekStart) {
         console.log(
-          "[DailyViewPage] User clicked Today during review, finishing review",
+          "[DailyViewPage] User navigated out of pending week during review, finishing review",
         )
         finishReview()
       }
@@ -567,13 +570,16 @@ export default function DailyViewPage() {
     try {
       // 🔒 Week guard check before write (only if authenticated)
       if (isAuthenticated && tokenReady) {
-        // If already reviewing, just show the lock modal again
+        // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
-          console.log(
-            "[handleAddHabit] Already in review mode, finishing review...",
-          )
-          finishReview()
-          return // User will need to re-attempt the operation after locking
+          if (getWeekStart(activeDate) !== pendingWeekStart) {
+            console.log(
+              "[handleAddHabit] Operating outside pending week during review, finishing review...",
+            )
+            finishReview()
+            return // User will need to re-attempt the operation after locking
+          }
+          // Operating on pending week during review — fall through and allow the write
         }
 
         const { requiresLock } = await ensureWeekStateFresh()
@@ -622,13 +628,16 @@ export default function DailyViewPage() {
     try {
       // 🔒 Week guard check before write (only if authenticated)
       if (isAuthenticated && tokenReady) {
-        // If already reviewing, just show the lock modal again
+        // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
-          console.log(
-            "[handleUpdateHabit] Already in review mode, finishing review...",
-          )
-          finishReview()
-          return // User will need to re-attempt the operation after locking
+          if (getWeekStart(activeDate) !== pendingWeekStart) {
+            console.log(
+              "[handleUpdateHabit] Operating outside pending week during review, finishing review...",
+            )
+            finishReview()
+            return // User will need to re-attempt the operation after locking
+          }
+          // Operating on pending week during review — fall through and allow the write
         }
 
         const { requiresLock } = await ensureWeekStateFresh()

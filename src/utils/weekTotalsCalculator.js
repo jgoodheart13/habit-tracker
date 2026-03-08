@@ -28,7 +28,7 @@ export function calculateWeekTotals(habits, weekDays) {
   });
 
   const weeklyP1Percent = P1_total === 0 ? 0 : (P1_done / P1_total) * 100;
-  const P1_points = P1_done * BASE_POINTS;
+  const P1_points = weeklyP1Percent * BASE_POINTS
 
   // Calculate P2 (Reach) completions
   let P2_done = 0;
