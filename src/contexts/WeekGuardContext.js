@@ -168,19 +168,24 @@ export function WeekGuardProvider({ children }) {
         setLastLockedWeekStart(result.lockedWeekStart)
       }
 
-      // Refresh user profile to get updated lifetimeXP and level
-      if (refetchUser) {
-        console.log("[WeekGuard] Refreshing user profile to get updated XP...")
-        await refetchUser()
-      }
-
-      // Clear lock state and unfreeze to current week
+      // Clear lock state and trigger animation BEFORE refreshing user so that VerticalXPBar
+      // animates from the pre-lock lifetimeXP baseline up to coreXP (this week's earned points).
+      // refetchUser is deferred — DailyViewPage calls it again after the animation completes.
       setNeedsLock(false)
       setServerPendingInfo(null)
       setPendingWeekStart(null)
       setActualCurrentWeek(null)
       setIsLockModalOpen(false)
       setLockCount((c) => c + 1)
+
+      // Fire refetch in background so lifetimeXP updates eventually; the animation guard in
+      // VerticalXPBar prevents this from interrupting a running animation.
+      if (refetchUser) {
+        console.log(
+          "[WeekGuard] Refreshing user profile (background, post-animation)...",
+        )
+        refetchUser()
+      }
 
       // Resolve pending promise
       if (pendingResolveRef.current) {

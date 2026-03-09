@@ -68,6 +68,17 @@ export default function DailyViewPage() {
     }
   }, [lockCount])
 
+  // After the ring+XP animation fully completes (animatingLockIn true→false), refresh the
+  // user profile so lifetimeXP settles at the correct post-lock value in the XP bar.
+  const prevAnimatingRef = React.useRef(false)
+  useEffect(() => {
+    if (prevAnimatingRef.current && !animatingLockIn && lockCount > 0) {
+      console.log("[DailyViewPage] Animation complete — refreshing user XP...")
+      refetchUser()
+    }
+    prevAnimatingRef.current = animatingLockIn
+  }, [animatingLockIn, lockCount, refetchUser])
+
   // Enable passive week checks on focus/visibility (only when authenticated)
   useWeekGuardOnFocus(isAuthenticated && tokenReady)
 

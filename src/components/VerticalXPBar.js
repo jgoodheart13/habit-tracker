@@ -62,6 +62,9 @@ export default function VerticalXPBar({
   // Track if we've initialized the bar position
   const hasInitialized = useRef(false)
   const prevIsLockedIn = useRef(isLockedIn)
+  // Prevent animation from re-triggering if lifetimeXP/coreXP props change mid-animation
+  // (e.g. when the background refetchUser resolves during the ring/XP animation)
+  const animationRunningRef = useRef(false)
 
   // Detect reset (when isLockedIn changes from true to false)
   useEffect(() => {
@@ -118,7 +121,10 @@ export default function VerticalXPBar({
       setDisplayXpInLevel(initialXpInLevel)
       coreControls.set({ height: `${initialPercent}%` })
       hasInitialized.current = true
-      console.log("[VerticalXPBar] Bar initialized/updated to", initialPercent + "%")
+      console.log(
+        "[VerticalXPBar] Bar initialized/updated to",
+        initialPercent + "%",
+      )
     }
   }, [lifetimeXP, getLevelInfo, coreControls, animatingLockIn])
 
@@ -132,6 +138,11 @@ export default function VerticalXPBar({
     })
 
     if (!animatingLockIn || prefersReducedMotion) return
+
+    // Guard: if animation already running, ignore prop changes (e.g. lifetimeXP updating
+    // mid-animation from the background refetchUser call in WeekGuardContext)
+    if (animationRunningRef.current) return
+    animationRunningRef.current = true
 
     console.log("[VerticalXPBar] Starting animation:", {
       lifetimeXP,
@@ -269,7 +280,9 @@ export default function VerticalXPBar({
       }
     }
 
-    runLevelUpSequence()
+    runLevelUpSequence().finally(() => {
+      animationRunningRef.current = false
+    })
   }, [
     animatingLockIn,
     animationDelay,
