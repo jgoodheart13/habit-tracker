@@ -13,24 +13,16 @@ export function AuthenticationWrapper({ children }) {
       if (isAuthenticated) {
         try {
           // Get Supabase access token
-          console.log("[AuthWrapper] Fetching access token...")
           const token = await getAccessToken()
 
           if (token) {
             localStorage.setItem("auth_token", token)
-            console.log(
-              "[AuthWrapper] ✓ Token set in localStorage, tokenReady = true",
-            )
             setTokenReady(true)
-          } else {
-            console.log("[AuthWrapper] ⚠️ No token returned")
           }
         } catch (err) {
           console.error("[AuthWrapper] Error getting Supabase token:", err)
         }
       } else {
-        // Clear token if not authenticated
-        console.log("[AuthWrapper] Not authenticated, clearing token")
         setTokenReady(false)
       }
     }

@@ -33,7 +33,6 @@ export function setWeekStateCache({ activeWeekStart }) {
       activeWeekStart: normalizedDate,
       updatedAt: Date.now(),
     };
-    console.log("[WeekStateCache] Saving:", cacheData);
     localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
   } catch (err) {
     console.error("Error saving week state cache:", err);

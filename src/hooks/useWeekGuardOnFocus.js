@@ -14,11 +14,7 @@ export function useWeekGuardOnFocus(isAuthenticated = true) {
   const { ensureWeekStateFresh } = useWeekGuard();
 
   useEffect(() => {
-    // Skip if not authenticated
-    if (!isAuthenticated) {
-      console.log("[WeekGuard] Skipping focus checks - not authenticated");
-      return;
-    }
+    if (!isAuthenticated) return;
 
     const handleFocusOrVisibility = async () => {
       // Only check if window is focused and document is visible

@@ -35,15 +35,12 @@ export default function WeeklyHabitsList({
       const timeoutId = setTimeout(() => {
         if (habitRefs.current[newlyAddedHabitId]) {
           const element = habitRefs.current[newlyAddedHabitId]
-          console.log("Scrolling to element:", element)
           element.scrollIntoView({
             behavior: "smooth",
             block: "center",
           })
           // Clear the ID after scrolling
           setTimeout(() => onScrollComplete(), 500)
-        } else {
-          console.log("Ref not found for habit:", newlyAddedHabitId)
         }
       }, 100)
 

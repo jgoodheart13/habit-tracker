@@ -85,11 +85,6 @@ export default function VerticalXPBar({
       setDisplayXpInLevel(initialXpInLevel)
       setCurrentBarPercent(initialPercent)
       coreControls.set({ height: `${initialPercent}%` })
-
-      console.log(
-        "[VerticalXPBar] Reset detected, bar reset to:",
-        initialPercent + "%",
-      )
     }
     prevIsLockedIn.current = isLockedIn
   }, [isLockedIn, lifetimeXP, getLevelInfo, coreControls])
@@ -104,14 +99,6 @@ export default function VerticalXPBar({
       100,
     )
 
-    console.log("[VerticalXPBar] Initialization check:", {
-      lifetimeXP,
-      initialXpInLevel,
-      initialNeeded,
-      initialPercent,
-      hasInitialized: hasInitialized.current,
-    })
-
     // Skip re-initialization if the lock-in animation is actively running —
     // the async animation sequence owns display state until it finishes.
     if ((!hasInitialized.current || !animatingLockIn) && !animationRunningRef.current) {
@@ -122,35 +109,17 @@ export default function VerticalXPBar({
       setDisplayXpInLevel(initialXpInLevel)
       coreControls.set({ height: `${initialPercent}%` })
       hasInitialized.current = true
-      console.log(
-        "[VerticalXPBar] Bar initialized/updated to",
-        initialPercent + "%",
-      )
     }
   }, [lifetimeXP, getLevelInfo, coreControls, animatingLockIn])
 
   // Handle the sequential level-up animations
   useEffect(() => {
-    console.log("[VerticalXPBar] Animation effect triggered:", {
-      animatingLockIn,
-      prefersReducedMotion,
-      lifetimeXP,
-      coreXP,
-    })
-
     if (!animatingLockIn || prefersReducedMotion) return
 
     // Guard: if animation already running, ignore prop changes (e.g. lifetimeXP updating
     // mid-animation from the background refetchUser call in WeekGuardContext)
     if (animationRunningRef.current) return
     animationRunningRef.current = true
-
-    console.log("[VerticalXPBar] Starting animation:", {
-      lifetimeXP,
-      coreXP,
-      animationDelay,
-      animationDuration,
-    })
 
     const runLevelUpSequence = async () => {
       // Build animation sequence
@@ -197,8 +166,6 @@ export default function VerticalXPBar({
         }
       }
 
-      console.log("[VerticalXPBar] Animation segments:", segments)
-
       // Execute animation sequence
       let cumulativeDelay = animationDelay
 
@@ -214,14 +181,6 @@ export default function VerticalXPBar({
         // animationDuration = time for a full 0→100% fill, so partial fills scale down.
         const barDistance = segment.endPercent - segment.startPercent
         const segmentDuration = (barDistance / 100) * animationDuration
-
-        console.log(`[VerticalXPBar] Segment ${i}:`, {
-          level: segment.level,
-          startPercent: segment.startPercent,
-          endPercent: segment.endPercent,
-          segmentDuration,
-          cumulativeDelay,
-        })
 
         // Animate the XP numerator value
         const startXpInLevel =

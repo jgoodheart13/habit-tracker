@@ -76,7 +76,6 @@ export default function DailyViewPage() {
   const prevAnimatingRef = React.useRef(false)
   useEffect(() => {
     if (prevAnimatingRef.current && !animatingLockIn && lockCount > 0) {
-      console.log("[DailyViewPage] Animation complete — refreshing user XP...")
       refetchUser()
       setShowFreshWeek(true)
     }
@@ -90,27 +89,14 @@ export default function DailyViewPage() {
   useEffect(() => {
     async function checkWeekLockOnMount() {
       if (isAuthenticated && tokenReady && !isReviewingPendingWeek) {
-        console.log("[DailyViewPage] Checking week lock on mount...")
         try {
           const { requiresLock, activeWeekStart } = await ensureWeekStateFresh()
-          console.log("[DailyViewPage] Mount check result:", {
-            requiresLock,
-            activeWeekStart,
-          })
 
           if (requiresLock && activeWeekStart) {
-            // Set activeDate to the frozen week (old week that needs locking)
             const mondayOfFrozenWeek = activeWeekStart
-            console.log(
-              "[DailyViewPage] Setting activeDate to frozen week:",
-              mondayOfFrozenWeek,
-            )
             setActiveDate(mondayOfFrozenWeek)
 
-            // Immediately show modal
-            console.log("[DailyViewPage] Opening lock modal on mount...")
             try {
-              // Need to fetch habits for the pending week first
               const pendingWeekRange = getWeekRange(mondayOfFrozenWeek)
               const pendingHabits = await getHabits(pendingWeekRange.end)
               const pendingWeekDays = Array.from({ length: 7 }, (_, i) => {
@@ -120,20 +106,12 @@ export default function DailyViewPage() {
               })
 
               await requestLockIn(pendingHabits, pendingWeekDays)
-              console.log(
-                "[DailyViewPage] Lock confirmed! Updating to current week...",
-              )
 
-              // After lock, update to actual current week
               if (actualCurrentWeek) {
                 setActiveDate(actualCurrentWeek)
-                console.log(
-                  "[DailyViewPage] Updated to current week:",
-                  actualCurrentWeek,
-                )
               }
             } catch (error) {
-              console.log("[DailyViewPage] Lock cancelled or review started")
+              // Lock cancelled or review started
             }
           }
         } catch (error) {
@@ -297,30 +275,17 @@ export default function DailyViewPage() {
       // If already reviewing, only re-show modal if operating outside the pending week
       if (isReviewingPendingWeek) {
         if (getWeekStart(date) !== pendingWeekStart) {
-          console.log(
-            "[handleComplete] Operating outside pending week during review, finishing review...",
-          )
           finishReview()
           return // User will need to re-attempt the operation after locking
         }
         // Operating on pending week during review — fall through and allow the write
       }
 
-      console.log("[handleComplete] Checking week state before completion...")
       try {
         const { requiresLock } = await ensureWeekStateFresh()
-        console.log("[handleComplete] Week check result:", { requiresLock })
         if (requiresLock) {
-          console.log("[handleComplete] Opening lock modal...")
           await requestLockIn(habits, weekDays)
-          console.log("[handleComplete] Lock confirmed, proceeding...")
-
-          // After lock, update UI to current week
           if (actualCurrentWeek) {
-            console.log(
-              "[handleComplete] Updating to current week:",
-              actualCurrentWeek,
-            )
             setActiveDate(actualCurrentWeek)
           }
         }
@@ -423,9 +388,6 @@ export default function DailyViewPage() {
       .catch((error) => {
         // Handle 409 LOCK_REQUIRED from server first
         if (error.response?.status === 409) {
-          console.log(
-            "[handleComplete] Server requires lock (409), opening modal...",
-          )
           ;(async () => {
             try {
               await requestLockIn(habits, weekDays)
@@ -466,9 +428,6 @@ export default function DailyViewPage() {
           // If already reviewing, only re-show modal if operating outside the pending week
           if (isReviewingPendingWeek) {
             if (getWeekStart(activeDate) !== pendingWeekStart) {
-              console.log(
-                "[confirmDelete] Operating outside pending week during review, finishing review...",
-              )
               finishReview()
               setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
               return // User will need to re-attempt the operation after locking
@@ -530,9 +489,6 @@ export default function DailyViewPage() {
     if (isReviewingPendingWeek) {
       const newDateWeekStart = getWeekStart(newDateStr)
       if (newDateWeekStart !== pendingWeekStart) {
-        console.log(
-          "[DailyViewPage] User navigated out of pending week during review, finishing review",
-        )
         finishReview()
       }
     }
@@ -541,13 +497,9 @@ export default function DailyViewPage() {
   function handleSetActiveDate(dateStr) {
     setActiveDate(dateStr)
 
-    // If reviewing, only trigger lock modal when navigating OUT of the pending week
     if (isReviewingPendingWeek) {
       const newDateWeekStart = getWeekStart(dateStr)
       if (newDateWeekStart !== pendingWeekStart) {
-        console.log(
-          "[DailyViewPage] User navigated out of pending week during review, finishing review",
-        )
         finishReview()
       }
     }
@@ -594,9 +546,6 @@ export default function DailyViewPage() {
         // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
           if (getWeekStart(activeDate) !== pendingWeekStart) {
-            console.log(
-              "[handleAddHabit] Operating outside pending week during review, finishing review...",
-            )
             finishReview()
             return // User will need to re-attempt the operation after locking
           }
@@ -611,12 +560,9 @@ export default function DailyViewPage() {
 
       newHabit.startDate = activeDate
       const addedHabit = await addHabit(newHabit)
-      console.log("Added habit:", addedHabit)
       const updated = await getHabits(activeWeekRange.end)
       setHabits(updated)
-      // Track the newly added habit for scrolling
       if (addedHabit?.id) {
-        console.log("Setting newlyAddedHabitId:", addedHabit.id)
         setNewlyAddedHabitId(addedHabit.id)
       }
     } catch (error) {
@@ -652,9 +598,6 @@ export default function DailyViewPage() {
         // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
           if (getWeekStart(activeDate) !== pendingWeekStart) {
-            console.log(
-              "[handleUpdateHabit] Operating outside pending week during review, finishing review...",
-            )
             finishReview()
             return // User will need to re-attempt the operation after locking
           }
@@ -992,7 +935,6 @@ export default function DailyViewPage() {
                       if (activeWeekIsLocked) {
                         // Reset last lock on backend, bust the cache, then re-trigger modal
                         try {
-                          console.log("[Admin] Resetting last lock...")
                           await resetXP()
                           await refetchUser()
                           clearWeekStateCache()
@@ -1000,7 +942,6 @@ export default function DailyViewPage() {
                           setIsLockedIn(false)
                           setAnimatingLockIn(false)
                           setShowFreshWeek(false)
-                          console.log("[Admin] Reset done — triggering week check...")
                           const result = await ensureWeekStateFresh()
                           if (result.requiresLock) {
                             await requestLockIn(habits, weekDays)
@@ -1011,13 +952,10 @@ export default function DailyViewPage() {
                       } else {
                         // Bust the cache and let the server determine if a lock is needed
                         try {
-                          console.log("[Admin] Forcing week state check...")
                           clearWeekStateCache()
                           const result = await ensureWeekStateFresh()
                           if (result.requiresLock) {
                             await requestLockIn(habits, weekDays)
-                          } else {
-                            console.log("[Admin] Server says no lock required for this week")
                           }
                         } catch (err) {
                           console.error("[Admin] Week check failed:", err)

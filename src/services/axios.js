@@ -11,13 +11,6 @@ api.interceptors.request.use(
     const token = localStorage.getItem("auth_token")
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log(
-        `[Axios] ✓ Request to ${config.method?.toUpperCase()} ${config.url} with auth token`,
-      )
-    } else {
-      console.log(
-        `[Axios] ⚠️ Request to ${config.method?.toUpperCase()} ${config.url} WITHOUT auth token`,
-      )
     }
     return config
   },

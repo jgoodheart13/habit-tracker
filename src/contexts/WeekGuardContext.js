@@ -61,23 +61,14 @@ export function WeekGuardProvider({ children }) {
 
     // Short-circuit: cache matches current week, no server call needed
     if (cachedWeekStart === currentWeekStart) {
-      console.log("[WeekGuard] ✓ Week state fresh (cached):", currentWeekStart)
       return {
         requiresLock: false,
         activeWeekStart: cachedWeekStart,
       }
     }
 
-    // Cache miss or week changed - call backend
-    console.log(
-      "[WeekGuard] 🔍 Cache miss, checking server. Current:",
-      currentWeekStart,
-      "Cached:",
-      cachedWeekStart,
-    )
     try {
       const result = await checkWeekRollover()
-      console.log("[WeekGuard] Server response:", result)
 
       // Update cache with server's activeWeekStart
       if (result.activeWeekStart) {
@@ -86,7 +77,6 @@ export function WeekGuardProvider({ children }) {
 
       // Set internal flag if lock is required
       if (result.requiresLock) {
-        console.log("[WeekGuard] 🔒 Lock required!")
         setNeedsLock(true)
         setPendingWeekStart(result.pendingWeekStart || result.activeWeekStart)
         setActualCurrentWeek(result.activeWeekStart) // Current week for after lock
@@ -146,17 +136,13 @@ export function WeekGuardProvider({ children }) {
 
       // Calculate totals on frontend
       const totals = calculateWeekTotals(habits, weekDays)
-      console.log("[WeekGuard] Calculated totals:", totals)
 
-      // Backend expects just weekStart and xpEarned (totalXP as integer)
       const payload = {
         weekStart: pendingWeekStart,
         xpEarned: totals.totalXP,
       }
 
-      console.log("[WeekGuard] Locking week with payload:", payload)
       const result = await lockWeek(payload)
-      console.log("[WeekGuard] Lock result:", result)
 
       // Update cache with new activeWeekStart from response
       if (result.activeWeekStart) {
@@ -181,9 +167,6 @@ export function WeekGuardProvider({ children }) {
       // Fire refetch in background so lifetimeXP updates eventually; the animation guard in
       // VerticalXPBar prevents this from interrupting a running animation.
       if (refetchUser) {
-        console.log(
-          "[WeekGuard] Refreshing user profile (background, post-animation)...",
-        )
         refetchUser()
       }
 
@@ -211,7 +194,6 @@ export function WeekGuardProvider({ children }) {
    * Start review mode - closes modal without rejecting, allows user to review week
    */
   const startReview = useCallback(() => {
-    console.log("[WeekGuard] Entering review mode")
     setIsLockModalOpen(false)
     setIsReviewingPendingWeek(true)
     // Don't reject promise - keep it pending until user decides to lock or navigates away
@@ -236,7 +218,6 @@ export function WeekGuardProvider({ children }) {
    * Complete review and show lock modal again
    */
   const finishReview = useCallback(() => {
-    console.log("[WeekGuard] Finishing review, showing lock modal")
     setIsReviewingPendingWeek(false)
     setIsLockModalOpen(true)
   }, [])

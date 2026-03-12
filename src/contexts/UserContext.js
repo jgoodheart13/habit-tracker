@@ -20,9 +20,7 @@ export const UserProvider = ({ children }) => {
     try {
       // Only fetch if authenticated AND token is ready in localStorage
       if (isAuthenticated && tokenReady) {
-        console.log("[UserContext] Fetching user profile with auth token...")
         const { data } = await api.get("/user/profile")
-        console.log("[UserContext] Profile data:", data)
         setUser(data)
       } else {
         setUser(null)
