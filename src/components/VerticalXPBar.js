@@ -3,6 +3,11 @@ import { motion, useReducedMotion, useAnimation } from "framer-motion"
 import theme from "../styles/theme"
 import { useUserContext } from "../contexts/UserContext"
 
+// Module-level constant — not a ref, so changes survive hot reload
+const XP_THRESHOLDS = [
+  0, 100, 350, 800, 1600, 3000, 5500, 9500, 16000, 26000, 42000,
+]
+
 export default function VerticalXPBar({
   currentXP = 0, // Deprecated - kept for backward compatibility
   coreXP = 0,
@@ -18,23 +23,17 @@ export default function VerticalXPBar({
   const coreControls = useAnimation()
   const reachControls = useAnimation()
 
-  // Level progression logic
-  const xpThresholds = useRef([
-    0, 500, 1200, 2000, 3000, 4200, 5600, 7200, 9000,
-  ])
-
   // Helper function to calculate level from XP - memoized to avoid recreating
   const getLevelInfo = React.useCallback((xp) => {
     let level = 1
     let xpForLevel = 0
-    let xpForNextLevel = xpThresholds.current[1]
+    let xpForNextLevel = XP_THRESHOLDS[1]
 
-    for (let i = 0; i < xpThresholds.current.length - 1; i++) {
-      if (xp >= xpThresholds.current[i + 1]) {
+    for (let i = 0; i < XP_THRESHOLDS.length - 1; i++) {
+      if (xp >= XP_THRESHOLDS[i + 1]) {
         level = i + 2
-        xpForLevel = xpThresholds.current[i + 1]
-        xpForNextLevel =
-          xpThresholds.current[i + 2] || xpThresholds.current[i + 1] + 2000
+        xpForLevel = XP_THRESHOLDS[i + 1]
+        xpForNextLevel = XP_THRESHOLDS[i + 2] || XP_THRESHOLDS[i + 1] + 2000
       } else {
         break
       }
@@ -54,6 +53,7 @@ export default function VerticalXPBar({
     () => getLevelInfo(lifetimeXP).xpForNextLevel,
   )
   const [currentBarPercent, setCurrentBarPercent] = useState(0)
+  const [isGlowing, setIsGlowing] = useState(false)
   const [displayXpInLevel, setDisplayXpInLevel] = useState(() => {
     const info = getLevelInfo(lifetimeXP)
     return lifetimeXP - info.xpForLevel
@@ -112,8 +112,9 @@ export default function VerticalXPBar({
       hasInitialized: hasInitialized.current,
     })
 
-    // Skip re-initialization only if an animation is actively running
-    if (!hasInitialized.current || !animatingLockIn) {
+    // Skip re-initialization if the lock-in animation is actively running —
+    // the async animation sequence owns display state until it finishes.
+    if ((!hasInitialized.current || !animatingLockIn) && !animationRunningRef.current) {
       setCurrentBarPercent(initialPercent)
       setDisplayLevel(initialLevelInfo.level)
       setDisplayXpForLevel(initialLevelInfo.xpForLevel)
@@ -209,10 +210,10 @@ export default function VerticalXPBar({
         setDisplayXpForLevel(segment.xpForLevel)
         setDisplayXpForNextLevel(segment.xpForNextLevel)
 
-        // Calculate duration for this segment proportional to XP gained
-        const totalXPToGain = coreXP - lifetimeXP
-        const segmentDuration =
-          (segment.xpGained / totalXPToGain) * animationDuration
+        // Calculate duration proportional to bar distance traveled within this level.
+        // animationDuration = time for a full 0→100% fill, so partial fills scale down.
+        const barDistance = segment.endPercent - segment.startPercent
+        const segmentDuration = (barDistance / 100) * animationDuration
 
         console.log(`[VerticalXPBar] Segment ${i}:`, {
           level: segment.level,
@@ -237,11 +238,14 @@ export default function VerticalXPBar({
           transition: {
             duration: segmentDuration,
             delay: cumulativeDelay,
-            ease: "linear",
+            ease: "circIn", // slow start → fast finish, builds momentum toward level-up
           },
         })
 
-        // Animate the XP text separately
+        // Animate the XP text separately, matching circIn easing so it stays in sync with bar.
+        // circIn: f(t) = 1 - sqrt(1 - t²)
+        const circIn = (t) => 1 - Math.sqrt(1 - t * t)
+
         const startTime = Date.now() + cumulativeDelay * 1000
         const endTime = startTime + segmentDuration * 1000
 
@@ -257,9 +261,9 @@ export default function VerticalXPBar({
             return
           }
 
-          const progress = (now - startTime) / (segmentDuration * 1000)
+          const t = (now - startTime) / (segmentDuration * 1000)
           const currentXpValue =
-            startXpInLevel + (endXpInLevel - startXpInLevel) * progress
+            startXpInLevel + (endXpInLevel - startXpInLevel) * circIn(t)
           setDisplayXpInLevel(Math.round(currentXpValue))
           requestAnimationFrame(animateXpText)
         }
@@ -272,10 +276,14 @@ export default function VerticalXPBar({
 
         cumulativeDelay = 0 // Only first segment has initial delay
 
-        // If we leveled up, reset bar to 0 for next level
+        // If we leveled up: glow in, hold, reset bar, let glow fade during next fill
         if (segment.willLevelUp && i < segments.length - 1) {
+          setIsGlowing(true)
+          await new Promise((resolve) => setTimeout(resolve, 700))
           coreControls.set({ height: "0%" })
           setDisplayXpInLevel(0)
+          // Don't await — glow fades out while next level fill begins
+          setTimeout(() => setIsGlowing(false), 50)
         }
       }
     }
@@ -341,6 +349,10 @@ export default function VerticalXPBar({
           background: theme.colors.border,
           borderRadius: 8,
           overflow: "hidden",
+          transition: "box-shadow 0.3s ease",
+          boxShadow: isGlowing
+            ? `0 0 8px 3px ${theme.colors.completeColor}, 0 0 16px 6px ${theme.colors.completeColor}88`
+            : "none",
         }}
       >
         {/* Core XP portion (from bottom) */}
@@ -351,7 +363,10 @@ export default function VerticalXPBar({
             bottom: 0,
             left: 0,
             right: 0,
-            background: theme.colors.coreColor,
+            background: isGlowing
+              ? theme.colors.completeColor
+              : theme.colors.coreColor,
+            transition: "background-color 0.3s ease",
             borderRadius: 8,
           }}
         />

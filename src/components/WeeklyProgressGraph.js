@@ -18,6 +18,7 @@ export default function WeeklyProgressGraph({
   animatingLockIn,
   setIsLockedIn,
   setAnimatingLockIn,
+  showFreshWeek = false,
 }) {
   const { user } = useUserContext()
   const lifetimeXP = user?.lifetimeXP || 0
@@ -145,6 +146,14 @@ export default function WeeklyProgressGraph({
   const P1_points = weeklyP1Percent * BASE_POINTS
   const totalPoints = P1_points + P2_points
 
+  // When simulating a fresh week post-lock, zero out all display values
+  const displayDailyP1 = showFreshWeek ? 0 : dailyP1Percent
+  const displayWeeklyP1 = showFreshWeek ? 0 : weeklyP1Percent
+  const displayP2Done = showFreshWeek ? 0 : P2_done
+  const displayP1Done = showFreshWeek ? 0 : P1_done
+  const displayP1Points = showFreshWeek ? 0 : P1_points
+  const displayP2Points = showFreshWeek ? 0 : P2_points
+
   // Detect XP gain and show floating feedback
   useEffect(() => {
     const currentTotal = parseFloat(totalPoints.toFixed(1))
@@ -205,19 +214,19 @@ export default function WeeklyProgressGraph({
       {/* Detailed Stats - Absolute positioned left */}
       <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
         <DetailedStats
-          coreWeekly={P1_done}
-          coreWeeklyTotal={P1_total}
-          corePoints={P1_points.toFixed(1)}
-          reachWeekly={P2_done}
-          reachPoints={P2_points.toFixed(1)}
+          coreWeekly={displayP1Done}
+          coreWeeklyTotal={showFreshWeek ? 0 : P1_total}
+          corePoints={displayP1Points.toFixed(1)}
+          reachWeekly={displayP2Done}
+          reachPoints={displayP2Points.toFixed(1)}
         />
       </div>
       {/* Ring Graph - True center */}
       <div style={{ position: "relative", zIndex: 2 }}>
         <RingProgressGraph
-          dailyP1={dailyP1Percent} // INNER RING
-          weeklyP1={weeklyP1Percent} // OUTER RING
-          p2Count={P2_done} // P2 diamonds
+          dailyP1={displayDailyP1} // INNER RING
+          weeklyP1={displayWeeklyP1} // OUTER RING
+          p2Count={displayP2Done} // P2 diamonds
           weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
           isLockedIn={isLockedIn}
           animatingLockIn={animatingLockIn}
@@ -231,8 +240,8 @@ export default function WeeklyProgressGraph({
       {/* Vertical XP Bar - Absolute positioned right */}
       <div style={{ position: "absolute", right: 16, zIndex: 1 }}>
         <VerticalXPBar
-          coreXP={lifetimeXP + parseFloat(P1_points.toFixed(1))}
-          reachXP={lifetimeXP + parseFloat(totalPoints.toFixed(1))}
+          coreXP={lifetimeXP + parseFloat(displayP1Points.toFixed(1))}
+          reachXP={lifetimeXP + parseFloat((displayP1Points + displayP2Points).toFixed(1))}
           animatingLockIn={animatingLockIn}
           isLockedIn={isLockedIn}
           animationDelay={xpBarTiming.delay}

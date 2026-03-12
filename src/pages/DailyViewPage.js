@@ -46,6 +46,8 @@ export default function DailyViewPage() {
   // Lock/reset state for WeeklyProgressGraph
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
+  // After lock animation completes, show a zeroed "fresh week" state until user navigates away
+  const [showFreshWeek, setShowFreshWeek] = useState(false)
 
   // Week guard for rollover protection
   const {
@@ -70,11 +72,13 @@ export default function DailyViewPage() {
 
   // After the ring+XP animation fully completes (animatingLockIn true→false), refresh the
   // user profile so lifetimeXP settles at the correct post-lock value in the XP bar.
+  // Also show a zeroed "fresh week" state until the user navigates to a different week.
   const prevAnimatingRef = React.useRef(false)
   useEffect(() => {
     if (prevAnimatingRef.current && !animatingLockIn && lockCount > 0) {
       console.log("[DailyViewPage] Animation complete — refreshing user XP...")
       refetchUser()
+      setShowFreshWeek(true)
     }
     prevAnimatingRef.current = animatingLockIn
   }, [animatingLockIn, lockCount, refetchUser])
@@ -152,6 +156,12 @@ export default function DailyViewPage() {
   const [editingHabit, setEditingHabit] = useState(null)
   const [activeTab, setActiveTab] = useState("weekly") // State for active tab
   const [activeWeekRange, setActiveWeekRange] = useState(null)
+
+  // Clear the fresh-week simulation whenever the user navigates to a different week
+  useEffect(() => {
+    setShowFreshWeek(false)
+  }, [activeWeekRange])
+
   const [completedVisibility, setCompletedVisibility] = useState(
     localStorage.getItem("completedVisibility") !== "false",
   )
@@ -772,6 +782,7 @@ export default function DailyViewPage() {
               animatingLockIn={animatingLockIn}
               setIsLockedIn={setIsLockedIn}
               setAnimatingLockIn={setAnimatingLockIn}
+              showFreshWeek={showFreshWeek}
             />
           </div>
 
@@ -988,6 +999,7 @@ export default function DailyViewPage() {
                           clearLastLockedWeek()
                           setIsLockedIn(false)
                           setAnimatingLockIn(false)
+                          setShowFreshWeek(false)
                           console.log("[Admin] Reset done — triggering week check...")
                           const result = await ensureWeekStateFresh()
                           if (result.requiresLock) {
