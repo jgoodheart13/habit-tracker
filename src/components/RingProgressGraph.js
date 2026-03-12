@@ -203,6 +203,12 @@ export default function RingProgressGraph({
           })
         }
 
+        // Spin diamonds as a group around the ring during the drain
+        diamondSpinControls.start({
+          rotate: [0, 720],
+          transition: { duration: totalDuration, ease: "easeIn" },
+        })
+
         // Start both animations, but delay the drain
         await Promise.all([
           // Rotate full 360° clockwise
@@ -237,6 +243,7 @@ export default function RingProgressGraph({
     } else if (!animatingLockIn) {
       isAnimatingRef.current = false
       setDiamondsExploding(false)
+      diamondSpinControls.set({ rotate: 0 })
     }
   }, [
     animatingLockIn,
@@ -245,6 +252,8 @@ export default function RingProgressGraph({
     segmentDashProgress,
     innerRingOpacity,
     onAnimationComplete,
+    diamondSpinControls,
+    onXPBarDelayCalculated,
   ])
 
   // Reset inner ring opacity when lock-in is cancelled/reset
