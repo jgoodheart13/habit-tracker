@@ -805,7 +805,7 @@ export default function DailyViewPage() {
                   paddingRight: searchQuery ? "32px" : "12px",
                   borderRadius: 6,
                   border: `1px solid ${theme.colors.border}`,
-                  fontSize: 15,
+                  fontSize: 16,
                   width: "100%",
                   outline: "none",
                   marginBottom: 8,

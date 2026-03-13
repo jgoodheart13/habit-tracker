@@ -109,6 +109,9 @@ The in-progress (current) week is **never** pending. `pendingWeekStart` is alway
 ### Cache Invariant
 `weekStateCache` stores `activeWeekStart`. `ensureWeekStateFresh` short-circuits when `cache.activeWeekStart === currentWeekStart`. This is safe: after a successful lock the user is fully current, so the short-circuit correctly returns `requiresLock: false`.
 
+## Input Zoom Prevention
+All `<input>` and `<textarea>` elements that accept text must have `fontSize: 16` (or `font-size: 16px` in CSS) at minimum. iOS Safari auto-zooms the viewport when a text input is focused if its font-size is below 16px. Never set a text input's font-size below 16 — use 16 even if the surrounding UI is smaller.
+
 ## Things to Never Do
 - Never force push or run destructive git commands without explicit confirmation
 - Never leave `console.log` or debug statements in committed code
