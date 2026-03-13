@@ -4,6 +4,7 @@ import { AuthenticationWrapper } from "./components/AuthenticationWrapper"
 import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext"
 import { UserProvider } from "./contexts/UserContext"
 import { WeekGuardProvider } from "./contexts/WeekGuardContext"
+import { SettingsProvider } from "./contexts/SettingsContext"
 import LockModal from "./components/LockModal"
 import { isMobile } from "react-device-detect"
 
@@ -13,10 +14,12 @@ export default function App() {
     <SupabaseAuthProvider>
       <AuthenticationWrapper>
         <UserProvider>
-          <WeekGuardProvider>
-            <AppContent />
-            <LockModal />
-          </WeekGuardProvider>
+          <SettingsProvider>
+            <WeekGuardProvider>
+              <AppContent />
+              <LockModal />
+            </WeekGuardProvider>
+          </SettingsProvider>
         </UserProvider>
       </AuthenticationWrapper>
     </SupabaseAuthProvider>

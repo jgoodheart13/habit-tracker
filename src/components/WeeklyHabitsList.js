@@ -6,6 +6,7 @@ import theme from "../styles/theme"
 import PropTypes from "prop-types"
 import { AnimatePresence } from "framer-motion"
 import { getUrgentHabits, sortUrgentHabits } from "../utils/habitFilters"
+import { useSettings } from "../contexts/SettingsContext"
 
 export default function WeeklyHabitsList({
   habits,
@@ -22,6 +23,7 @@ export default function WeeklyHabitsList({
   onScrollComplete = () => {},
   disabled = false,
 }) {
+  const { settings } = useSettings()
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
   const habitRefs = React.useRef({})
@@ -329,7 +331,7 @@ export default function WeeklyHabitsList({
     const coreGroups = groupByCategoryTree(p1)
 
     // Prepend Time Sensitive group at the top of Core's groups if there are urgent habits
-    if (urgentHabits.length > 0) {
+    if (settings.timeSensitivityEnabled && urgentHabits.length > 0) {
       coreGroups.unshift({
         label: "Time Sensitive",
         habits: urgentHabits,
@@ -431,7 +433,7 @@ export default function WeeklyHabitsList({
       setGroupedHabits(groupedHabits)
     }
     if (weekDays.length > 0 && habits) sortHabits()
-  }, [sortMode, habits, weekDays, completedVisibility, searchQuery, activeDate])
+  }, [sortMode, habits, weekDays, completedVisibility, searchQuery, activeDate, settings])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label

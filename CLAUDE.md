@@ -53,6 +53,23 @@ Always do all three before touching code:
 - Use markdown links for file references: [Component.js](src/components/Component.js)
 - Surface blockers, risks, and unexpected findings immediately.
 
+## Settings System
+- **Context:** `src/contexts/SettingsContext.js` — `SettingsProvider` wraps the app in `App.js`. Consume with `useSettings()` hook.
+- **Persistence:** All settings stored as a JSON object in `localStorage` under the key `app_settings`. Defaults are defined in the `DEFAULTS` constant in `SettingsContext.js`.
+- **Adding a new setting:** Add the key + default to `DEFAULTS`, then add a row to `SettingsModal.js` + a CSS entry in `SettingsModal.css` if needed.
+- **Current settings:**
+  - `timeSensitivityEnabled` (bool, default `true`) — shows/hides the Time Sensitive category in Priority mode (`WeeklyHabitsList.js`)
+
+## Mobile Modal Pattern
+All popup modals must follow the `HabitModal` pattern for mobile consistency:
+- **Mobile** (`isMobile` from `react-device-detect`): full-width container, `width: "calc(100% - 0px)"`, `maxWidth: "calc(100% - 0px)"`, `height: 100dvh` backdrop, `maxHeight: "calc(100dvh - 24px)"` on the inner panel
+- **Desktop**: fixed max-width (typically 400–500px), centered, standard `100vh` backdrop with `padding: 20`
+- **Never use `BottomSheet`** for modals — it was the old pattern. All modals use the centered overlay approach.
+- For CSS-class-based modals (e.g. `SettingsModal`), use `@media (max-width: 640px)` to apply `width: 100%; max-width: 100%`
+
+## Help Page Rule
+**Before completing any feature or user-facing change, check whether it should be documented in `src/pages/HelpPage.js`.** If the change affects how a user interacts with the app (new UI, new toggle, new behavior), add or update the relevant section in HelpPage. This is a standing requirement — do not skip it.
+
 ## Things to Never Do
 - Never force push or run destructive git commands without explicit confirmation
 - Never leave `console.log` or debug statements in committed code

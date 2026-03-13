@@ -274,6 +274,10 @@ export default function HelpPage() {
               completed today to stay on track with your weekly goals appear
               here. Complete these first to maintain momentum!
             </p>
+            <p style={{ ...styles.text, marginTop: 8, marginBottom: 0 }}>
+              You can show or hide this category via{" "}
+              <strong>Profile → Settings → Time Sensitivity</strong>.
+            </p>
           </div>
 
           {/* Demo Habits - Time Sensitive */}
