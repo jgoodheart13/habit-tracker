@@ -22,6 +22,7 @@ export function buildViewParts({
   completedWeeklyHabits,
   completedToday,
   openSheet,
+  disabled = false,
 }) {
   const n = habit.frequency.timesPerWeek
   const isPaused = n === 0
@@ -39,7 +40,7 @@ export function buildViewParts({
       type="checkbox"
       checked={completedToday}
       onChange={(e) => handleComplete(habit.id, activeDate, e.target.checked)}
-      disabled={isPaused}
+      disabled={isPaused || disabled}
       style={{
         accentColor: isPaused
           ? "#999"
@@ -51,7 +52,8 @@ export function buildViewParts({
         width: "100%",
         height: "100%",
         flexShrink: 0,
-        cursor: isPaused ? "not-allowed" : "pointer",
+        cursor: isPaused || disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.4 : 1,
       }}
     />
   )
@@ -61,10 +63,7 @@ export function buildViewParts({
       <span
         style={{
           color: isPaused ? "#999" : "#111",
-          textShadow: isPaused
-            ? "none"
-            : `0 0 6px ${theme.colors.completeColor}, 0 0 12px ${theme.colors.completeColor}`,
-          fontWeight: 500,
+          fontWeight: 600,
           textDecoration:
             completedWeeklyHabits.length >= n ? "line-through" : "none",
           fontStyle: isPaused ? "italic" : "normal",
@@ -115,12 +114,13 @@ export function buildViewParts({
 
   const EditButton = true ? (
     <button
-      onClick={() => onEdit(habit)}
-      title="Edit habit"
+      onClick={() => !disabled && onEdit(habit)}
+      title={disabled ? "Cannot edit habits in past/future weeks" : "Edit habit"}
+      disabled={disabled}
       style={{
         background: "none",
         border: "none",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         marginLeft: 8,
         padding: 4,
         color: theme.colors.text,
@@ -129,6 +129,7 @@ export function buildViewParts({
         borderRadius: 4,
         transition: "background 0.2s",
         flexShrink: 0,
+        opacity: disabled ? 0.3 : 1,
       }}
     >
       <FontAwesomeIcon icon={faEdit} size="lg" />
@@ -137,12 +138,13 @@ export function buildViewParts({
 
   const DeleteButton = true ? (
     <button
-      onClick={() => handleDelete(habit.id)}
-      title="Delete habit"
+      onClick={() => !disabled && handleDelete(habit.id)}
+      title={disabled ? "Cannot delete habits in past/future weeks" : "Delete habit"}
+      disabled={disabled}
       style={{
         background: "none",
         border: "none",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         marginLeft: 4,
         padding: 4,
         color: theme.colors.accent,
@@ -151,6 +153,7 @@ export function buildViewParts({
         borderRadius: 4,
         transition: "background 0.2s",
         flexShrink: 0,
+        opacity: disabled ? 0.3 : 1,
       }}
     >
       <FontAwesomeIcon icon={faTrash} size="lg" />
@@ -159,12 +162,13 @@ export function buildViewParts({
 
   const HabitMenuButton = (
     <button
-      onClick={() => openSheet(habit)}
-      title="Habit Menu"
+      onClick={() => !disabled && openSheet(habit)}
+      title={disabled ? "Cannot modify habits in past/future weeks" : "Habit Menu"}
+      disabled={disabled}
       style={{
         background: "none",
         border: "none",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         marginLeft: 8,
         padding: 4,
         color: theme.colors.text,
@@ -173,6 +177,7 @@ export function buildViewParts({
         borderRadius: 4,
         transition: "background 0.2s",
         flexShrink: 0,
+        opacity: disabled ? 0.3 : 1,
       }}
     >
       <FontAwesomeIcon icon={faEllipsis} size="lg" />

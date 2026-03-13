@@ -1,9 +1,11 @@
 import React from "react"
 import { useSupabaseAuth } from "../contexts/SupabaseAuthContext"
+import { useUserContext } from "../contexts/UserContext"
 import { useNavigate } from "react-router-dom"
 import theme from "../styles/theme"
+import SettingsModal from "./SettingsModal"
 
-function DropdownMenu({ userInfo, onClose }) {
+function DropdownMenu({ userInfo, onClose, onOpenSettings }) {
   const navigate = useNavigate()
 
   const menuItemStyle = {
@@ -56,6 +58,21 @@ function DropdownMenu({ userInfo, onClose }) {
 
       <button
         onClick={() => {
+          onOpenSettings()
+          onClose()
+        }}
+        style={menuItemStyle}
+        onMouseEnter={(e) =>
+          Object.assign(e.currentTarget.style, menuItemHoverStyle)
+        }
+        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+      >
+        <span style={{ fontSize: 18 }}>⚙️</span>
+        Settings
+      </button>
+
+      <button
+        onClick={() => {
           navigate("/help")
           onClose()
         }}
@@ -99,9 +116,11 @@ function DropdownMenu({ userInfo, onClose }) {
 }
 
 export default function Header() {
-  const { isAuthenticated, getUserMetadata } = useSupabaseAuth()
-  const userInfo = getUserMetadata()
+
+  const { isAuthenticated } = useSupabaseAuth()
+  const { user: userInfo } = useUserContext()
   const [showDropdown, setShowDropdown] = React.useState(false)
+  const [showSettings, setShowSettings] = React.useState(false)
   const dropdownRootRef = React.useRef(null)
 
   React.useEffect(() => {
@@ -133,6 +152,7 @@ export default function Header() {
   }, [showDropdown])
 
   return (
+    <>
     <header
       style={{
         width: "100%",
@@ -238,11 +258,17 @@ export default function Header() {
               <DropdownMenu
                 userInfo={userInfo}
                 onClose={() => setShowDropdown(false)}
+                onOpenSettings={() => setShowSettings(true)}
               />
             )}
           </div>
         )}
       </div>
     </header>
+
+    {showSettings && (
+      <SettingsModal onClose={() => setShowSettings(false)} />
+    )}
+  </>
   )
 }

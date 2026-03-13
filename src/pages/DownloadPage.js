@@ -38,11 +38,8 @@ export default function DownloadPage() {
     const { outcome } = await deferredPrompt.userChoice
     
     if (outcome === "accepted") {
-      console.log("User accepted the install prompt")
-      // Redirect to home after installation
       setTimeout(() => navigate("/"), 1000)
     } else {
-      console.log("User dismissed the install prompt")
       setInstallClicked(false)
     }
 

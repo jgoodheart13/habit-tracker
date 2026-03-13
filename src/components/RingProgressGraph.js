@@ -57,6 +57,7 @@ export default function RingProgressGraph({
   const dashProgress = useMotionValue(daily)
   const [showArcSegment, setShowArcSegment] = useState(false)
   const [lockedInProgress, setLockedInProgress] = useState(0)
+  const [diamondsExploding, setDiamondsExploding] = useState(false)
   const isAnimatingRef = useRef(false) // Prevent animation re-runs
   const segmentDashProgress = useMotionValue(100) // For draining animation
   const innerRingOpacity = useMotionValue(1) // For fading out inner ring
@@ -192,14 +193,21 @@ export default function RingProgressGraph({
         const timeToNoon = (percentToNoon / 100) * totalDuration
         const timeToDrain = (percentToDrain / 100) * totalDuration
 
-        // Notify parent of XP bar delay (when draining starts)
-        // Make XP bar animation 2x slower for better visibility
+        // Notify parent of XP bar timing:
+        // - delay: wait for the full circle animation to complete before starting bar fill
+        // - duration: fixed 6s fill for a slow, satisfying drain-to-fill visual handoff
         if (onXPBarDelayCalculated) {
           onXPBarDelayCalculated({
-            delay: timeToNoon,
-            duration: timeToDrain * 2,
+            delay: totalDuration,
+            duration: 2.5,
           })
         }
+
+        // Spin diamonds as a group around the ring during the drain
+        diamondSpinControls.start({
+          rotate: [0, 720],
+          transition: { duration: totalDuration, ease: "easeIn" },
+        })
 
         // Start both animations, but delay the drain
         await Promise.all([
@@ -220,6 +228,10 @@ export default function RingProgressGraph({
           })(),
         ])
 
+        // Ring fully drained — explode diamonds outward before handing off
+        setDiamondsExploding(true)
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
         setShowArcSegment(false)
         isAnimatingRef.current = false
         if (onAnimationComplete) {
@@ -230,6 +242,8 @@ export default function RingProgressGraph({
       runAnimation()
     } else if (!animatingLockIn) {
       isAnimatingRef.current = false
+      setDiamondsExploding(false)
+      diamondSpinControls.set({ rotate: 0 })
     }
   }, [
     animatingLockIn,
@@ -238,6 +252,8 @@ export default function RingProgressGraph({
     segmentDashProgress,
     innerRingOpacity,
     onAnimationComplete,
+    diamondSpinControls,
+    onXPBarDelayCalculated,
   ])
 
   // Reset inner ring opacity when lock-in is cancelled/reset
@@ -453,17 +469,24 @@ export default function RingProgressGraph({
               const rad = (angle * Math.PI) / 180
               const x = expandedCenter + diamondOrbitR * Math.cos(rad)
               const y = expandedCenter + diamondOrbitR * Math.sin(rad)
+              // Outward direction vector for centrifugal explosion
+              const explodeX = Math.cos(rad) * 55
+              const explodeY = Math.sin(rad) * 55
 
               return (
                 <motion.g
                   key={i}
                   initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{
-                    delay: i * 0.05,
-                    duration: 0.3,
-                    ease: "backOut",
-                  }}
+                  animate={
+                    diamondsExploding
+                      ? { scale: 0, opacity: 0, x: explodeX, y: explodeY }
+                      : { scale: 1, opacity: 1, x: 0, y: 0 }
+                  }
+                  transition={
+                    diamondsExploding
+                      ? { duration: 0.45, ease: "easeOut", delay: i * 0.04 }
+                      : { delay: i * 0.05, duration: 0.3, ease: "backOut" }
+                  }
                 >
                   <foreignObject
                     x={x - 10}

@@ -6,6 +6,7 @@ import theme from "../styles/theme"
 import PropTypes from "prop-types"
 import { AnimatePresence } from "framer-motion"
 import { getUrgentHabits, sortUrgentHabits } from "../utils/habitFilters"
+import { useSettings } from "../contexts/SettingsContext"
 
 export default function WeeklyHabitsList({
   habits,
@@ -20,7 +21,9 @@ export default function WeeklyHabitsList({
   searchQuery = "",
   newlyAddedHabitId = null,
   onScrollComplete = () => {},
+  disabled = false,
 }) {
+  const { settings } = useSettings()
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
   const habitRefs = React.useRef({})
@@ -29,31 +32,23 @@ export default function WeeklyHabitsList({
 
   // Scroll to newly added habit
   useEffect(() => {
-    console.log('Scroll effect triggered:', {
-      newlyAddedHabitId,
-      hasRef: !!habitRefs.current[newlyAddedHabitId],
-      allRefs: Object.keys(habitRefs.current)
-    })
     if (newlyAddedHabitId) {
       // Add a small delay to ensure DOM is updated
       const timeoutId = setTimeout(() => {
         if (habitRefs.current[newlyAddedHabitId]) {
           const element = habitRefs.current[newlyAddedHabitId]
-          console.log('Scrolling to element:', element)
           element.scrollIntoView({
             behavior: "smooth",
             block: "center",
           })
           // Clear the ID after scrolling
           setTimeout(() => onScrollComplete(), 500)
-        } else {
-          console.log('Ref not found for habit:', newlyAddedHabitId)
         }
       }, 100)
-      
+
       return () => clearTimeout(timeoutId)
     }
-  }, [newlyAddedHabitId, groupedHabits, onScrollComplete])
+  }, [newlyAddedHabitId])
 
   // Extract tags safely
   const getTags = (habit, sortMode) =>
@@ -336,7 +331,7 @@ export default function WeeklyHabitsList({
     const coreGroups = groupByCategoryTree(p1)
 
     // Prepend Time Sensitive group at the top of Core's groups if there are urgent habits
-    if (urgentHabits.length > 0) {
+    if (settings.timeSensitivityEnabled && urgentHabits.length > 0) {
       coreGroups.unshift({
         label: "Time Sensitive",
         habits: urgentHabits,
@@ -438,7 +433,7 @@ export default function WeeklyHabitsList({
       setGroupedHabits(groupedHabits)
     }
     if (weekDays.length > 0 && habits) sortHabits()
-  }, [sortMode, habits, weekDays, completedVisibility, searchQuery, activeDate])
+  }, [sortMode, habits, weekDays, completedVisibility, searchQuery, activeDate, settings])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
@@ -485,6 +480,7 @@ export default function WeeklyHabitsList({
                 onEdit={onEdit}
                 weekDays={weekDays}
                 openSheet={openSheet}
+                disabled={disabled}
               />
             </div>
           ))}
@@ -547,6 +543,7 @@ export default function WeeklyHabitsList({
                     onEdit={onEdit}
                     weekDays={weekDays}
                     openSheet={openSheet}
+                    disabled={disabled}
                   />
                 </div>
               ))}
