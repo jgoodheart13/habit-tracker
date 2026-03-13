@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import api from "../services/axios";
+import { getUserProfile } from "../api/userApi";
 import { useSupabaseAuth } from "./SupabaseAuthContext";
 import { AuthContext } from "../components/AuthenticationWrapper"
 
@@ -20,7 +20,7 @@ export const UserProvider = ({ children }) => {
     try {
       // Only fetch if authenticated AND token is ready in localStorage
       if (isAuthenticated && tokenReady) {
-        const { data } = await api.get("/user/profile")
+        const data = await getUserProfile()
         setUser(data)
       } else {
         setUser(null)

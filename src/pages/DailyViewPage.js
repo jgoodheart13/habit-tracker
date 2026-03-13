@@ -28,6 +28,7 @@ import {
   faArrowRotateLeft,
 } from "@fortawesome/free-solid-svg-icons"
 import { resetXP } from "../api/weekStateApi"
+import { updateUserPreferences } from "../api/userApi"
 import { clearWeekStateCache } from "../utils/weekStateCache"
 import BottomSheet from "../components/BottomSheet"
 import HabitActionsMenu from "../components/HabitActionsMenu"
@@ -125,6 +126,17 @@ export default function DailyViewPage() {
   }, [isAuthenticated, tokenReady, isReviewingPendingWeek]) // Re-run if review mode changes
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
+  const sortModeInitialized = React.useRef(false)
+
+  useEffect(() => {
+    if (user && !sortModeInitialized.current) {
+      sortModeInitialized.current = true
+      if (user.preferences?.sortMode) {
+        setSortMode(user.preferences.sortMode)
+      }
+    }
+  }, [user])
+
   const [habits, setHabits] = useState([])
   const [habitsLoading, setHabitsLoading] = useState(true)
   const [activeDate, setActiveDate] = useState(() =>
@@ -1005,7 +1017,11 @@ export default function DailyViewPage() {
           <div style={{ position: "relative" }}>
             <select
               value={sortMode}
-              onChange={(e) => setSortMode(e.target.value)}
+              onChange={(e) => {
+                const newMode = e.target.value
+                setSortMode(newMode)
+                updateUserPreferences({ sortMode: newMode })
+              }}
               style={{
                 padding: "6px 32px 6px 12px",
                 borderRadius: 6,
