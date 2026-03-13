@@ -63,10 +63,7 @@ export function buildViewParts({
       <span
         style={{
           color: isPaused ? "#999" : "#111",
-          textShadow: isPaused
-            ? "none"
-            : `0 0 6px ${theme.colors.completeColor}, 0 0 12px ${theme.colors.completeColor}`,
-          fontWeight: 500,
+          fontWeight: 600,
           textDecoration:
             completedWeeklyHabits.length >= n ? "line-through" : "none",
           fontStyle: isPaused ? "italic" : "normal",
