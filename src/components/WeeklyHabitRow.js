@@ -14,6 +14,7 @@ export default function WeeklyHabitRow({
   weekDays,
   openSheet,
   disabled = false,
+  sortMode = "priority",
 }) {
   const [completedWeeklyHabits, setCompletedWeeklyHabits] = useState([])
   const [completedToday, setCompletedToday] = useState(false)
@@ -50,6 +51,7 @@ export default function WeeklyHabitRow({
     completedToday,
     openSheet,
     disabled,
+    sortMode,
   })
 
   const Layout = Layouts[habit.type][isMobile ? "mobile" : "desktop"]

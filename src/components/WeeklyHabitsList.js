@@ -7,6 +7,19 @@ import PropTypes from "prop-types"
 import { AnimatePresence } from "framer-motion"
 import { getUrgentHabits, sortUrgentHabits } from "../utils/habitFilters"
 import { useSettings } from "../contexts/SettingsContext"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSun, faMoon } from "@fortawesome/free-solid-svg-icons"
+
+const TIME_ICONS = {
+  Morning: (
+    <svg width="16" height="13" viewBox="0 0 22 16" fill="none" aria-hidden="true" style={{ display: "block" }}>
+      <line x1="0" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M 3 14 A 8 8 0 0 1 19 14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    </svg>
+  ),
+  Afternoon: <FontAwesomeIcon icon={faSun} />,
+  Night: <FontAwesomeIcon icon={faMoon} />,
+}
 
 export default function WeeklyHabitsList({
   habits,
@@ -396,14 +409,19 @@ export default function WeeklyHabitsList({
         const posB = indexB === -1 ? timeOrder.length : indexB
         return posA - posB
       })
-      .map((label) => ({
-        label: label === "Unspecified" ? "Anytime" : label,
-        color:
-          label === "Unspecified"
-            ? theme.colors.coreColor
-            : theme.colors.accent,
-        groups: groupByCategoryTree(buckets[label], true, false),
-      }))
+      .map((label) => {
+        const timeColors = {
+          Morning:   "#B45309",
+          Afternoon: "#CA8A04",
+          Night:     "#5B21B6",
+        }
+        return {
+          label: label === "Unspecified" ? "Anytime" : label,
+          color: timeColors[label] ?? theme.colors.textSecondary,
+          icon: TIME_ICONS[label] ?? null,
+          groups: groupByCategoryTree(buckets[label], true, false),
+        }
+      })
   }
 
   useEffect(() => {
@@ -481,6 +499,7 @@ export default function WeeklyHabitsList({
                 weekDays={weekDays}
                 openSheet={openSheet}
                 disabled={disabled}
+                sortMode={sortMode}
               />
             </div>
           ))}
@@ -522,6 +541,11 @@ export default function WeeklyHabitsList({
           </span>
 
           {group.label}
+          {group.icon && (
+            <span style={{ display: "inline-flex", alignItems: "center" }}>
+              {group.icon}
+            </span>
+          )}
         </HeadingTag>
 
         {/* IMPORTANT FIX: Render habits when leaf node has habits */}
@@ -544,6 +568,7 @@ export default function WeeklyHabitsList({
                     weekDays={weekDays}
                     openSheet={openSheet}
                     disabled={disabled}
+                    sortMode={sortMode}
                   />
                 </div>
               ))}

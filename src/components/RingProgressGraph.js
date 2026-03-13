@@ -7,8 +7,126 @@ import {
   useTransform,
   animate,
 } from "framer-motion"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faGem } from "@fortawesome/free-solid-svg-icons"
+
+// Per-month icon colors
+const MONTH_COLORS = [
+  "#7EC8E3", // Jan  - ice blue
+  "#F472B6", // Feb  - pink
+  "#4ADE80", // Mar  - green
+  "#C084FC", // Apr  - lavender
+  "#FACC15", // May  - gold
+  "#FB923C", // Jun  - amber
+  "#F87171", // Jul  - coral red
+  "#38BDF8", // Aug  - sky blue
+  "#FB923C", // Sep  - orange (fall)
+  "#A78BFA", // Oct  - violet
+  "#D97706", // Nov  - amber brown
+  "#BAE6FD", // Dec  - light ice blue
+]
+
+// Pure-SVG shapes centered at (0,0), ~±7 unit radius.
+// Using only SVG primitives — no foreignObject, works on every browser / iOS WebKit.
+const MONTH_SHAPES = [
+  // 0 — January: Snowflake
+  (c) => (
+    <>
+      <line x1="0" y1="-6.5" x2="0" y2="6.5" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="-5.6" y1="-3.25" x2="5.6" y2="3.25" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="-5.6" y1="3.25" x2="5.6" y2="-3.25" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="0" cy="0" r="1" fill={c}/>
+    </>
+  ),
+  // 1 — February: Heart
+  (c) => (
+    <path d="M0,5 C-7,1 -5,-5 0,-2 C5,-5 7,1 0,5 Z" fill={c}/>
+  ),
+  // 2 — March: Three-leaf clover + stem
+  (c) => (
+    <>
+      <circle cx="0" cy="-3" r="2.8" fill={c}/>
+      <circle cx="-2.5" cy="0.5" r="2.8" fill={c}/>
+      <circle cx="2.5" cy="0.5" r="2.8" fill={c}/>
+      <rect x="-0.8" y="2.5" width="1.6" height="4.5" rx="0.8" fill={c}/>
+    </>
+  ),
+  // 3 — April: Four-petal flower
+  (c) => (
+    <>
+      <ellipse cx="0" cy="-3.5" rx="1.8" ry="3" fill={c}/>
+      <ellipse cx="3.5" cy="0" rx="3" ry="1.8" fill={c}/>
+      <ellipse cx="0" cy="3.5" rx="1.8" ry="3" fill={c}/>
+      <ellipse cx="-3.5" cy="0" rx="3" ry="1.8" fill={c}/>
+      <circle cx="0" cy="0" r="2" fill="#fff"/>
+      <circle cx="0" cy="0" r="1.3" fill={c}/>
+    </>
+  ),
+  // 4 — May: Five-pointed star
+  (c) => (
+    <polygon
+      points="0,-7 1.65,-2.27 6.66,-2.17 2.66,0.87 4.11,5.66 0,2.8 -4.11,5.66 -2.66,0.87 -6.66,-2.17 -1.65,-2.27"
+      fill={c}
+    />
+  ),
+  // 5 — June: Sun (circle + 8 rays)
+  (c) => (
+    <>
+      <circle cx="0" cy="0" r="3" fill={c}/>
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => {
+        const rad = (Math.PI * deg) / 180
+        return (
+          <line
+            key={deg}
+            x1={Math.cos(rad) * 4.5} y1={Math.sin(rad) * 4.5}
+            x2={Math.cos(rad) * 6.5} y2={Math.sin(rad) * 6.5}
+            stroke={c} strokeWidth="1.5" strokeLinecap="round"
+          />
+        )
+      })}
+    </>
+  ),
+  // 6 — July: Eight-pointed starburst
+  (c) => (
+    <polygon
+      points="0,-6 0.95,-2.31 4.24,-4.24 2.31,-0.95 6,0 2.31,0.95 4.24,4.24 0.95,2.31 0,6 -0.95,2.31 -4.24,4.24 -2.31,0.95 -6,0 -2.31,-0.95 -4.24,-4.24 -0.95,-2.31"
+      fill={c}
+    />
+  ),
+  // 7 — August: Wave
+  (c) => (
+    <path
+      d="M-7,0 Q-5.25,-4 -3.5,0 Q-1.75,4 0,0 Q1.75,-4 3.5,0 Q5.25,4 7,0"
+      stroke={c} strokeWidth="2" fill="none" strokeLinecap="round"
+    />
+  ),
+  // 8 — September: Leaf with vein
+  (c) => (
+    <>
+      <path d="M0,7 C-5.5,3 -6,-4 0,-7 C6,-4 5.5,3 0,7 Z" fill={c}/>
+      <line x1="0" y1="-6" x2="0" y2="6" stroke="#ffffff88" strokeWidth="1" strokeLinecap="round"/>
+    </>
+  ),
+  // 9 — October: Crescent moon
+  (c) => (
+    <path d="M2,-6.5 A6.5,6.5,0,1,0,2,6.5 A4.5,4.5,0,1,1,2,-6.5 Z" fill={c}/>
+  ),
+  // 10 — November: Acorn (body + cap + stem)
+  (c) => (
+    <>
+      <ellipse cx="0" cy="2" rx="4" ry="5" fill={c}/>
+      <rect x="-4.5" y="-4.5" width="9" height="3.5" rx="1.5" fill={c} opacity="0.75"/>
+      <rect x="-0.7" y="-7" width="1.4" height="2.5" rx="0.7" fill={c}/>
+    </>
+  ),
+  // 11 — December: Snowflake (distinct lighter color)
+  (c) => (
+    <>
+      <line x1="0" y1="-6.5" x2="0" y2="6.5" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="-5.6" y1="-3.25" x2="5.6" y2="3.25" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="-5.6" y1="3.25" x2="5.6" y2="-3.25" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="0" cy="0" r="1" fill={c}/>
+    </>
+  ),
+]
 
 export default function RingProgressGraph({
   dailyP1 = 0,
@@ -38,6 +156,9 @@ export default function RingProgressGraph({
   const diamondSize = 6
   const expandedSize = size + diamondSize * 4 + 30 // Extra space for diamonds and glow
   const expandedCenter = expandedSize / 2
+
+  const currentMonth = new Date().getMonth()
+  const diamondColor = MONTH_COLORS[currentMonth]
 
   const C_outer = 2 * Math.PI * outerR
   const C_inner = 2 * Math.PI * innerR
@@ -154,8 +275,8 @@ export default function RingProgressGraph({
       // Animate glow during spin
       diamondGlowControls.start({
         filter: [
-          `drop-shadow(0 0 3px ${theme.colors.reachColor}) drop-shadow(0 0 6px ${theme.colors.reachColor})`,
-          `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
+          `drop-shadow(0 0 3px ${diamondColor}) drop-shadow(0 0 6px ${diamondColor})`,
+          `drop-shadow(0 0 1.5px ${diamondColor}66) drop-shadow(0 0 3px ${diamondColor}33)`,
         ],
         transition: {
           duration: 0.8,
@@ -457,66 +578,59 @@ export default function RingProgressGraph({
           </defs>
 
           {/* P2 DIAMONDS ORBITING THE RINGS */}
-          <motion.g
-            animate={diamondSpinControls}
-            style={{
-              transformOrigin: `${expandedCenter}px ${expandedCenter}px`,
-              transformBox: "fill-box",
-            }}
-          >
-            {Array.from({ length: p2Count }).map((_, i) => {
-              const angle = (360 / p2Count) * i - 90 // Start at top, -90 adjusts for SVG coords
-              const rad = (angle * Math.PI) / 180
-              const x = expandedCenter + diamondOrbitR * Math.cos(rad)
-              const y = expandedCenter + diamondOrbitR * Math.sin(rad)
-              // Outward direction vector for centrifugal explosion
-              const explodeX = Math.cos(rad) * 55
-              const explodeY = Math.sin(rad) * 55
+          {/* translate-rotate-translate: moves CSS origin to SVG center before rotating,
+              ensuring correct pivot point on iOS WebKit (avoids transform-box bugs) */}
+          <g transform={`translate(${expandedCenter} ${expandedCenter})`}>
+            <motion.g
+              animate={diamondSpinControls}
+              style={{ transformOrigin: "0px 0px" }}
+            >
+              <g transform={`translate(${-expandedCenter} ${-expandedCenter})`}>
+                {Array.from({ length: p2Count }).map((_, i) => {
+                  const angle = (360 / p2Count) * i - 90
+                  const rad = (angle * Math.PI) / 180
+                  const x = expandedCenter + diamondOrbitR * Math.cos(rad)
+                  const y = expandedCenter + diamondOrbitR * Math.sin(rad)
+                  const explodeX = Math.cos(rad) * 55
+                  const explodeY = Math.sin(rad) * 55
 
-              return (
-                <motion.g
-                  key={i}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={
-                    diamondsExploding
-                      ? { scale: 0, opacity: 0, x: explodeX, y: explodeY }
-                      : { scale: 1, opacity: 1, x: 0, y: 0 }
-                  }
-                  transition={
-                    diamondsExploding
-                      ? { duration: 0.45, ease: "easeOut", delay: i * 0.04 }
-                      : { delay: i * 0.05, duration: 0.3, ease: "backOut" }
-                  }
-                >
-                  <foreignObject
-                    x={x - 10}
-                    y={y - 10}
-                    width={20}
-                    height={20}
-                    style={{
-                      overflow: "visible",
-                    }}
-                  >
-                    <motion.div
-                      animate={diamondGlowControls}
-                      style={{
-                        width: 20,
-                        height: 20,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: theme.colors.reachColor,
-                        filter: `drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 3px rgba(139, 92, 246, 0.2))`,
-                        transform: "rotate(90deg)",
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faGem} size="sm" />
-                    </motion.div>
-                  </foreignObject>
-                </motion.g>
-              )
-            })}
-          </motion.g>
+                  return (
+                    // Static SVG translate positions each diamond; animations then happen
+                    // relative to its own center (0,0 in the translated space)
+                    <g key={i} transform={`translate(${x} ${y})`}>
+                      <motion.g
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={
+                          diamondsExploding
+                            ? { scale: 0, opacity: 0, x: explodeX, y: explodeY }
+                            : { scale: 1, opacity: 1, x: 0, y: 0 }
+                        }
+                        transition={
+                          diamondsExploding
+                            ? { duration: 0.45, ease: "easeOut", delay: i * 0.04 }
+                            : { delay: i * 0.05, duration: 0.3, ease: "backOut" }
+                        }
+                        style={{ transformOrigin: "0px 0px" }}
+                      >
+                        {/* Month-themed icon — pure SVG, no foreignObject */}
+                        <motion.g
+                          animate={diamondGlowControls}
+                          style={{
+                            filter: `drop-shadow(0 0 1.5px ${diamondColor}66) drop-shadow(0 0 3px ${diamondColor}33)`,
+                          }}
+                        >
+                          {/* rotate(90) cancels the parent SVG's rotate(-90deg) so icons appear upright */}
+                          <g transform="rotate(90)">
+                            {MONTH_SHAPES[currentMonth](diamondColor)}
+                          </g>
+                        </motion.g>
+                      </motion.g>
+                    </g>
+                  )
+                })}
+              </g>
+            </motion.g>
+          </g>
 
           {/* WEEKLY PERCENTAGE TEXT ALONG ARC - Rendered last for top z-index */}
           {weekly > 0 &&

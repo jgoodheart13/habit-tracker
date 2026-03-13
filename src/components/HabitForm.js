@@ -5,7 +5,7 @@ import { getTags, saveTag } from "../services/habitService"
 import { getTagHabits, deleteTag as apiDeleteTag } from "../api/tagsApi"
 import { DEFAULT_FREQUENCY_TIMES_PER_WEEK } from "../constants/habitDefaults"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTrash } from "@fortawesome/free-solid-svg-icons"
+import { faTrash, faSun, faMoon } from "@fortawesome/free-solid-svg-icons"
 
 export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
@@ -508,18 +508,22 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           style={{
             display: "flex",
             justifyContent: "space-between",
-            fontSize: 16,
-            color: theme.colors.text,
-            opacity: 0.5,
+            alignItems: "center",
+            fontSize: 13,
             marginTop: -4,
             paddingLeft: 4,
             paddingRight: 4,
           }}
         >
-          <span>Any</span>
-          <span>🌅</span>
-          <span>☀️</span>
-          <span>🌙</span>
+          <span style={{ color: theme.colors.textSecondary }}>Any</span>
+          <span style={{ display: "inline-flex", alignItems: "center", color: "#B45309" }}>
+            <svg width="18" height="14" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+              <line x1="0" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              <path d="M 3 14 A 8 8 0 0 1 19 14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+            </svg>
+          </span>
+          <span style={{ color: "#CA8A04" }}><FontAwesomeIcon icon={faSun} /></span>
+          <span style={{ color: "#5B21B6" }}><FontAwesomeIcon icon={faMoon} /></span>
         </div>
       </div>
       <div
