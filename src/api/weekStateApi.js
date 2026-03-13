@@ -31,6 +31,21 @@ export async function resetXP() {
 }
 
 /**
+ * Check week rollover status with admin_preview bypass (admin only)
+ * GET /habits/week/state?admin_preview=true
+ * @returns {Promise<Object>} { requiresLock: true, activeWeekStart, pendingWeekStart }
+ */
+export async function checkWeekRolloverAdminPreview() {
+  try {
+    const response = await api.get("habits/week/state", { params: { admin_preview: true } })
+    return response.data
+  } catch (error) {
+    console.error("Error checking admin preview week state:", error)
+    throw error
+  }
+}
+
+/**
  * Lock the week (commit XP for the week)
  * POST /habits/week/lock
  * @param {Object} payload - { weekStart: "YYYY-MM-DD", xpEarned: number }

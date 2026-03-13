@@ -49,6 +49,8 @@ export default function DailyViewPage() {
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
   // After lock animation completes, show a zeroed "fresh week" state until user navigates away
   const [showFreshWeek, setShowFreshWeek] = useState(false)
+  // Tracks whether an admin preview lock was performed this session (controls button toggle)
+  const [adminPreviewLocked, setAdminPreviewLocked] = useState(false)
 
   // Week guard for rollover protection
   const {
@@ -58,7 +60,6 @@ export default function DailyViewPage() {
     actualCurrentWeek,
     isReviewingPendingWeek,
     finishReview,
-    lastLockedWeekStart,
     clearLastLockedWeek,
     lockCount,
   } = useWeekGuard()
@@ -942,21 +943,21 @@ export default function DailyViewPage() {
                   <button
                     onClick={async () => {
                       setMenuOpen(false)
-                      const activeWeekIsLocked =
-                        activeWeekRange?.start === lastLockedWeekStart
-                      if (activeWeekIsLocked) {
+                      if (adminPreviewLocked) {
                         // Reset last lock on backend, bust the cache, then re-trigger modal
                         try {
                           await resetXP()
                           await refetchUser()
                           clearWeekStateCache()
                           clearLastLockedWeek()
+                          setAdminPreviewLocked(false)
                           setIsLockedIn(false)
                           setAnimatingLockIn(false)
                           setShowFreshWeek(false)
-                          const result = await ensureWeekStateFresh()
+                          const result = await ensureWeekStateFresh(true)
                           if (result.requiresLock) {
                             await requestLockIn(habits, weekDays)
+                            setAdminPreviewLocked(true)
                           }
                         } catch (err) {
                           console.error("[Admin] Reset lock failed:", err)
@@ -965,9 +966,10 @@ export default function DailyViewPage() {
                         // Bust the cache and let the server determine if a lock is needed
                         try {
                           clearWeekStateCache()
-                          const result = await ensureWeekStateFresh()
+                          const result = await ensureWeekStateFresh(true)
                           if (result.requiresLock) {
                             await requestLockIn(habits, weekDays)
+                            setAdminPreviewLocked(true)
                           }
                         } catch (err) {
                           console.error("[Admin] Week check failed:", err)
@@ -986,27 +988,19 @@ export default function DailyViewPage() {
                       alignItems: "center",
                       gap: 10,
                       color:
-                        activeWeekRange?.start === lastLockedWeekStart
+                        adminPreviewLocked
                           ? "#e05c5c"
                           : theme.colors.coreColor,
                       fontWeight: 700,
                     }}
                   >
                     <FontAwesomeIcon
-                      icon={
-                        activeWeekRange?.start === lastLockedWeekStart
-                          ? faArrowRotateLeft
-                          : faLock
-                      }
+                      icon={adminPreviewLocked ? faArrowRotateLeft : faLock}
                       color={
-                        activeWeekRange?.start === lastLockedWeekStart
-                          ? "#e05c5c"
-                          : theme.colors.coreColor
+                        adminPreviewLocked ? "#e05c5c" : theme.colors.coreColor
                       }
                     />
-                    {activeWeekRange?.start === lastLockedWeekStart
-                      ? "Reset Lock (Admin)"
-                      : "Lock In Week"}
+                    {adminPreviewLocked ? "Reset Lock (Admin)" : "Lock In Week"}
                   </button>
                 )}
               </div>

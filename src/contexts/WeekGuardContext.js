@@ -7,7 +7,7 @@ import React, {
   useEffect,
 } from "react"
 import { getWeekStateCache, setWeekStateCache } from "../utils/weekStateCache"
-import { checkWeekRollover, lockWeek } from "../api/weekStateApi"
+import { checkWeekRollover, checkWeekRolloverAdminPreview, lockWeek } from "../api/weekStateApi"
 import { useUserContext } from "./UserContext"
 
 /**
@@ -52,7 +52,7 @@ export function WeekGuardProvider({ children }) {
    * Ensure week state is fresh - short-circuit if cache matches current week
    * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart?, totals? }
    */
-  const ensureWeekStateFresh = useCallback(async () => {
+  const ensureWeekStateFresh = useCallback(async (adminPreview = false) => {
     const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10))
     const cache = getWeekStateCache()
 
@@ -60,7 +60,7 @@ export function WeekGuardProvider({ children }) {
     const cachedWeekStart = cache?.activeWeekStart?.slice(0, 10)
 
     // Short-circuit: cache matches current week, no server call needed
-    if (cachedWeekStart === currentWeekStart) {
+    if (!adminPreview && cachedWeekStart === currentWeekStart) {
       return {
         requiresLock: false,
         activeWeekStart: cachedWeekStart,
@@ -68,7 +68,7 @@ export function WeekGuardProvider({ children }) {
     }
 
     try {
-      const result = await checkWeekRollover()
+      const result = await (adminPreview ? checkWeekRolloverAdminPreview() : checkWeekRollover())
 
       // Update cache with server's activeWeekStart
       if (result.activeWeekStart) {
