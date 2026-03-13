@@ -27,7 +27,7 @@ function getWeekStart(date) {
 const WeekGuardContext = createContext(null)
 
 export function WeekGuardProvider({ children }) {
-  const { refetchUser, user } = useUserContext()
+  const { user } = useUserContext()
   const [needsLock, setNeedsLock] = useState(false)
   const [isLockModalOpen, setIsLockModalOpen] = useState(false)
   const [serverPendingInfo, setServerPendingInfo] = useState(null)
@@ -154,21 +154,15 @@ export function WeekGuardProvider({ children }) {
         setLastLockedWeekStart(result.lockedWeekStart)
       }
 
-      // Clear lock state and trigger animation BEFORE refreshing user so that VerticalXPBar
-      // animates from the pre-lock lifetimeXP baseline up to coreXP (this week's earned points).
-      // refetchUser is deferred — DailyViewPage calls it again after the animation completes.
+      // Clear lock state and trigger animation. DailyViewPage calls refetchUser after the
+      // animation completes — do NOT call it here, as it can race with the animation setup
+      // and cause VerticalXPBar to start from the wrong (post-lock) lifetimeXP baseline.
       setNeedsLock(false)
       setServerPendingInfo(null)
       setPendingWeekStart(null)
       setActualCurrentWeek(null)
       setIsLockModalOpen(false)
       setLockCount((c) => c + 1)
-
-      // Fire refetch in background so lifetimeXP updates eventually; the animation guard in
-      // VerticalXPBar prevents this from interrupting a running animation.
-      if (refetchUser) {
-        refetchUser()
-      }
 
       // Resolve pending promise
       if (pendingResolveRef.current) {
@@ -188,7 +182,7 @@ export function WeekGuardProvider({ children }) {
 
       throw error
     }
-  }, [pendingWeekStart, serverPendingInfo, refetchUser])
+  }, [pendingWeekStart, serverPendingInfo])
 
   /**
    * Start review mode - closes modal without rejecting, allows user to review week
