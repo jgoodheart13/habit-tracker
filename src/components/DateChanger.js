@@ -1,7 +1,5 @@
 import React from "react";
 import theme from "../styles/theme";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faClock } from "@fortawesome/free-regular-svg-icons"
 
 const { rowHeight } = theme
 
@@ -12,6 +10,7 @@ export default function DateChanger({
   activeTab,
 }) {
   const isWeekly = activeTab === "weekly"
+  const todayDay = new Date().getDate()
 
   return (
     <div
@@ -71,7 +70,14 @@ export default function DateChanger({
           title="Go to Today"
           style={buttonStyle}
         >
-          <FontAwesomeIcon icon={faClock} size="lg" />
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="3" width="20" height="19" rx="2" fill="#fff" stroke="#ddd" strokeWidth="1.5"/>
+              <rect x="2" y="3" width="20" height="7" rx="2" fill={theme.colors.accent}/>
+              <rect x="2" y="7" width="20" height="3" fill={theme.colors.accent}/>
+              <text x="12" y="17" textAnchor="middle" fontSize="9" fontWeight="700" fill={theme.colors.text}>
+                {todayDay}
+              </text>
+            </svg>
         </button>
       </div>
     </div>
@@ -86,4 +92,7 @@ const buttonStyle = {
   cursor: "pointer",
   height: "100%",
   width: "100%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 }
