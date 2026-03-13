@@ -8,8 +8,9 @@ A React SPA habit tracking app with gamification (XP/levels). Frontend only — 
 - Familiar with Supabase, Framer Motion, Recharts, React Router
 
 ## Git Workflow
-- Branch off `dev`, PR back to `dev`. `main` is production.
-- Current working branch convention: `feature/<description>`
+- Primary working branches: `local` or `feature/<description>`
+- Merge `local`/`feature` → `dev` for test deployment
+- Merge `dev` → `main` for production
 - **Never force push.** Confirm with the user before any destructive git operation.
 - PRs target `dev`, not `main`.
 
@@ -22,7 +23,7 @@ A React SPA habit tracking app with gamification (XP/levels). Frontend only — 
 ## Architecture Constraints — Always Respect
 1. **State via Context API only.** No Redux, Zustand, or other state libraries.
 2. **API calls in `/src/api/` only.** Never call Axios or Supabase directly from components or pages. All data fetching goes through the api layer.
-3. **No new npm dependencies** without explicit user approval. Propose the package and wait for a yes before installing.
+3. **No new npm dependencies** without explicit user approval. Surface the package and its purpose in the planning/spec phase and get approval before installing.
 4. **CSS files per component.** No inline `style={{...}}` on JSX elements.
 
 ## Before Making Changes
@@ -34,11 +35,17 @@ Always do all three before touching code:
 ## Handling Ambiguity
 **Ask first, always.** Do not make assumptions on unclear tasks. Clarify intent before writing any code.
 
-## Testing
-- No tests currently written.
+## Testing & Docker
+- No automated tests currently written.
 - Proactively identify **high-value test opportunities** (critical flows, regression-prone logic) and surface them to the user.
 - When the user approves, write the tests and run them to verify quality after changes are complete.
 - Preferred test tooling: React Testing Library + Jest (already in project).
+- For test cycles after plan execution: use Docker to build and verify the app runs correctly
+  ```bash
+  docker build --build-arg BUILD_ENV=dev -t habit-tracker:local .
+  docker run -p 8080:8080 habit-tracker:local
+  ```
+- `BUILD_ENV` options: `prod`, `qa`, `dev`, `local`
 
 ## Communication Style
 - Explain decisions and trade-offs as you go — narrate your approach.
