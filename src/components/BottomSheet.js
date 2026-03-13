@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 
 export default function BottomSheet({ isOpen, onClose, children }) {
+  const dragControls = useDragControls()
+
   // Close when user presses ESC
   useEffect(() => {
     const handler = (e) => {
@@ -27,13 +29,23 @@ export default function BottomSheet({ isOpen, onClose, children }) {
               position: "fixed",
               inset: 0,
               background: "#000",
-              zIndex: 200,
+              zIndex: 1100,
             }}
           />
 
           {/* Bottom Sheet */}
           <motion.div
             key="sheet"
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0, bottom: 0.3 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 80 || info.velocity.y > 500) {
+                onClose()
+              }
+            }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -43,7 +55,7 @@ export default function BottomSheet({ isOpen, onClose, children }) {
               bottom: 0,
               left: 0,
               right: 0,
-              zIndex: 201,
+              zIndex: 1101,
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
               background: "#fff",
@@ -51,35 +63,23 @@ export default function BottomSheet({ isOpen, onClose, children }) {
               boxShadow: "0 -4px 30px rgba(0,0,0,0.12)",
               maxHeight: "60vh",
               overflowY: "auto",
-              touchAction: "none", // prevent scroll conflicts
             }}
           >
-            {/* Handle bar */}
+            {/* Handle bar — drag initiator */}
             <div
+              onPointerDown={(e) => dragControls.start(e)}
               style={{
                 width: 40,
                 height: 5,
                 background: "#ccc",
                 borderRadius: 3,
                 margin: "0 auto 12px",
+                cursor: "grab",
+                touchAction: "none",
               }}
             />
 
             {children}
-
-            {/* Optional: Close button */}
-            {/* <div
-              style={{
-                marginTop: 20,
-                textAlign: "center",
-                color: "#444",
-                padding: 10,
-                cursor: "pointer",
-              }}
-              onClick={onClose}
-            >
-              Cancel
-            </div> */}
           </motion.div>
         </>
       )}

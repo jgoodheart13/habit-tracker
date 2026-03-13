@@ -876,7 +876,7 @@ export default function DailyViewPage() {
             background: "#fff",
             borderRadius: 12,
             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-            zIndex: 100,
+            zIndex: 1000,
           }}
         >
           {/* LEFT: Menu Icon */}
@@ -911,7 +911,7 @@ export default function DailyViewPage() {
                   borderRadius: 6,
                   boxShadow: theme.colors.shadow,
                   minWidth: 180,
-                  zIndex: 1001,
+                  zIndex: 1002,
                 }}
               >
                 <button
@@ -1120,7 +1120,7 @@ export default function DailyViewPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 1000,
+              zIndex: 1100,
             }}
             onClick={() =>
               setDeleteConfirmModal({

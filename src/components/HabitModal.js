@@ -23,7 +23,7 @@ export default function HabitModal({ show, onClose, onAdd, onEdit, habit }) {
         // Center on mobile to keep content in visible area when keyboard appears
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        zIndex: 1100,
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
         padding: 0,

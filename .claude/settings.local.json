@@ -1,8 +1,9 @@
 {
-  "defaultMode": "bypassPermissions",
   "permissions": {
     "allow": [
-      "Bash(.venv/Scripts/pytest tests/ -v)"
+      "Bash(.venv/Scripts/pytest tests/ -v)",
+      "Bash(node scripts/update-version.js)"
     ]
-  }
+  },
+  "defaultMode": "bypassPermissions"
 }
