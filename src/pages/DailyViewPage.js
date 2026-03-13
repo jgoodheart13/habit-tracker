@@ -91,10 +91,10 @@ export default function DailyViewPage() {
     async function checkWeekLockOnMount() {
       if (isAuthenticated && tokenReady && !isReviewingPendingWeek) {
         try {
-          const { requiresLock, activeWeekStart } = await ensureWeekStateFresh()
+          const { requiresLock, pendingWeekStart: serverPendingWeek } = await ensureWeekStateFresh()
 
-          if (requiresLock && activeWeekStart) {
-            const mondayOfFrozenWeek = activeWeekStart
+          if (requiresLock && serverPendingWeek) {
+            const mondayOfFrozenWeek = serverPendingWeek
             setActiveDate(mondayOfFrozenWeek)
 
             try {
