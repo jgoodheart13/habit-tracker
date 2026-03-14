@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/pytest tests/ -v)",
+      "Bash(node scripts/update-version.js)",
+      "Bash(npx react-scripts:*)"
+    ]
+  },
+  "defaultMode": "bypassPermissions"
+}

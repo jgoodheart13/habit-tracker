@@ -11,6 +11,7 @@ const theme = {
     text: "#333", // Main text
     textSecondary: "#888", // Secondary text
     background: "#fff", // Card/section background
+    cardBackground: "#f5f5f5", // Summary card / inset background
     border: "#ccc", // Borders
     shadow: "0 2px 8px rgba(0,0,0,0.07)", // Card shadow
   },

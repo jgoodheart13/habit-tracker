@@ -8,6 +8,8 @@ import {
   faEdit,
   faEllipsis,
   faCirclePause,
+  faSun,
+  faMoon,
 } from "@fortawesome/free-solid-svg-icons"
 
 // Reusable view parts (these receive props from WeeklyHabitRow.js)
@@ -22,6 +24,8 @@ export function buildViewParts({
   completedWeeklyHabits,
   completedToday,
   openSheet,
+  disabled = false,
+  sortMode = "priority",
 }) {
   const n = habit.frequency.timesPerWeek
   const isPaused = n === 0
@@ -39,7 +43,7 @@ export function buildViewParts({
       type="checkbox"
       checked={completedToday}
       onChange={(e) => handleComplete(habit.id, activeDate, e.target.checked)}
-      disabled={isPaused}
+      disabled={isPaused || disabled}
       style={{
         accentColor: isPaused
           ? "#999"
@@ -51,7 +55,8 @@ export function buildViewParts({
         width: "100%",
         height: "100%",
         flexShrink: 0,
-        cursor: isPaused ? "not-allowed" : "pointer",
+        cursor: isPaused || disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.4 : 1,
       }}
     />
   )
@@ -61,10 +66,7 @@ export function buildViewParts({
       <span
         style={{
           color: isPaused ? "#999" : "#111",
-          textShadow: isPaused
-            ? "none"
-            : `0 0 6px ${theme.colors.completeColor}, 0 0 12px ${theme.colors.completeColor}`,
-          fontWeight: 500,
+          fontWeight: 600,
           textDecoration:
             completedWeeklyHabits.length >= n ? "line-through" : "none",
           fontStyle: isPaused ? "italic" : "normal",
@@ -115,12 +117,13 @@ export function buildViewParts({
 
   const EditButton = true ? (
     <button
-      onClick={() => onEdit(habit)}
-      title="Edit habit"
+      onClick={() => !disabled && onEdit(habit)}
+      title={disabled ? "Cannot edit habits in past/future weeks" : "Edit habit"}
+      disabled={disabled}
       style={{
         background: "none",
         border: "none",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         marginLeft: 8,
         padding: 4,
         color: theme.colors.text,
@@ -129,6 +132,7 @@ export function buildViewParts({
         borderRadius: 4,
         transition: "background 0.2s",
         flexShrink: 0,
+        opacity: disabled ? 0.3 : 1,
       }}
     >
       <FontAwesomeIcon icon={faEdit} size="lg" />
@@ -137,12 +141,13 @@ export function buildViewParts({
 
   const DeleteButton = true ? (
     <button
-      onClick={() => handleDelete(habit.id)}
-      title="Delete habit"
+      onClick={() => !disabled && handleDelete(habit.id)}
+      title={disabled ? "Cannot delete habits in past/future weeks" : "Delete habit"}
+      disabled={disabled}
       style={{
         background: "none",
         border: "none",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         marginLeft: 4,
         padding: 4,
         color: theme.colors.accent,
@@ -151,6 +156,7 @@ export function buildViewParts({
         borderRadius: 4,
         transition: "background 0.2s",
         flexShrink: 0,
+        opacity: disabled ? 0.3 : 1,
       }}
     >
       <FontAwesomeIcon icon={faTrash} size="lg" />
@@ -159,12 +165,13 @@ export function buildViewParts({
 
   const HabitMenuButton = (
     <button
-      onClick={() => openSheet(habit)}
-      title="Habit Menu"
+      onClick={() => !disabled && openSheet(habit)}
+      title={disabled ? "Cannot modify habits in past/future weeks" : "Habit Menu"}
+      disabled={disabled}
       style={{
         background: "none",
         border: "none",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         marginLeft: 8,
         padding: 4,
         color: theme.colors.text,
@@ -173,11 +180,62 @@ export function buildViewParts({
         borderRadius: 4,
         transition: "background 0.2s",
         flexShrink: 0,
+        opacity: disabled ? 0.3 : 1,
       }}
     >
       <FontAwesomeIcon icon={faEllipsis} size="lg" />
     </button>
   )
+
+  const timeLabel = sortMode !== "time"
+    ? habit.tags?.time?.[0]?.label ?? null
+    : null
+
+  const timeBadgeConfig = {
+    Morning: {
+      bg: "#FFF8E1",
+      color: "#B45309",
+      icon: (
+        <svg width="11" height="9" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+          <line x1="0" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M 3 14 A 8 8 0 0 1 19 14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+        </svg>
+      ),
+    },
+    Afternoon: {
+      bg: "#FEF9C3",
+      color: "#CA8A04",
+      icon: <FontAwesomeIcon icon={faSun} />,
+    },
+    Night: {
+      bg: "#EDE9FE",
+      color: "#5B21B6",
+      icon: <FontAwesomeIcon icon={faMoon} />,
+    },
+  }
+
+  const cfg = timeLabel ? timeBadgeConfig[timeLabel] : null
+
+  const TimeBadge = cfg ? (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        fontSize: 10,
+        fontWeight: 600,
+        lineHeight: 1,
+        padding: "2px 6px",
+        borderRadius: 10,
+        flexShrink: 0,
+        background: cfg.bg,
+        color: cfg.color,
+      }}
+    >
+      {cfg.icon}
+      {timeLabel}
+    </span>
+  ) : null
 
   return {
     CheckBox,
@@ -187,6 +245,7 @@ export function buildViewParts({
     EditButton,
     DeleteButton,
     HabitMenuButton,
+    TimeBadge,
     leftBarColor,
   }
 }
@@ -200,6 +259,7 @@ export const Layouts = {
       WeekRow,
       Fraction,
       HabitMenuButton,
+      TimeBadge,
       leftBarColor,
     }) => (
       <div style={{ display: "flex", width: "100%" }}>
@@ -224,7 +284,10 @@ export const Layouts = {
             paddingLeft: 8,
           }}
         >
-          <div style={{ marginBottom: 4 }}>{HabitName}</div>
+          <div style={{ marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+            {HabitName}
+            {TimeBadge}
+          </div>
 
           <div style={{ display: "flex", alignItems: "center" }}>
             {WeekRow}
@@ -243,6 +306,7 @@ export const Layouts = {
       Fraction,
       EditButton,
       DeleteButton,
+      TimeBadge,
       leftBarColor,
     }) => (
       <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
@@ -289,6 +353,7 @@ export const Layouts = {
             flexShrink: 0,
           }}
         >
+          {TimeBadge}
           {Fraction}
           {EditButton}
           {DeleteButton}
@@ -303,6 +368,7 @@ export const Layouts = {
       HabitName,
       HabitMenuButton,
       WeekRow,
+      TimeBadge,
       leftBarColor,
     }) => (
       <div style={{ display: "flex", width: "100%" }}>
@@ -330,12 +396,14 @@ export const Layouts = {
           <div
             style={{
               marginBottom: 4,
-              height: 28,
+              minHeight: 28,
               display: "flex",
               alignItems: "center",
+              gap: 6,
             }}
           >
             {HabitName}
+            {TimeBadge}
           </div>
 
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -354,6 +422,7 @@ export const Layouts = {
       WeekRow,
       EditButton,
       DeleteButton,
+      TimeBadge,
       leftBarColor,
     }) => (
       <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
@@ -400,6 +469,7 @@ export const Layouts = {
             flexShrink: 0,
           }}
         >
+          {TimeBadge}
           {EditButton}
           {DeleteButton}
         </div>

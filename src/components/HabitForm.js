@@ -5,7 +5,7 @@ import { getTags, saveTag } from "../services/habitService"
 import { getTagHabits, deleteTag as apiDeleteTag } from "../api/tagsApi"
 import { DEFAULT_FREQUENCY_TIMES_PER_WEEK } from "../constants/habitDefaults"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTrash } from "@fortawesome/free-solid-svg-icons"
+import { faTrash, faSun, faMoon } from "@fortawesome/free-solid-svg-icons"
 
 export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
@@ -25,6 +25,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     return { category: null, time: null }
   })
   const [tagInput, setTagInput] = useState({ label: "", type: "category" })
+  const [selectedTagIndex, setSelectedTagIndex] = useState(0)
   const [allTags, setAllTags] = useState([])
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
@@ -99,6 +100,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
     if (name === "tagValue") {
       setTagInput((t) => ({ ...t, label: value }))
       setTagDropdownOpen(true)
+      setSelectedTagIndex(0) // Reset to first item when typing
     } else if (name === "tagType") {
       setTagInput((t) => ({ ...t, type: value }))
     }
@@ -324,7 +326,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             type="button"
             onClick={() => setHabit((h) => ({ ...h, type: "P1" }))}
             style={{
-              padding: "10px 24px",
+              padding: "12px 28px",
               borderRadius: 9999,
               border: `2px solid ${
                 habit.type === "P1"
@@ -338,7 +340,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                   ? theme.colors.background
                   : theme.colors.text,
               fontWeight: 600,
-              fontSize: 15,
+              fontSize: 16,
               cursor: "pointer",
               userSelect: "none",
               opacity: habit.type === "P1" ? 1 : 0.6,
@@ -347,6 +349,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                   ? `0 2px 8px ${theme.colors.coreColor}30, inset 0 1px 2px ${theme.colors.coreColor}40`
                   : "none",
               transition: "all 0.2s ease",
+              flex: 1,
+              minHeight: 44,
             }}
           >
             Core
@@ -355,7 +359,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             type="button"
             onClick={() => setHabit((h) => ({ ...h, type: "P2" }))}
             style={{
-              padding: "10px 24px",
+              padding: "12px 28px",
               borderRadius: 9999,
               border: `2px solid ${
                 habit.type === "P2"
@@ -367,7 +371,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               color:
                 habit.type === "P2" ? theme.colors.text : theme.colors.text,
               fontWeight: 600,
-              fontSize: 15,
+              fontSize: 16,
               cursor: "pointer",
               userSelect: "none",
               opacity: habit.type === "P2" ? 1 : 0.6,
@@ -376,6 +380,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                   ? `0 2px 8px ${theme.colors.reachColor}30, inset 0 1px 2px ${theme.colors.reachColor}40`
                   : "none",
               transition: "all 0.2s ease",
+              flex: 1,
+              minHeight: 44,
             }}
           >
             Reach
@@ -502,18 +508,22 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
           style={{
             display: "flex",
             justifyContent: "space-between",
-            fontSize: 16,
-            color: theme.colors.text,
-            opacity: 0.5,
+            alignItems: "center",
+            fontSize: 13,
             marginTop: -4,
             paddingLeft: 4,
             paddingRight: 4,
           }}
         >
-          <span>Any</span>
-          <span>🌅</span>
-          <span>☀️</span>
-          <span>🌙</span>
+          <span style={{ color: theme.colors.textSecondary }}>Any</span>
+          <span style={{ display: "inline-flex", alignItems: "center", color: "#B45309" }}>
+            <svg width="18" height="14" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+              <line x1="0" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              <path d="M 3 14 A 8 8 0 0 1 19 14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+            </svg>
+          </span>
+          <span style={{ color: "#CA8A04" }}><FontAwesomeIcon icon={faSun} /></span>
+          <span style={{ color: "#5B21B6" }}><FontAwesomeIcon icon={faMoon} /></span>
         </div>
       </div>
       <div
@@ -562,6 +572,26 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               name="tagValue"
               value={tagInput.label}
               onChange={handleTagInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault() // Prevent form submission
+                  // Use the selected tag from dropdown
+                  if (filteredTags.length > 0) {
+                    handleTagSelect(filteredTags[selectedTagIndex])
+                  } else if (tagInput.label.trim()) {
+                    // Otherwise, add as new tag
+                    handleTagAdd()
+                  }
+                } else if (e.key === "ArrowDown") {
+                  e.preventDefault()
+                  setSelectedTagIndex((prev) =>
+                    Math.min(prev + 1, filteredTags.length - 1),
+                  )
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault()
+                  setSelectedTagIndex((prev) => Math.max(prev - 1, 0))
+                }
+              }}
               placeholder="Add category"
               autoComplete="off"
               autoFocus
@@ -624,7 +654,8 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
               <div
                 style={{
                   position: "absolute",
-                  top: 38,
+                  bottom: "100%",
+                  marginBottom: 4,
                   left: 0,
                   right: 0,
                   background: theme.colors.background,
@@ -632,7 +663,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                   borderRadius: 6,
                   boxShadow: theme.colors.shadow,
                   zIndex: 10,
-                  maxHeight: 120,
+                  maxHeight: 200,
                   overflowY: "auto",
                 }}
               >
@@ -643,11 +674,11 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                       padding: "8px 12px",
                       cursor: "pointer",
                       background:
-                        t.label === tagInput.label
+                        idx === selectedTagIndex
                           ? theme.colors.accent
                           : theme.colors.background,
                       color:
-                        t.label === tagInput.label
+                        idx === selectedTagIndex
                           ? theme.colors.background
                           : theme.colors.text,
                       display: "flex",
@@ -747,9 +778,12 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             background: theme.colors.incomplete,
             color: theme.colors.text,
             border: "none",
-            padding: "8px 18px",
+            borderRadius: 6,
+            padding: "12px 24px",
             cursor: "pointer",
             fontWeight: 600,
+            fontSize: 16,
+            minHeight: 44,
           }}
         >
           Cancel
@@ -757,15 +791,17 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         <button
           type="submit"
           style={{
-            padding: 10,
+            padding: "12px 24px",
             borderRadius: 6,
             background: theme.colors.accent,
             color: theme.colors.background,
             border: "none",
             fontWeight: 600,
+            fontSize: 16,
             opacity: habit.name ? 1 : 0.4,
             transition: "opacity 0.2s ease",
-            // minWidth: 110,
+            minHeight: 44,
+            minWidth: 110,
           }}
         >
           {"Save"}

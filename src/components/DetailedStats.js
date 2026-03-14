@@ -1,29 +1,48 @@
-import React, { useState, useEffect, useRef } from "react"
-import { motion, useSpring, useTransform, AnimatePresence } from "framer-motion"
+import React, { useEffect, useRef, useState } from "react"
+import { motion, useSpring } from "framer-motion"
 import theme from "../styles/theme"
 
-function AnimatedNumber({ value, duration = 0.4 }) {
-  const spring = useSpring(0, { duration: duration * 1000, bounce: 0 })
-  const display = useTransform(spring, (latest) => Math.round(latest))
-  const [displayValue, setDisplayValue] = useState(Math.round(value))
-
+function AnimatedNumber({ value }) {
+  const [displayValue, setDisplayValue] = useState(value)
+  const prevValueRef = useRef(value)
+  
   useEffect(() => {
-    spring.set(value)
-    const unsubscribe = display.onChange(setDisplayValue)
-    return unsubscribe
-  }, [value, spring, display])
-
-  return <>{displayValue}</>
+    if (prevValueRef.current !== value) {
+      const startValue = prevValueRef.current
+      const endValue = value
+      const startTime = Date.now()
+      const duration = 2000 // 2 seconds
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        
+        // Ease out function
+        const easedProgress = 1 - Math.pow(1 - progress, 3)
+        const currentValue = startValue + (endValue - startValue) * easedProgress
+        
+        setDisplayValue(currentValue)
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          prevValueRef.current = value
+        }
+      }
+      
+      animate()
+    }
+  }, [value])
+  
+  return <>{Math.round(displayValue)}</>
 }
 
-export function IntegratedStats({
+export default function DetailedStats({
   coreWeekly,
   coreWeeklyTotal,
   corePoints,
   reachWeekly,
   reachPoints,
-  basePoints,
-  multiplier,
 }) {
   return (
     <div
@@ -31,99 +50,80 @@ export function IntegratedStats({
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: 8,
-        minWidth: 100,
+        gap: 12,
+        padding: "0 8px",
+        fontSize: 11,
       }}
     >
-      {/* Core */}
-      <div style={{ paddingLeft: 8 }}>
+      {/* Core Section */}
+      <div>
         <div
           style={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#999",
             textTransform: "uppercase",
             fontWeight: 500,
             letterSpacing: "0.5px",
-            marginBottom: 2,
+            marginBottom: 3,
           }}
         >
           Core
         </div>
         <div
           style={{
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: 700,
             color: theme.colors.text,
             lineHeight: 1.2,
+            marginBottom: 2,
           }}
         >
           {Math.round(coreWeekly)} / {Math.round(coreWeeklyTotal)}
         </div>
-        <motion.div
+        <div
           style={{
-            fontSize: 12,
+            fontSize: 14,
             color: theme.colors.coreColor,
             fontWeight: 600,
-            marginTop: 2,
           }}
         >
           +<AnimatedNumber value={parseFloat(corePoints)} /> XP
-        </motion.div>
-        <div
-          style={{
-            fontSize: 9,
-            color: "#999",
-            fontWeight: 500,
-            marginTop: 2,
-          }}
-        >
-          {basePoints} base pts
         </div>
       </div>
 
-      {/* Reach */}
-      <div style={{ paddingLeft: 8 }}>
+      {/* Reach Section */}
+      <div>
         <div
           style={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#999",
             textTransform: "uppercase",
             fontWeight: 500,
             letterSpacing: "0.5px",
-            marginBottom: 2,
+            marginBottom: 3,
           }}
         >
           Reach
         </div>
         <div
           style={{
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: 700,
             color: theme.colors.text,
             lineHeight: 1.2,
+            marginBottom: 2,
           }}
         >
           {Math.round(reachWeekly)}
         </div>
-        <motion.div
+        <div
           style={{
-            fontSize: 12,
+            fontSize: 14,
             color: theme.colors.reachColor,
             fontWeight: 600,
-            marginTop: 2,
           }}
         >
           +<AnimatedNumber value={parseFloat(reachPoints)} /> XP
-        </motion.div>
-        <div
-          style={{
-            fontSize: 9,
-            color: "#999",
-            fontWeight: 500,
-            marginTop: 2,
-          }}
-        >
-          ×{multiplier.toFixed(2)} multiplier
         </div>
       </div>
     </div>

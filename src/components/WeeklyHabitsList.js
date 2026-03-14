@@ -6,6 +6,20 @@ import theme from "../styles/theme"
 import PropTypes from "prop-types"
 import { AnimatePresence } from "framer-motion"
 import { getUrgentHabits, sortUrgentHabits } from "../utils/habitFilters"
+import { useSettings } from "../contexts/SettingsContext"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSun, faMoon } from "@fortawesome/free-solid-svg-icons"
+
+const TIME_ICONS = {
+  Morning: (
+    <svg width="16" height="13" viewBox="0 0 22 16" fill="none" aria-hidden="true" style={{ display: "block" }}>
+      <line x1="0" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M 3 14 A 8 8 0 0 1 19 14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    </svg>
+  ),
+  Afternoon: <FontAwesomeIcon icon={faSun} />,
+  Night: <FontAwesomeIcon icon={faMoon} />,
+}
 
 export default function WeeklyHabitsList({
   habits,
@@ -18,11 +32,36 @@ export default function WeeklyHabitsList({
   weekDays,
   openSheet,
   searchQuery = "",
+  newlyAddedHabitId = null,
+  onScrollComplete = () => {},
+  disabled = false,
 }) {
+  const { settings } = useSettings()
   const [collapsed, setCollapsed] = React.useState(new Set())
   const [initialized, setInitialized] = React.useState(new Set())
+  const habitRefs = React.useRef({})
 
   const [groupedHabits, setGroupedHabits] = React.useState([])
+
+  // Scroll to newly added habit
+  useEffect(() => {
+    if (newlyAddedHabitId) {
+      // Add a small delay to ensure DOM is updated
+      const timeoutId = setTimeout(() => {
+        if (habitRefs.current[newlyAddedHabitId]) {
+          const element = habitRefs.current[newlyAddedHabitId]
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          })
+          // Clear the ID after scrolling
+          setTimeout(() => onScrollComplete(), 500)
+        }
+      }, 100)
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [newlyAddedHabitId])
 
   // Extract tags safely
   const getTags = (habit, sortMode) =>
@@ -79,7 +118,10 @@ export default function WeeklyHabitsList({
 
     habits.forEach((habit) => {
       // Filter by search query
-      if (searchQuery && !habit.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (
+        searchQuery &&
+        !habit.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
         return // Skip habits that don't match search
       }
 
@@ -302,7 +344,7 @@ export default function WeeklyHabitsList({
     const coreGroups = groupByCategoryTree(p1)
 
     // Prepend Time Sensitive group at the top of Core's groups if there are urgent habits
-    if (urgentHabits.length > 0) {
+    if (settings.timeSensitivityEnabled && urgentHabits.length > 0) {
       coreGroups.unshift({
         label: "Time Sensitive",
         habits: urgentHabits,
@@ -339,7 +381,10 @@ export default function WeeklyHabitsList({
 
     habits.forEach((h) => {
       // Filter by search query
-      if (searchQuery && !h.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (
+        searchQuery &&
+        !h.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
         return
       }
 
@@ -364,14 +409,19 @@ export default function WeeklyHabitsList({
         const posB = indexB === -1 ? timeOrder.length : indexB
         return posA - posB
       })
-      .map((label) => ({
-        label: label === "Unspecified" ? "Anytime" : label,
-        color:
-          label === "Unspecified"
-            ? theme.colors.coreColor
-            : theme.colors.accent,
-        groups: groupByCategoryTree(buckets[label], true, false),
-      }))
+      .map((label) => {
+        const timeColors = {
+          Morning:   "#B45309",
+          Afternoon: "#CA8A04",
+          Night:     "#5B21B6",
+        }
+        return {
+          label: label === "Unspecified" ? "Anytime" : label,
+          color: timeColors[label] ?? theme.colors.textSecondary,
+          icon: TIME_ICONS[label] ?? null,
+          groups: groupByCategoryTree(buckets[label], true, false),
+        }
+      })
   }
 
   useEffect(() => {
@@ -401,7 +451,7 @@ export default function WeeklyHabitsList({
       setGroupedHabits(groupedHabits)
     }
     if (weekDays.length > 0 && habits) sortHabits()
-  }, [sortMode, habits, weekDays, completedVisibility, searchQuery, activeDate])
+  }, [sortMode, habits, weekDays, completedVisibility, searchQuery, activeDate, settings])
 
   const renderGroup = (group, level = 1, path = "") => {
     const thisPath = path ? `${path} > ${group.label}` : group.label
@@ -434,16 +484,24 @@ export default function WeeklyHabitsList({
       return (
         <div key={group.label} className="group-level" data-level={level}>
           {group.habits?.map((habit) => (
-            <WeeklyHabitRow
+            <div
               key={habit._id || habit.id}
-              habit={habit}
-              activeDate={activeDate}
-              handleComplete={handleComplete}
-              handleDelete={handleDelete}
-              onEdit={onEdit}
-              weekDays={weekDays}
-              openSheet={openSheet}
-            />
+              ref={(el) => {
+                if (el) habitRefs.current[habit.id] = el
+              }}
+            >
+              <WeeklyHabitRow
+                habit={habit}
+                activeDate={activeDate}
+                handleComplete={handleComplete}
+                handleDelete={handleDelete}
+                onEdit={onEdit}
+                weekDays={weekDays}
+                openSheet={openSheet}
+                disabled={disabled}
+                sortMode={sortMode}
+              />
+            </div>
           ))}
         </div>
       )
@@ -455,7 +513,7 @@ export default function WeeklyHabitsList({
       margin: level === 1 ? "0px 0px" : `0px ${level * 4}px`,
       color:
         level === 1
-          ? group.color ?? theme.colors.accent
+          ? (group.color ?? theme.colors.accent)
           : theme.colors.textSecondary,
       fontSize: level <= 2 ? 20 : 16,
       fontWeight: level <= 2 ? 600 : 500,
@@ -483,6 +541,11 @@ export default function WeeklyHabitsList({
           </span>
 
           {group.label}
+          {group.icon && (
+            <span style={{ display: "inline-flex", alignItems: "center" }}>
+              {group.icon}
+            </span>
+          )}
         </HeadingTag>
 
         {/* IMPORTANT FIX: Render habits when leaf node has habits */}
@@ -490,22 +553,30 @@ export default function WeeklyHabitsList({
           <>
             {Array.isArray(group.habits) &&
               group.habits.map((habit) => (
-                <WeeklyHabitRow
+                <div
                   key={habit._id || habit.id}
-                  habit={habit}
-                  activeDate={activeDate}
-                  handleComplete={handleComplete}
-                  handleDelete={handleDelete}
-                  onEdit={onEdit}
-                  weekDays={weekDays}
-                  openSheet={openSheet}
-                />
+                  ref={(el) => {
+                    if (el) habitRefs.current[habit.id] = el
+                  }}
+                >
+                  <WeeklyHabitRow
+                    habit={habit}
+                    activeDate={activeDate}
+                    handleComplete={handleComplete}
+                    handleDelete={handleDelete}
+                    onEdit={onEdit}
+                    weekDays={weekDays}
+                    openSheet={openSheet}
+                    disabled={disabled}
+                    sortMode={sortMode}
+                  />
+                </div>
               ))}
 
             {/* Recurse into child groups if present */}
             {Array.isArray(group.groups) &&
               group.groups.map((child) =>
-                renderGroup(child, level + 1, thisPath)
+                renderGroup(child, level + 1, thisPath),
               )}
           </>
         )}

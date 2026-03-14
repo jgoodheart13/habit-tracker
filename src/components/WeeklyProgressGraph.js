@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react"
+import { useUserContext } from "../contexts/UserContext"
 import { motion, AnimatePresence } from "framer-motion"
 import RingProgressGraph from "./RingProgressGraph"
-import { IntegratedStats } from "./StatsDisplay"
+import DetailedStats from "./DetailedStats"
+import VerticalXPBar from "./VerticalXPBar"
+import { BASE_POINTS } from "../constants/habitDefaults"
 import theme from "../styles/theme"
 
 // NEW PROPS:
@@ -10,8 +13,17 @@ export default function WeeklyProgressGraph({
   habits,
   activeWeekRange,
   activeDate,
+  onXPUpdate,
+  isLockedIn,
+  animatingLockIn,
+  setIsLockedIn,
+  setAnimatingLockIn,
+  showFreshWeek = false,
 }) {
+  const { user } = useUserContext()
+  const lifetimeXP = user?.lifetimeXP || 0
   const [floatingXP, setFloatingXP] = useState(null)
+  const [xpBarTiming, setXpBarTiming] = useState({ delay: 0, duration: 0 }) // Timing for XP bar
   const prevTotalPointsRef = useRef(0)
   const prevCorePointsRef = useRef(0)
   const prevReachPointsRef = useRef(0)
@@ -80,8 +92,30 @@ export default function WeeklyProgressGraph({
     )
   }).length
 
+  // Max P1 completions achievable today: habits that still have weekly budget remaining
+  // (whether already ticked today or not yet ticked — each counts as one possible credit)
+  const maxP1PossibleToday = P1_habits.filter((h) => {
+    const timesPerWeek = h.frequency?.timesPerWeek || 0
+    const completedThisWeek = weekDays.filter((d) =>
+      h.completedDates.includes(d),
+    ).length
+    const doneToday = h.completedDates.includes(activeDate)
+    // If done today: counts if within weekly budget (same gate as P1_done_today)
+    // If not done today: counts if there's still a budget slot to fill
+    return doneToday
+      ? completedThisWeek <= timesPerWeek
+      : completedThisWeek < timesPerWeek
+  }).length
+
+  // Cap the denominator at what's physically achievable today so falling behind
+  // can still yield 100% if all available habits are completed
+  const effectiveDailyTarget =
+    idealP1ForToday === 0 ? 0 : Math.min(idealP1ForToday, maxP1PossibleToday)
+
   const dailyP1Percent =
-    idealP1ForToday === 0 ? 100 : (P1_done_today / idealP1ForToday) * 100
+    effectiveDailyTarget === 0
+      ? 100
+      : (P1_done_today / effectiveDailyTarget) * 100
   const weeklyP1Percent = P1_total === 0 ? 0 : (P1_done / P1_total) * 100
 
   let P2_done = 0
@@ -106,12 +140,19 @@ export default function WeeklyProgressGraph({
 
   P2_done += P1s_counted_as_p2
 
-  const basePoints = 5
   const P2_scale = 0.5 + 0.5 * (weeklyP1Percent / 100)
-  const P2_points = P2_done * basePoints * P2_scale
+  const P2_points = P2_done * BASE_POINTS * P2_scale
 
-  const P1_points = weeklyP1Percent * basePoints
+  const P1_points = weeklyP1Percent * BASE_POINTS
   const totalPoints = P1_points + P2_points
+
+  // When simulating a fresh week post-lock, zero out all display values
+  const displayDailyP1 = showFreshWeek ? 0 : dailyP1Percent
+  const displayWeeklyP1 = showFreshWeek ? 0 : weeklyP1Percent
+  const displayP2Done = showFreshWeek ? 0 : P2_done
+  const displayP1Done = showFreshWeek ? 0 : P1_done
+  const displayP1Points = showFreshWeek ? 0 : P1_points
+  const displayP2Points = showFreshWeek ? 0 : P2_points
 
   // Detect XP gain and show floating feedback
   useEffect(() => {
@@ -146,7 +187,16 @@ export default function WeeklyProgressGraph({
     prevTotalPointsRef.current = currentTotal
     prevCorePointsRef.current = currentCore
     prevReachPointsRef.current = currentReach
-  }, [totalPoints, P1_points, P2_points])
+
+    // Notify parent of XP update with breakdown
+    if (onXPUpdate) {
+      onXPUpdate({
+        total: currentTotal,
+        core: currentCore,
+        reach: currentReach,
+      })
+    }
+  }, [totalPoints, P1_points, P2_points, onXPUpdate])
 
   return (
     <div
@@ -155,70 +205,86 @@ export default function WeeklyProgressGraph({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        padding: "10px 16px",
+        padding: "10px 16px 16px 16px",
         boxSizing: "border-box",
         position: "relative",
         isolation: "isolate",
       }}
     >
-      {/* Stats - Absolute positioned left */}
-      <div style={{ position: "absolute", left: 16 }}>
-        <IntegratedStats
-          coreWeekly={P1_done}
-          coreWeeklyTotal={P1_total}
-          corePoints={P1_points.toFixed(1)}
-          reachWeekly={P2_done}
-          reachPoints={P2_points.toFixed(1)}
-          totalPoints={totalPoints.toFixed(1)}
-          weeklyP1Percent={weeklyP1Percent}
+      {/* Detailed Stats - Absolute positioned left */}
+      <div style={{ position: "absolute", left: 16, zIndex: 1 }}>
+        <DetailedStats
+          coreWeekly={displayP1Done}
+          coreWeeklyTotal={showFreshWeek ? 0 : P1_total}
+          corePoints={displayP1Points.toFixed(1)}
+          reachWeekly={displayP2Done}
+          reachPoints={displayP2Points.toFixed(1)}
         />
       </div>
-
       {/* Ring Graph - True center */}
-      <RingProgressGraph
-        dailyP1={dailyP1Percent} // INNER RING
-        weeklyP1={weeklyP1Percent} // OUTER RING
-        p2Count={P2_done} // P2 diamonds
-        weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
-      />
-
-      {/* Floating +XP Feedback */}
+      <div style={{ position: "relative", zIndex: 2 }}>
+        <RingProgressGraph
+          dailyP1={displayDailyP1} // INNER RING
+          weeklyP1={displayWeeklyP1} // OUTER RING
+          p2Count={displayP2Done} // P2 diamonds
+          weeklyPaceMarker={idealP1PercentByToday} // PACE MARKER
+          isLockedIn={isLockedIn}
+          animatingLockIn={animatingLockIn}
+          onAnimationComplete={() => {
+            setAnimatingLockIn(false)
+            setIsLockedIn(false)
+          }}
+          onXPBarDelayCalculated={setXpBarTiming}
+        />
+      </div>
+      {/* Vertical XP Bar - Absolute positioned right */}
+      <div style={{ position: "absolute", right: 16, zIndex: 1 }}>
+        <VerticalXPBar
+          coreXP={lifetimeXP + parseFloat(displayP1Points.toFixed(1))}
+          reachXP={lifetimeXP + parseFloat((displayP1Points + displayP2Points).toFixed(1))}
+          animatingLockIn={animatingLockIn}
+          isLockedIn={isLockedIn}
+          animationDelay={xpBarTiming.delay}
+          animationDuration={xpBarTiming.duration}
+        />
+      </div>
+      {/* Lock In Test Button for Admins */}
+      {/* Button removed; now controlled via menu in DailyViewPage */}
+      {/* Floating +XP Feedback - positioned next to Core or Reach stats */}
       <AnimatePresence>
         {floatingXP && (
           <motion.div
             key={floatingXP.id}
-            initial={{ opacity: 0, x: -20, y: -20, scale: 0.8 }}
+            initial={{ opacity: 0, x: 0, scale: 0.8 }}
             animate={{
               opacity: 1,
-              x: -20,
-              y: -35,
+              x: 3,
+              y: -10,
               scale: 1,
               transition: { duration: 0.3, ease: "easeOut" },
             }}
             exit={{
               opacity: 0,
-              x: -20,
-              y: -50,
+              y: -25,
               scale: 0.8,
               transition: { duration: 1, ease: "easeOut" },
             }}
             style={{
               position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              fontSize: 13,
+              left: 85, // Right after "+X XP" text (stats at 16px + padding 8px + text ~60px)
+              top: floatingXP.color === theme.colors.coreColor ? 91 : 165, // Align with Core or Reach "+X XP" line
+              fontSize: 12,
               fontWeight: 600,
               color: floatingXP.color,
               pointerEvents: "none",
               textShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              whiteSpace: "nowrap",
             }}
           >
-            +{floatingXP.amount} XP
+            +{floatingXP.amount}
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Right space reserved for future content */}
     </div>
   )

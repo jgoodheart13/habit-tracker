@@ -20,10 +20,9 @@ export function AuthenticationWrapper({ children }) {
             setTokenReady(true)
           }
         } catch (err) {
-          console.error("Error getting Supabase token:", err)
+          console.error("[AuthWrapper] Error getting Supabase token:", err)
         }
       } else {
-        // Clear token if not authenticated
         setTokenReady(false)
       }
     }

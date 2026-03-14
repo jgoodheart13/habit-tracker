@@ -61,8 +61,6 @@ export default function AuthCallbackPage() {
         }
 
         if (session) {
-          console.log('Authentication successful! User:', session.user.email);
-          
           // Small delay to ensure auth context updates
           setTimeout(() => {
             // Redirect to home page
