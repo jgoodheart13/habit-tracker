@@ -70,6 +70,57 @@ All popup modals must follow the `HabitModal` pattern for mobile consistency:
 ## Help Page Rule
 **Before completing any feature or user-facing change, check whether it should be documented in `src/pages/HelpPage.js`.** If the change affects how a user interacts with the app (new UI, new toggle, new behavior), add or update the relevant section in HelpPage. This is a standing requirement — do not skip it.
 
+## Week Lock-In System — Business Rules
+
+These rules are canonical. Do not change the lock-in behavior without explicit discussion.
+
+### Eligibility
+A week requires lock-in if **all** of these are true:
+- The week has **fully elapsed** (week start < current week start in UTC)
+- The week started **on or after `XP_EPOCH` (2026-03-08)**
+- The user had **at least one habit completion** during that week
+- The week is after the user's `lastLockedWeek` (or after epoch if `lastLockedWeek` is null)
+
+New users with no completions are never prompted. Users with completions only before the epoch are never prompted.
+
+### One Pending Week at a Time
+There is always **at most one pending week** — the single most-recent fully-elapsed week (after `lastLockedWeek` and after epoch) that has ≥1 completion. The user reviews this week in the lock-in modal before confirming.
+
+### Gap Handling
+All weeks between `lastLockedWeek` and the pending week are **auto-locked at 0 XP** with no user interaction. After the user confirms the pending week, all remaining elapsed weeks between the pending week and the current week are also **auto-locked at 0 XP** in the same server call. After a successful lock, the user is always fully current — no sequential re-check is needed.
+
+### No Lock for Current Week
+The in-progress (current) week is **never** pending. `pendingWeekStart` is always a past week.
+
+### Frontend Flow
+1. `DailyViewPage` mount effect calls `ensureWeekStateFresh()`
+2. If `requiresLock`, navigate to `pendingWeekStart` (not `activeWeekStart`), fetch habits for that week, call `requestLockIn(habits, weekDays)`
+3. After `lockIn()` resolves: animation plays, `refetchUser()` fires, user lands on current week
+4. `actualCurrentWeek` (from `WeekGuardContext`) is used for post-lock navigation
+
+### API Contract
+- `GET /habits/week/state` returns `{ requiresLock, activeWeekStart, pendingWeekStart? }`
+  - `activeWeekStart` is always the true current week
+  - `pendingWeekStart` is the historical week to review (only present when `requiresLock: true`)
+- `POST /habits/week/lock` accepts `{ weekStart, xpEarned }` and:
+  - Auto-locks all gap weeks before **and after** `weekStart` with 0 XP
+  - Returns `{ lockedWeekStart, activeWeekStart, lifetimeXP, level, committed }`
+
+### Cache Invariant
+`weekStateCache` stores `activeWeekStart`. `ensureWeekStateFresh` short-circuits when `cache.activeWeekStart === currentWeekStart`. This is safe: after a successful lock the user is fully current, so the short-circuit correctly returns `requiresLock: false`.
+
+## Input Zoom Prevention
+All `<input>` and `<textarea>` elements that accept text must have `fontSize: 16` (or `font-size: 16px` in CSS) at minimum. iOS Safari auto-zooms the viewport when a text input is focused if its font-size is below 16px. Never set a text input's font-size below 16 — use 16 even if the surrounding UI is smaller.
+
+## Architecture Memory Rule
+After completing any architectural decision or significant feature implementation, update `C:\Users\jsped\.claude\projects\c--repos-habit-tracker\memory\architecture_recent_changes.md` with:
+- What was decided and why (the trade-offs considered)
+- Key files changed and their roles
+- Any non-obvious constraints or patterns introduced (e.g. stale closure workarounds, snap logic, dep array requirements)
+- Current status if implementation spans sessions
+
+Also update `MEMORY.md` index if a new memory file is created.
+
 ## Things to Never Do
 - Never force push or run destructive git commands without explicit confirmation
 - Never leave `console.log` or debug statements in committed code

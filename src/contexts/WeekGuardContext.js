@@ -7,27 +7,15 @@ import React, {
   useEffect,
 } from "react"
 import { getWeekStateCache, setWeekStateCache } from "../utils/weekStateCache"
-import { checkWeekRollover, lockWeek } from "../api/weekStateApi"
+import { checkWeekRollover, checkWeekRolloverAdminPreview, lockWeek } from "../api/weekStateApi"
 import { useUserContext } from "./UserContext"
-
-/**
- * Calculate the Monday (start of week) for a given date
- * Reuses the logic from DailyViewPage
- * @param {string} date - ISO date string "YYYY-MM-DD"
- * @returns {string} Monday ISO date "YYYY-MM-DD"
- */
-function getWeekStart(date) {
-  const inputDate = new Date(date)
-  const dayOfWeek = inputDate.getUTCDay()
-  const monday = new Date(inputDate)
-  monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
-  return monday.toISOString().slice(0, 10)
-}
+import { getWeekStart } from "../utils/weekUtils"
 
 const WeekGuardContext = createContext(null)
 
 export function WeekGuardProvider({ children }) {
-  const { refetchUser, user } = useUserContext()
+  const { user } = useUserContext()
+  const weekStartDayRef = useRef("monday")
   const [needsLock, setNeedsLock] = useState(false)
   const [isLockModalOpen, setIsLockModalOpen] = useState(false)
   const [serverPendingInfo, setServerPendingInfo] = useState(null)
@@ -44,6 +32,10 @@ export function WeekGuardProvider({ children }) {
     }
   }, [user?.lastLockedWeek])
 
+  useEffect(() => {
+    weekStartDayRef.current = user?.preferences?.weekStartDay ?? "monday"
+  }, [user?.preferences?.weekStartDay])
+
   // Promise resolution for requestLockIn()
   const pendingResolveRef = useRef(null)
   const pendingRejectRef = useRef(null)
@@ -52,15 +44,15 @@ export function WeekGuardProvider({ children }) {
    * Ensure week state is fresh - short-circuit if cache matches current week
    * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart?, totals? }
    */
-  const ensureWeekStateFresh = useCallback(async () => {
-    const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10))
+  const ensureWeekStateFresh = useCallback(async (adminPreview = false) => {
+    const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10), weekStartDayRef.current)
     const cache = getWeekStateCache()
 
     // Normalize cached value to date-only (remove time component if present)
     const cachedWeekStart = cache?.activeWeekStart?.slice(0, 10)
 
     // Short-circuit: cache matches current week, no server call needed
-    if (cachedWeekStart === currentWeekStart) {
+    if (!adminPreview && cachedWeekStart === currentWeekStart) {
       return {
         requiresLock: false,
         activeWeekStart: cachedWeekStart,
@@ -68,7 +60,7 @@ export function WeekGuardProvider({ children }) {
     }
 
     try {
-      const result = await checkWeekRollover()
+      const result = await (adminPreview ? checkWeekRolloverAdminPreview() : checkWeekRollover())
 
       // Update cache with server's activeWeekStart
       if (result.activeWeekStart) {
@@ -154,21 +146,15 @@ export function WeekGuardProvider({ children }) {
         setLastLockedWeekStart(result.lockedWeekStart)
       }
 
-      // Clear lock state and trigger animation BEFORE refreshing user so that VerticalXPBar
-      // animates from the pre-lock lifetimeXP baseline up to coreXP (this week's earned points).
-      // refetchUser is deferred — DailyViewPage calls it again after the animation completes.
+      // Clear lock state and trigger animation. DailyViewPage calls refetchUser after the
+      // animation completes — do NOT call it here, as it can race with the animation setup
+      // and cause VerticalXPBar to start from the wrong (post-lock) lifetimeXP baseline.
       setNeedsLock(false)
       setServerPendingInfo(null)
       setPendingWeekStart(null)
       setActualCurrentWeek(null)
       setIsLockModalOpen(false)
       setLockCount((c) => c + 1)
-
-      // Fire refetch in background so lifetimeXP updates eventually; the animation guard in
-      // VerticalXPBar prevents this from interrupting a running animation.
-      if (refetchUser) {
-        refetchUser()
-      }
 
       // Resolve pending promise
       if (pendingResolveRef.current) {
@@ -188,7 +174,7 @@ export function WeekGuardProvider({ children }) {
 
       throw error
     }
-  }, [pendingWeekStart, serverPendingInfo, refetchUser])
+  }, [pendingWeekStart, serverPendingInfo])
 
   /**
    * Start review mode - closes modal without rejecting, allows user to review week

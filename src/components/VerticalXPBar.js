@@ -116,8 +116,13 @@ export default function VerticalXPBar({
   useEffect(() => {
     if (!animatingLockIn || prefersReducedMotion) return
 
-    // Guard: if animation already running, ignore prop changes (e.g. lifetimeXP updating
-    // mid-animation from the background refetchUser call in WeekGuardContext)
+    // Wait for RingProgressGraph to fire onXPBarDelayCalculated before starting.
+    // xpBarTiming initialises as { delay: 0, duration: 0 } and is updated ~50ms after
+    // animatingLockIn becomes true (inside RingProgressGraph's setTimeout). Without this
+    // guard the animation runs instantly (segmentDuration = 0) and jumps to the final state.
+    if (animationDuration <= 0) return
+
+    // Guard: if animation already running, ignore re-triggers from prop changes
     if (animationRunningRef.current) return
     animationRunningRef.current = true
 

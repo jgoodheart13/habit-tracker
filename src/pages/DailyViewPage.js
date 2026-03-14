@@ -36,6 +36,7 @@ import Header from "../components/Header"
 import Footer from "../components/Footer"
 import { useWeekGuard } from "../contexts/WeekGuardContext"
 import { useWeekGuardOnFocus } from "../hooks/useWeekGuardOnFocus"
+import { getWeekStart, getWeekRange } from "../utils/weekUtils"
 
 export default function DailyViewPage() {
   // Supabase authentication status
@@ -44,11 +45,14 @@ export default function DailyViewPage() {
   // Enriched user context
   const { user, refetchUser } =
     require("../contexts/UserContext").useUserContext()
+  const weekStartDay = user?.preferences?.weekStartDay ?? "monday"
   // Lock/reset state for WeeklyProgressGraph
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
   // After lock animation completes, show a zeroed "fresh week" state until user navigates away
   const [showFreshWeek, setShowFreshWeek] = useState(false)
+  // Tracks whether an admin preview lock was performed this session (controls button toggle)
+  const [adminPreviewLocked, setAdminPreviewLocked] = useState(false)
 
   // Week guard for rollover protection
   const {
@@ -58,7 +62,6 @@ export default function DailyViewPage() {
     actualCurrentWeek,
     isReviewingPendingWeek,
     finishReview,
-    lastLockedWeekStart,
     clearLastLockedWeek,
     lockCount,
   } = useWeekGuard()
@@ -91,14 +94,14 @@ export default function DailyViewPage() {
     async function checkWeekLockOnMount() {
       if (isAuthenticated && tokenReady && !isReviewingPendingWeek) {
         try {
-          const { requiresLock, activeWeekStart } = await ensureWeekStateFresh()
+          const { requiresLock, pendingWeekStart: serverPendingWeek } = await ensureWeekStateFresh()
 
-          if (requiresLock && activeWeekStart) {
-            const mondayOfFrozenWeek = activeWeekStart
+          if (requiresLock && serverPendingWeek) {
+            const mondayOfFrozenWeek = serverPendingWeek
             setActiveDate(mondayOfFrozenWeek)
 
             try {
-              const pendingWeekRange = getWeekRange(mondayOfFrozenWeek)
+              const pendingWeekRange = getWeekRange(mondayOfFrozenWeek, weekStartDay)
               const pendingHabits = await getHabits(pendingWeekRange.end)
               const pendingWeekDays = Array.from({ length: 7 }, (_, i) => {
                 const d = new Date(pendingWeekRange.start)
@@ -127,6 +130,7 @@ export default function DailyViewPage() {
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
   const sortModeInitialized = React.useRef(false)
+  const weekStartDayInitialized = React.useRef(false)
 
   useEffect(() => {
     if (user && !sortModeInitialized.current) {
@@ -136,6 +140,16 @@ export default function DailyViewPage() {
       }
     }
   }, [user])
+
+  // When weekStartDay changes (after initial load), snap back to today so the
+  // viewed week recalculates correctly under the new boundary definition.
+  useEffect(() => {
+    if (!weekStartDayInitialized.current) {
+      weekStartDayInitialized.current = true
+      return
+    }
+    setActiveDate(new Date().toLocaleDateString("en-CA"))
+  }, [weekStartDay])
 
   const [habits, setHabits] = useState([])
   const [habitsLoading, setHabitsLoading] = useState(true)
@@ -213,7 +227,7 @@ export default function DailyViewPage() {
   }, [activeWeekRange]) // Update weekDays when activeWeekRange changes
 
   useEffect(() => {
-    const newRange = getWeekRange(activeDate)
+    const newRange = getWeekRange(activeDate, weekStartDay)
 
     // Only update if values are actually different
     setActiveWeekRange((prev) => {
@@ -225,16 +239,11 @@ export default function DailyViewPage() {
       // Otherwise return previous (React won't re-render)
       return prev
     })
-  }, [activeDate])
+  }, [activeDate, weekStartDay])
 
-  // Helper function to get week start (Monday)
   const getWeekStartForDate = React.useCallback((dateStr) => {
-    const inputDate = new Date(dateStr)
-    const dayOfWeek = inputDate.getUTCDay()
-    const monday = new Date(inputDate)
-    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
-    return monday.toISOString().slice(0, 10)
-  }, [])
+    return getWeekStart(dateStr, weekStartDay)
+  }, [weekStartDay])
 
   // Determine if current week being viewed is editable
   const isCurrentWeekEditable = React.useMemo(() => {
@@ -286,7 +295,7 @@ export default function DailyViewPage() {
     if (isAuthenticated && tokenReady) {
       // If already reviewing, only re-show modal if operating outside the pending week
       if (isReviewingPendingWeek) {
-        if (getWeekStart(date) !== pendingWeekStart) {
+        if (getWeekStart(date, weekStartDay) !== pendingWeekStart) {
           finishReview()
           return // User will need to re-attempt the operation after locking
         }
@@ -439,7 +448,7 @@ export default function DailyViewPage() {
         if (isAuthenticated && tokenReady) {
           // If already reviewing, only re-show modal if operating outside the pending week
           if (isReviewingPendingWeek) {
-            if (getWeekStart(activeDate) !== pendingWeekStart) {
+            if (getWeekStart(activeDate, weekStartDay) !== pendingWeekStart) {
               finishReview()
               setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
               return // User will need to re-attempt the operation after locking
@@ -499,7 +508,7 @@ export default function DailyViewPage() {
 
     // If reviewing, only trigger lock modal when navigating OUT of the pending week
     if (isReviewingPendingWeek) {
-      const newDateWeekStart = getWeekStart(newDateStr)
+      const newDateWeekStart = getWeekStart(newDateStr, weekStartDay)
       if (newDateWeekStart !== pendingWeekStart) {
         finishReview()
       }
@@ -510,31 +519,10 @@ export default function DailyViewPage() {
     setActiveDate(dateStr)
 
     if (isReviewingPendingWeek) {
-      const newDateWeekStart = getWeekStart(dateStr)
+      const newDateWeekStart = getWeekStart(dateStr, weekStartDay)
       if (newDateWeekStart !== pendingWeekStart) {
         finishReview()
       }
-    }
-  }
-
-  function getWeekStart(dateStr) {
-    const inputDate = new Date(dateStr)
-    const dayOfWeek = inputDate.getUTCDay()
-    const monday = new Date(inputDate)
-    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
-    return monday.toISOString().slice(0, 10)
-  }
-
-  function getWeekRange(date) {
-    const inputDate = new Date(date)
-    const dayOfWeek = inputDate.getUTCDay() // Use UTC to avoid timezone drift
-    const monday = new Date(inputDate)
-    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7)) // Adjust to Monday
-    const sunday = new Date(monday)
-    sunday.setUTCDate(monday.getUTCDate() + 6) // Add 6 days to get Sunday
-    return {
-      start: monday.toISOString().slice(0, 10),
-      end: sunday.toISOString().slice(0, 10),
     }
   }
 
@@ -557,7 +545,7 @@ export default function DailyViewPage() {
       if (isAuthenticated && tokenReady) {
         // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
-          if (getWeekStart(activeDate) !== pendingWeekStart) {
+          if (getWeekStart(activeDate, weekStartDay) !== pendingWeekStart) {
             finishReview()
             return // User will need to re-attempt the operation after locking
           }
@@ -609,7 +597,7 @@ export default function DailyViewPage() {
       if (isAuthenticated && tokenReady) {
         // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
-          if (getWeekStart(activeDate) !== pendingWeekStart) {
+          if (getWeekStart(activeDate, weekStartDay) !== pendingWeekStart) {
             finishReview()
             return // User will need to re-attempt the operation after locking
           }
@@ -804,7 +792,7 @@ export default function DailyViewPage() {
                   paddingRight: searchQuery ? "32px" : "12px",
                   borderRadius: 6,
                   border: `1px solid ${theme.colors.border}`,
-                  fontSize: 15,
+                  fontSize: 16,
                   width: "100%",
                   outline: "none",
                   marginBottom: 8,
@@ -875,7 +863,7 @@ export default function DailyViewPage() {
             background: "#fff",
             borderRadius: 12,
             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-            zIndex: 100,
+            zIndex: 1000,
           }}
         >
           {/* LEFT: Menu Icon */}
@@ -910,7 +898,7 @@ export default function DailyViewPage() {
                   borderRadius: 6,
                   boxShadow: theme.colors.shadow,
                   minWidth: 180,
-                  zIndex: 1001,
+                  zIndex: 1002,
                 }}
               >
                 <button
@@ -942,21 +930,21 @@ export default function DailyViewPage() {
                   <button
                     onClick={async () => {
                       setMenuOpen(false)
-                      const activeWeekIsLocked =
-                        activeWeekRange?.start === lastLockedWeekStart
-                      if (activeWeekIsLocked) {
+                      if (adminPreviewLocked) {
                         // Reset last lock on backend, bust the cache, then re-trigger modal
                         try {
                           await resetXP()
                           await refetchUser()
                           clearWeekStateCache()
                           clearLastLockedWeek()
+                          setAdminPreviewLocked(false)
                           setIsLockedIn(false)
                           setAnimatingLockIn(false)
                           setShowFreshWeek(false)
-                          const result = await ensureWeekStateFresh()
+                          const result = await ensureWeekStateFresh(true)
                           if (result.requiresLock) {
                             await requestLockIn(habits, weekDays)
+                            setAdminPreviewLocked(true)
                           }
                         } catch (err) {
                           console.error("[Admin] Reset lock failed:", err)
@@ -965,9 +953,10 @@ export default function DailyViewPage() {
                         // Bust the cache and let the server determine if a lock is needed
                         try {
                           clearWeekStateCache()
-                          const result = await ensureWeekStateFresh()
+                          const result = await ensureWeekStateFresh(true)
                           if (result.requiresLock) {
                             await requestLockIn(habits, weekDays)
+                            setAdminPreviewLocked(true)
                           }
                         } catch (err) {
                           console.error("[Admin] Week check failed:", err)
@@ -986,27 +975,19 @@ export default function DailyViewPage() {
                       alignItems: "center",
                       gap: 10,
                       color:
-                        activeWeekRange?.start === lastLockedWeekStart
+                        adminPreviewLocked
                           ? "#e05c5c"
                           : theme.colors.coreColor,
                       fontWeight: 700,
                     }}
                   >
                     <FontAwesomeIcon
-                      icon={
-                        activeWeekRange?.start === lastLockedWeekStart
-                          ? faArrowRotateLeft
-                          : faLock
-                      }
+                      icon={adminPreviewLocked ? faArrowRotateLeft : faLock}
                       color={
-                        activeWeekRange?.start === lastLockedWeekStart
-                          ? "#e05c5c"
-                          : theme.colors.coreColor
+                        adminPreviewLocked ? "#e05c5c" : theme.colors.coreColor
                       }
                     />
-                    {activeWeekRange?.start === lastLockedWeekStart
-                      ? "Reset Lock (Admin)"
-                      : "Lock In Week"}
+                    {adminPreviewLocked ? "Reset Lock (Admin)" : "Lock In Week"}
                   </button>
                 )}
               </div>
@@ -1126,7 +1107,7 @@ export default function DailyViewPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 1000,
+              zIndex: 1100,
             }}
             onClick={() =>
               setDeleteConfirmModal({

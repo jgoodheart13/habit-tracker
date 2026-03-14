@@ -8,22 +8,6 @@ import {
   animate,
 } from "framer-motion"
 
-// Per-month icon colors
-const MONTH_COLORS = [
-  "#7EC8E3", // Jan  - ice blue
-  "#F472B6", // Feb  - pink
-  "#4ADE80", // Mar  - green
-  "#C084FC", // Apr  - lavender
-  "#FACC15", // May  - gold
-  "#FB923C", // Jun  - amber
-  "#F87171", // Jul  - coral red
-  "#38BDF8", // Aug  - sky blue
-  "#FB923C", // Sep  - orange (fall)
-  "#A78BFA", // Oct  - violet
-  "#D97706", // Nov  - amber brown
-  "#BAE6FD", // Dec  - light ice blue
-]
-
 // Pure-SVG shapes centered at (0,0), ~±7 unit radius.
 // Using only SVG primitives — no foreignObject, works on every browser / iOS WebKit.
 const MONTH_SHAPES = [
@@ -158,7 +142,7 @@ export default function RingProgressGraph({
   const expandedCenter = expandedSize / 2
 
   const currentMonth = new Date().getMonth()
-  const diamondColor = MONTH_COLORS[currentMonth]
+  const diamondColor = theme.colors.reachColor
 
   const C_outer = 2 * Math.PI * outerR
   const C_inner = 2 * Math.PI * innerR

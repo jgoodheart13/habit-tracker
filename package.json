@@ -1,6 +1,6 @@
 {
   "name": "habit-tracker",
-  "version": "2026.2.20",
+  "version": "2026.3.13",
   "private": true,
   "dependencies": {
     "@fortawesome/free-regular-svg-icons": "^7.1.0",
@@ -22,6 +22,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "version-update": "node scripts/update-version.js",
+    "prestart": "node scripts/update-version.js",
+    "prebuild": "node scripts/update-version.js",
     "start": "react-scripts start",
     "start:local": "env-cmd -f .local.env react-scripts start",
     "build:local": "env-cmd -f .local.env npm run build",
