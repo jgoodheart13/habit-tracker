@@ -9,15 +9,7 @@ import React, {
 import { getWeekStateCache, setWeekStateCache } from "../utils/weekStateCache"
 import { checkWeekRollover, checkWeekRolloverAdminPreview, lockWeek } from "../api/weekStateApi"
 import { useUserContext } from "./UserContext"
-
-function getWeekStart(date, weekStartDay = "monday") {
-  const inputDate = new Date(date)
-  const dayOfWeek = inputDate.getUTCDay()
-  const daysBack = weekStartDay === "sunday" ? dayOfWeek : (dayOfWeek + 6) % 7
-  const start = new Date(inputDate)
-  start.setUTCDate(inputDate.getUTCDate() - daysBack)
-  return start.toISOString().slice(0, 10)
-}
+import { getWeekStart } from "../utils/weekUtils"
 
 const WeekGuardContext = createContext(null)
 

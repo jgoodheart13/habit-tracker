@@ -1,5 +1,6 @@
 import React from "react";
 import theme from "../styles/theme";
+import { weekDayLabel } from "../utils/weekUtils";
 
 export default function WeekDayRow({ weekDays, habit, completed, n, activeDate }) {
   return (
@@ -53,7 +54,7 @@ export default function WeekDayRow({ weekDays, habit, completed, n, activeDate }
             }}
             title={weekDays[idx]}
           >
-            {"SMTWTFS"[new Date(day + "T00:00:00Z").getUTCDay()]}
+            {weekDayLabel(day)}
           </div>
         );
       })}

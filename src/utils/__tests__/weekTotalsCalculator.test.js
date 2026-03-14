@@ -1,7 +1,5 @@
 import { calculateWeekTotals } from "../weekTotalsCalculator"
-
-// BASE_POINTS drives all XP math — keep in sync with habitDefaults.js
-const BASE_POINTS = 1
+import { BASE_POINTS } from "../../constants/habitDefaults"
 
 const WEEK = [
   "2026-03-09",

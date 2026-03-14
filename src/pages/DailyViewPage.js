@@ -36,6 +36,7 @@ import Header from "../components/Header"
 import Footer from "../components/Footer"
 import { useWeekGuard } from "../contexts/WeekGuardContext"
 import { useWeekGuardOnFocus } from "../hooks/useWeekGuardOnFocus"
+import { getWeekStart, getWeekRange } from "../utils/weekUtils"
 
 export default function DailyViewPage() {
   // Supabase authentication status
@@ -100,7 +101,7 @@ export default function DailyViewPage() {
             setActiveDate(mondayOfFrozenWeek)
 
             try {
-              const pendingWeekRange = getWeekRange(mondayOfFrozenWeek)
+              const pendingWeekRange = getWeekRange(mondayOfFrozenWeek, weekStartDay)
               const pendingHabits = await getHabits(pendingWeekRange.end)
               const pendingWeekDays = Array.from({ length: 7 }, (_, i) => {
                 const d = new Date(pendingWeekRange.start)
@@ -226,7 +227,7 @@ export default function DailyViewPage() {
   }, [activeWeekRange]) // Update weekDays when activeWeekRange changes
 
   useEffect(() => {
-    const newRange = getWeekRange(activeDate)
+    const newRange = getWeekRange(activeDate, weekStartDay)
 
     // Only update if values are actually different
     setActiveWeekRange((prev) => {
@@ -241,12 +242,7 @@ export default function DailyViewPage() {
   }, [activeDate, weekStartDay])
 
   const getWeekStartForDate = React.useCallback((dateStr) => {
-    const inputDate = new Date(dateStr)
-    const dayOfWeek = inputDate.getUTCDay()
-    const daysBack = weekStartDay === "sunday" ? dayOfWeek : (dayOfWeek + 6) % 7
-    const start = new Date(inputDate)
-    start.setUTCDate(inputDate.getUTCDate() - daysBack)
-    return start.toISOString().slice(0, 10)
+    return getWeekStart(dateStr, weekStartDay)
   }, [weekStartDay])
 
   // Determine if current week being viewed is editable
@@ -299,7 +295,7 @@ export default function DailyViewPage() {
     if (isAuthenticated && tokenReady) {
       // If already reviewing, only re-show modal if operating outside the pending week
       if (isReviewingPendingWeek) {
-        if (getWeekStart(date) !== pendingWeekStart) {
+        if (getWeekStart(date, weekStartDay) !== pendingWeekStart) {
           finishReview()
           return // User will need to re-attempt the operation after locking
         }
@@ -452,7 +448,7 @@ export default function DailyViewPage() {
         if (isAuthenticated && tokenReady) {
           // If already reviewing, only re-show modal if operating outside the pending week
           if (isReviewingPendingWeek) {
-            if (getWeekStart(activeDate) !== pendingWeekStart) {
+            if (getWeekStart(activeDate, weekStartDay) !== pendingWeekStart) {
               finishReview()
               setDeleteConfirmModal((prev) => ({ ...prev, isDeleting: false }))
               return // User will need to re-attempt the operation after locking
@@ -512,7 +508,7 @@ export default function DailyViewPage() {
 
     // If reviewing, only trigger lock modal when navigating OUT of the pending week
     if (isReviewingPendingWeek) {
-      const newDateWeekStart = getWeekStart(newDateStr)
+      const newDateWeekStart = getWeekStart(newDateStr, weekStartDay)
       if (newDateWeekStart !== pendingWeekStart) {
         finishReview()
       }
@@ -523,30 +519,10 @@ export default function DailyViewPage() {
     setActiveDate(dateStr)
 
     if (isReviewingPendingWeek) {
-      const newDateWeekStart = getWeekStart(dateStr)
+      const newDateWeekStart = getWeekStart(dateStr, weekStartDay)
       if (newDateWeekStart !== pendingWeekStart) {
         finishReview()
       }
-    }
-  }
-
-  function getWeekStart(dateStr) {
-    const inputDate = new Date(dateStr)
-    const dayOfWeek = inputDate.getUTCDay()
-    const daysBack = weekStartDay === "sunday" ? dayOfWeek : (dayOfWeek + 6) % 7
-    const start = new Date(inputDate)
-    start.setUTCDate(inputDate.getUTCDate() - daysBack)
-    return start.toISOString().slice(0, 10)
-  }
-
-  function getWeekRange(date) {
-    const start = getWeekStart(date)
-    const startDate = new Date(start)
-    const endDate = new Date(startDate)
-    endDate.setUTCDate(startDate.getUTCDate() + 6)
-    return {
-      start,
-      end: endDate.toISOString().slice(0, 10),
     }
   }
 
@@ -569,7 +545,7 @@ export default function DailyViewPage() {
       if (isAuthenticated && tokenReady) {
         // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
-          if (getWeekStart(activeDate) !== pendingWeekStart) {
+          if (getWeekStart(activeDate, weekStartDay) !== pendingWeekStart) {
             finishReview()
             return // User will need to re-attempt the operation after locking
           }
@@ -621,7 +597,7 @@ export default function DailyViewPage() {
       if (isAuthenticated && tokenReady) {
         // If already reviewing, only re-show modal if operating outside the pending week
         if (isReviewingPendingWeek) {
-          if (getWeekStart(activeDate) !== pendingWeekStart) {
+          if (getWeekStart(activeDate, weekStartDay) !== pendingWeekStart) {
             finishReview()
             return // User will need to re-attempt the operation after locking
           }
