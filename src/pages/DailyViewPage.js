@@ -104,8 +104,8 @@ export default function DailyViewPage() {
               const pendingWeekRange = getWeekRange(mondayOfFrozenWeek, weekStartDay)
               const pendingHabits = await getHabits(pendingWeekRange.end)
               const pendingWeekDays = Array.from({ length: 7 }, (_, i) => {
-                const d = new Date(pendingWeekRange.start)
-                d.setDate(d.getDate() + i)
+                const d = new Date(pendingWeekRange.start + "T00:00:00Z")
+                d.setUTCDate(d.getUTCDate() + i)
                 return d.toISOString().slice(0, 10)
               })
 
@@ -218,8 +218,8 @@ export default function DailyViewPage() {
   useEffect(() => {
     if (activeWeekRange) {
       const days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(activeWeekRange.start)
-        d.setDate(d.getDate() + i)
+        const d = new Date(activeWeekRange.start + "T00:00:00Z")
+        d.setUTCDate(d.getUTCDate() + i)
         return d.toISOString().slice(0, 10)
       })
       setWeekDays(days)
