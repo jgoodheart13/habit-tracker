@@ -112,6 +112,15 @@ The in-progress (current) week is **never** pending. `pendingWeekStart` is alway
 ## Input Zoom Prevention
 All `<input>` and `<textarea>` elements that accept text must have `fontSize: 16` (or `font-size: 16px` in CSS) at minimum. iOS Safari auto-zooms the viewport when a text input is focused if its font-size is below 16px. Never set a text input's font-size below 16 — use 16 even if the surrounding UI is smaller.
 
+## Architecture Memory Rule
+After completing any architectural decision or significant feature implementation, update `C:\Users\jsped\.claude\projects\c--repos-habit-tracker\memory\architecture_recent_changes.md` with:
+- What was decided and why (the trade-offs considered)
+- Key files changed and their roles
+- Any non-obvious constraints or patterns introduced (e.g. stale closure workarounds, snap logic, dep array requirements)
+- Current status if implementation spans sessions
+
+Also update `MEMORY.md` index if a new memory file is created.
+
 ## Things to Never Do
 - Never force push or run destructive git commands without explicit confirmation
 - Never leave `console.log` or debug statements in committed code

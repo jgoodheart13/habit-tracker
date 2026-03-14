@@ -53,7 +53,7 @@ export default function WeekDayRow({ weekDays, habit, completed, n, activeDate }
             }}
             title={weekDays[idx]}
           >
-            {["M", "T", "W", "T", "F", "S", "S"][idx]}
+            {"SMTWTFS"[new Date(day + "T00:00:00Z").getUTCDay()]}
           </div>
         );
       })}

@@ -10,24 +10,20 @@ import { getWeekStateCache, setWeekStateCache } from "../utils/weekStateCache"
 import { checkWeekRollover, checkWeekRolloverAdminPreview, lockWeek } from "../api/weekStateApi"
 import { useUserContext } from "./UserContext"
 
-/**
- * Calculate the Monday (start of week) for a given date
- * Reuses the logic from DailyViewPage
- * @param {string} date - ISO date string "YYYY-MM-DD"
- * @returns {string} Monday ISO date "YYYY-MM-DD"
- */
-function getWeekStart(date) {
+function getWeekStart(date, weekStartDay = "monday") {
   const inputDate = new Date(date)
   const dayOfWeek = inputDate.getUTCDay()
-  const monday = new Date(inputDate)
-  monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
-  return monday.toISOString().slice(0, 10)
+  const daysBack = weekStartDay === "sunday" ? dayOfWeek : (dayOfWeek + 6) % 7
+  const start = new Date(inputDate)
+  start.setUTCDate(inputDate.getUTCDate() - daysBack)
+  return start.toISOString().slice(0, 10)
 }
 
 const WeekGuardContext = createContext(null)
 
 export function WeekGuardProvider({ children }) {
   const { user } = useUserContext()
+  const weekStartDayRef = useRef("monday")
   const [needsLock, setNeedsLock] = useState(false)
   const [isLockModalOpen, setIsLockModalOpen] = useState(false)
   const [serverPendingInfo, setServerPendingInfo] = useState(null)
@@ -44,6 +40,10 @@ export function WeekGuardProvider({ children }) {
     }
   }, [user?.lastLockedWeek])
 
+  useEffect(() => {
+    weekStartDayRef.current = user?.preferences?.weekStartDay ?? "monday"
+  }, [user?.preferences?.weekStartDay])
+
   // Promise resolution for requestLockIn()
   const pendingResolveRef = useRef(null)
   const pendingRejectRef = useRef(null)
@@ -53,7 +53,7 @@ export function WeekGuardProvider({ children }) {
    * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart?, totals? }
    */
   const ensureWeekStateFresh = useCallback(async (adminPreview = false) => {
-    const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10))
+    const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10), weekStartDayRef.current)
     const cache = getWeekStateCache()
 
     // Normalize cached value to date-only (remove time component if present)

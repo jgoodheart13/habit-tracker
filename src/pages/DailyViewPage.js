@@ -44,6 +44,7 @@ export default function DailyViewPage() {
   // Enriched user context
   const { user, refetchUser } =
     require("../contexts/UserContext").useUserContext()
+  const weekStartDay = user?.preferences?.weekStartDay ?? "monday"
   // Lock/reset state for WeeklyProgressGraph
   const [isLockedIn, setIsLockedIn] = useState(false)
   const [animatingLockIn, setAnimatingLockIn] = useState(false)
@@ -128,6 +129,7 @@ export default function DailyViewPage() {
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
   const sortModeInitialized = React.useRef(false)
+  const weekStartDayInitialized = React.useRef(false)
 
   useEffect(() => {
     if (user && !sortModeInitialized.current) {
@@ -137,6 +139,16 @@ export default function DailyViewPage() {
       }
     }
   }, [user])
+
+  // When weekStartDay changes (after initial load), snap back to today so the
+  // viewed week recalculates correctly under the new boundary definition.
+  useEffect(() => {
+    if (!weekStartDayInitialized.current) {
+      weekStartDayInitialized.current = true
+      return
+    }
+    setActiveDate(new Date().toLocaleDateString("en-CA"))
+  }, [weekStartDay])
 
   const [habits, setHabits] = useState([])
   const [habitsLoading, setHabitsLoading] = useState(true)
@@ -226,16 +238,16 @@ export default function DailyViewPage() {
       // Otherwise return previous (React won't re-render)
       return prev
     })
-  }, [activeDate])
+  }, [activeDate, weekStartDay])
 
-  // Helper function to get week start (Monday)
   const getWeekStartForDate = React.useCallback((dateStr) => {
     const inputDate = new Date(dateStr)
     const dayOfWeek = inputDate.getUTCDay()
-    const monday = new Date(inputDate)
-    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
-    return monday.toISOString().slice(0, 10)
-  }, [])
+    const daysBack = weekStartDay === "sunday" ? dayOfWeek : (dayOfWeek + 6) % 7
+    const start = new Date(inputDate)
+    start.setUTCDate(inputDate.getUTCDate() - daysBack)
+    return start.toISOString().slice(0, 10)
+  }, [weekStartDay])
 
   // Determine if current week being viewed is editable
   const isCurrentWeekEditable = React.useMemo(() => {
@@ -521,21 +533,20 @@ export default function DailyViewPage() {
   function getWeekStart(dateStr) {
     const inputDate = new Date(dateStr)
     const dayOfWeek = inputDate.getUTCDay()
-    const monday = new Date(inputDate)
-    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7))
-    return monday.toISOString().slice(0, 10)
+    const daysBack = weekStartDay === "sunday" ? dayOfWeek : (dayOfWeek + 6) % 7
+    const start = new Date(inputDate)
+    start.setUTCDate(inputDate.getUTCDate() - daysBack)
+    return start.toISOString().slice(0, 10)
   }
 
   function getWeekRange(date) {
-    const inputDate = new Date(date)
-    const dayOfWeek = inputDate.getUTCDay() // Use UTC to avoid timezone drift
-    const monday = new Date(inputDate)
-    monday.setUTCDate(inputDate.getUTCDate() - ((dayOfWeek + 6) % 7)) // Adjust to Monday
-    const sunday = new Date(monday)
-    sunday.setUTCDate(monday.getUTCDate() + 6) // Add 6 days to get Sunday
+    const start = getWeekStart(date)
+    const startDate = new Date(start)
+    const endDate = new Date(startDate)
+    endDate.setUTCDate(startDate.getUTCDate() + 6)
     return {
-      start: monday.toISOString().slice(0, 10),
-      end: sunday.toISOString().slice(0, 10),
+      start,
+      end: endDate.toISOString().slice(0, 10),
     }
   }
 
