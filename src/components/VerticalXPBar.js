@@ -292,7 +292,7 @@ export default function VerticalXPBar({
         {Math.round(displayXpInLevel)} / {xpNeededForLevel}
       </div>
 
-      {/* Level label */}
+      {/* Next level label (goal — top of bar) */}
       <div
         style={{
           fontSize: 11,
@@ -360,7 +360,7 @@ export default function VerticalXPBar({
           marginTop: 4,
         }}
       >
-        Lvl {displayLevel}
+        Lv {displayLevel - 1}
       </div>
     </div>
   )

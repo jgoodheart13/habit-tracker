@@ -6,8 +6,9 @@ import api from "../services/axios";
  * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart? }
  */
 export async function checkWeekRollover() {
+  const clientDate = new Date().toLocaleDateString("en-CA");
   try {
-    const response = await api.get("habits/week/state");
+    const response = await api.get("habits/week/state", { params: { client_date: clientDate } });
     return response.data;
   } catch (error) {
     console.error("Error checking week rollover:", error);

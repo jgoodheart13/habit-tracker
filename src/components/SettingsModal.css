@@ -156,6 +156,66 @@
   pointer-events: none;
 }
 
+.settings-row-lock-icon {
+  width: 13px;
+  height: 13px;
+  margin-left: 5px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+.settings-row-desc--locked {
+  color: #c47f00;
+}
+
+.settings-week-confirm {
+  background: #fff8ec;
+  border: 1px solid #f0c060;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-week-confirm-text {
+  font-size: 13px;
+  color: #7a4f00;
+  line-height: 1.45;
+}
+
+.settings-week-confirm-range {
+  font-weight: 600;
+}
+
+.settings-week-confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.settings-week-confirm-btn {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.settings-week-confirm-btn--cancel {
+  background: #fff;
+  border: 1px solid #d4a017;
+  color: #7a4f00;
+}
+
+.settings-week-confirm-btn--confirm {
+  background: #d4a017;
+  color: #fff;
+}
+
 @media (max-width: 640px) {
   .settings-modal {
     width: 100%;

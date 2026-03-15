@@ -45,7 +45,7 @@ export function WeekGuardProvider({ children }) {
    * @returns {Promise<Object>} { requiresLock, activeWeekStart, pendingWeekStart?, totals? }
    */
   const ensureWeekStateFresh = useCallback(async (adminPreview = false) => {
-    const currentWeekStart = getWeekStart(new Date().toISOString().slice(0, 10), weekStartDayRef.current)
+    const currentWeekStart = getWeekStart(new Date().toLocaleDateString("en-CA"), weekStartDayRef.current)
     const cache = getWeekStateCache()
 
     // Normalize cached value to date-only (remove time component if present)
@@ -132,6 +132,7 @@ export function WeekGuardProvider({ children }) {
       const payload = {
         weekStart: pendingWeekStart,
         xpEarned: totals.totalXP,
+        clientDate: new Date().toLocaleDateString("en-CA"),
       }
 
       const result = await lockWeek(payload)

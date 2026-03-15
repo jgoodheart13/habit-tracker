@@ -76,7 +76,7 @@ These rules are canonical. Do not change the lock-in behavior without explicit d
 
 ### Eligibility
 A week requires lock-in if **all** of these are true:
-- The week has **fully elapsed** (week start < current week start in UTC)
+- The week has **fully elapsed** (week start < current week start in the user's local time)
 - The week started **on or after `XP_EPOCH` (2026-03-08)**
 - The user had **at least one habit completion** during that week
 - The week is after the user's `lastLockedWeek` (or after epoch if `lastLockedWeek` is null)
@@ -98,16 +98,19 @@ The in-progress (current) week is **never** pending. `pendingWeekStart` is alway
 3. After `lockIn()` resolves: animation plays, `refetchUser()` fires, user lands on current week
 4. `actualCurrentWeek` (from `WeekGuardContext`) is used for post-lock navigation
 
+### Timezone Handling
+All week boundary calculations use the **user's local date**, not server UTC. The frontend sends `client_date` (from `new Date().toLocaleDateString("en-CA")`) with every `GET /habits/week/state` call and `clientDate` in every `POST /habits/week/lock` body. The backend uses this as "today" instead of `datetime.utcnow()`. Without it, users in UTC- timezones would be prompted to lock before their local midnight.
+
 ### API Contract
-- `GET /habits/week/state` returns `{ requiresLock, activeWeekStart, pendingWeekStart? }`
-  - `activeWeekStart` is always the true current week
+- `GET /habits/week/state?client_date=YYYY-MM-DD` returns `{ requiresLock, activeWeekStart, pendingWeekStart? }`
+  - `activeWeekStart` is always the true current week (in the user's local time)
   - `pendingWeekStart` is the historical week to review (only present when `requiresLock: true`)
-- `POST /habits/week/lock` accepts `{ weekStart, xpEarned }` and:
+- `POST /habits/week/lock` accepts `{ weekStart, xpEarned, clientDate? }` and:
   - Auto-locks all gap weeks before **and after** `weekStart` with 0 XP
   - Returns `{ lockedWeekStart, activeWeekStart, lifetimeXP, level, committed }`
 
 ### Cache Invariant
-`weekStateCache` stores `activeWeekStart`. `ensureWeekStateFresh` short-circuits when `cache.activeWeekStart === currentWeekStart`. This is safe: after a successful lock the user is fully current, so the short-circuit correctly returns `requiresLock: false`.
+`weekStateCache` stores `activeWeekStart`. `ensureWeekStateFresh` short-circuits when `cache.activeWeekStart === currentWeekStart` (both computed from local date). This is safe: after a successful lock the user is fully current, so the short-circuit correctly returns `requiresLock: false`.
 
 ## Input Zoom Prevention
 All `<input>` and `<textarea>` elements that accept text must have `fontSize: 16` (or `font-size: 16px` in CSS) at minimum. iOS Safari auto-zooms the viewport when a text input is focused if its font-size is below 16px. Never set a text input's font-size below 16 — use 16 even if the surrounding UI is smaller.
