@@ -559,6 +559,10 @@ export default function RingProgressGraph({
                 stopOpacity={0.35}
               />
             </linearGradient>
+
+            <filter id="percentBackdrop" x="-120%" y="-120%" width="340%" height="340%">
+              <feGaussianBlur stdDeviation="5" />
+            </filter>
           </defs>
 
           {/* P2 DIAMONDS ORBITING THE RINGS */}
@@ -629,6 +633,11 @@ export default function RingProgressGraph({
 
               return (
                 <g transform={`translate(${textX}, ${textY}) rotate(90)`}>
+                  <circle
+                    r="13"
+                    fill="rgba(255, 255, 255, 0.8)"
+                    filter="url(#percentBackdrop)"
+                  />
                   <text
                     fill="rgba(0, 0, 0, 0.7)"
                     fontSize="13"
