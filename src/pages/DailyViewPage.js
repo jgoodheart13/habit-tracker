@@ -92,7 +92,7 @@ export default function DailyViewPage() {
   // Check for week lock on mount
   useEffect(() => {
     async function checkWeekLockOnMount() {
-      if (isAuthenticated && tokenReady && !isReviewingPendingWeek) {
+      if (isAuthenticated && tokenReady && user && !isReviewingPendingWeek) {
         try {
           const { requiresLock, pendingWeekStart: serverPendingWeek } = await ensureWeekStateFresh()
 
@@ -126,7 +126,7 @@ export default function DailyViewPage() {
 
     checkWeekLockOnMount()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, tokenReady, isReviewingPendingWeek]) // Re-run if review mode changes
+  }, [isAuthenticated, tokenReady, isReviewingPendingWeek, user?.id]) // Re-run when user loads to prevent weekStartDay racing with default "monday"
 
   const [sortMode, setSortMode] = useState("priority") // 'priority', 'category', 'time', 'unspecified'
   const sortModeInitialized = React.useRef(false)
@@ -251,7 +251,7 @@ export default function DailyViewPage() {
 
     const viewingWeekStart = activeWeekRange.start
     const currentWeekStart = getWeekStartForDate(
-      new Date().toISOString().slice(0, 10),
+      new Date().toLocaleDateString("en-CA"),
     )
 
     if (isReviewingPendingWeek) {
@@ -281,12 +281,12 @@ export default function DailyViewPage() {
       }
     }
 
-    if (isAuthenticated && tokenReady && activeWeekRange?.end) {
+    if (isAuthenticated && tokenReady && user && activeWeekRange?.end) {
       setHabitsLoading(true)
       fetchHabits()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, tokenReady, activeWeekRange])
+  }, [isAuthenticated, tokenReady, user?.id, activeWeekRange])
   // Track the most recent completion request
   const latestRequestRef = React.useRef(0)
 

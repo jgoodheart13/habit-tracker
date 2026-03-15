@@ -19,6 +19,19 @@ export default function LockModal() {
     )
   }, [serverPendingInfo])
 
+  const weekRange = useMemo(() => {
+    if (!serverPendingInfo?.weekDays?.length) return null
+    const fmt = (s) =>
+      new Date(s + "T00:00:00Z").toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    const end = serverPendingInfo.weekDays[6]
+    const year = new Date(end + "T00:00:00Z").getUTCFullYear()
+    return `${fmt(serverPendingInfo.weekDays[0])} – ${fmt(end)}, ${year}`
+  }, [serverPendingInfo])
+
   if (!isLockModalOpen) return null
 
   const handleConfirm = async () => {
@@ -106,13 +119,25 @@ export default function LockModal() {
               style={{
                 fontSize: 12,
                 color: theme.colors.textSecondary,
-                marginBottom: 8,
+                marginBottom: 4,
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
               }}
             >
               Previous Week Summary
             </div>
+            {weekRange && (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: theme.colors.text,
+                  fontWeight: 600,
+                  marginBottom: 12,
+                }}
+              >
+                {weekRange}
+              </div>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: theme.colors.text, fontSize: 14 }}>

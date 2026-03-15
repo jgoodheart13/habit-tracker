@@ -7,6 +7,20 @@ import { DEFAULT_FREQUENCY_TIMES_PER_WEEK } from "../constants/habitDefaults"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTrash, faSun, faMoon } from "@fortawesome/free-solid-svg-icons"
 
+function getRecentCategoryTags() {
+  try {
+    return JSON.parse(localStorage.getItem("recent_category_tags") || "[]")
+  } catch {
+    return []
+  }
+}
+
+function recordRecentCategoryTag(label) {
+  const recent = getRecentCategoryTags().filter((l) => l !== label)
+  recent.unshift(label)
+  localStorage.setItem("recent_category_tags", JSON.stringify(recent.slice(0, 10)))
+}
+
 export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
   const [habit, setHabit] = useState(
     () =>
@@ -121,6 +135,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
       }
       return updatedTags
     })
+    if (selectedTag.type === "category") recordRecentCategoryTag(selectedTag.label)
     setTagInput({ label: "", type: selectedTag.type })
     setTagDropdownOpen(false)
     setShowTagInput(false)
@@ -142,6 +157,7 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
         }
         return updatedTags
       })
+      recordRecentCategoryTag(newTag.label)
       saveTag(newTag).then(() => {
         getTags().then((tags) => setAllTags(Array.isArray(tags) ? tags : []))
       })
@@ -265,6 +281,15 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
             !selectedLabels.has(t.label.toLowerCase()),
         )
   }, [allTags, tagInput, tags])
+
+  const recentSuggestions = React.useMemo(() => {
+    if (isEdit) return []
+    const selectedLabels = new Set((tags?.category || []).map((t) => t.label))
+    return getRecentCategoryTags()
+      .filter((label) => !selectedLabels.has(label))
+      .slice(0, 3)
+      .map((label) => allTags.find((t) => t.type === "category" && t.label === label) || { label, type: "category" })
+  }, [isEdit, tags, allTags])
 
   return (
     <form
@@ -710,6 +735,30 @@ export default function HabitForm({ onAdd, onEdit, existingHabit, onClose }) {
                 ))}
               </div>
             )}
+          </div>
+        )}
+        {/* Recent tag suggestions — add mode only, hidden once search is open */}
+        {!isEdit && !showTagInput && recentSuggestions.length > 0 && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {recentSuggestions.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                onClick={() => handleTagSelect(t)}
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: 12,
+                  border: `1.5px solid ${theme.colors.accent}`,
+                  background: "transparent",
+                  color: theme.colors.accent,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
         )}
         {/* Show assigned tags as labels with remove option */}
