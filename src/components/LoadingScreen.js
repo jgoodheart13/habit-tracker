@@ -1,22 +1,27 @@
 // LoadingScreen.js
 import React from 'react';
+import './LoadingScreen.css';
 
 export default function LoadingScreen() {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      background: '#fff',
-    }}>
+    <div className="loading-screen">
       <img
-        src={process.env.PUBLIC_URL + '/Reach4LogoMock-transparent.png'}
-        alt="Loading..."
-        style={{ width: 120, height: 120, marginBottom: 32 }}
+        src={process.env.PUBLIC_URL + '/Reach4LogoMock-NoLogo-transparent.png'}
+        alt="Reach4"
+        className="loading-logo"
       />
-      <div style={{ fontSize: 22, color: '#888', fontWeight: 500 }}>Loading your habits...</div>
+      <div className="loading-mantra">
+        <span className="loading-mantra-line">Build Your Core</span>
+        <span className="loading-mantra-line">Reach For More</span>
+      </div>
+      <div className="loading-text-row">
+        <span className="loading-label">Loading your habits</span>
+        <div className="loading-dots">
+          <div className="loading-dot" />
+          <div className="loading-dot" />
+          <div className="loading-dot" />
+        </div>
+      </div>
     </div>
   );
 }
